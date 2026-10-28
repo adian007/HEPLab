@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-27",
+  "scope": "Critical software repair and checked T0 numerical Rust engine; no calibrated-detector release claim",
+  "platform": {
+    "python": "3.13.14",
+    "python_host": "Windows",
+    "rust": "1.99.1",
+    "native_host": "Ubuntu via WSL, x86_64-unknown-linux-gnu"
+  },
+  "verification": {
+    "python_regressions": 86,
+    "rust_unit_tests": 9,
+    "compiled_parity": {
+      "status": "passed",
+      "cli_cases": 507,
+      "extension_cases": 507,
+      "extension_workers": 4,
+      "requirements": [
+        "CORE-001",
+        "CORE-002",
+        "CORE-004",
+        "CORE-005",
+        "CORE-006",
+        "CORE-007",
+        "TRANSPORT-001"
+      ],
+      "scope": "analytic numerical core and educational response; no detector calibration claim"
+    },
+    "python_typecheck_source_files": 29,
+    "python_lint": "passed",
+    "python_format": "passed",
+    "rust_clippy": "passed with -D warnings",
+    "wheel": "built; isolated catalog/alias/certification/package-source checks passed",
+    "documentation": {
+      "handbook_pages": 23,
+      "mermaid_blocks_parsed": 53,
+      "markdown_files": 48,
+      "strict_site_build": "passed",
+      "contracts": "four schemas and three examples passed"
+    },
+    "rust_format": "passed for pure crate and Python binding"
+  },
+  "p0_software_fixes": {
+    "BUG-001": {
+      "status": "fixed with scoped regressions",
+      "report": "implementation.md"
+    },
+    "BUG-002": {
+      "status": "fixed with scoped regressions",
+      "report": "implementation.md"
+    },
+    "BUG-003": {
+      "status": "fixed with scoped regressions",
+      "report": "implementation.md"
+    },
+    "BUG-004": {
+      "status": "fixed with scoped regressions",
+      "report": "implementation.md"
+    },
+    "BUG-005": {
+      "status": "fixed with scoped regressions",
+      "report": "implementation.md"
+    },
+    "BUG-006": {
+      "status": "fixed with scoped regressions",
+      "report": "implementation.md"
+    },
+    "BUG-007": {
+      "status": "fixed with scoped regressions",
+      "report": "implementation.md"
+    }
+  },
+  "real_data_smoke": {
+    "record": 30522,
+    "source_events": 100,
+    "certified_events": 100,
+    "selected_pairs": 15,
+    "validation": {
+      "limitations": [
+        "calibration and held-out physics acceptance required"
+      ],
+      "mode": "exploratory",
+      "state": "unvalidated"
+    },
+    "artifact": "artifacts/dimuon-certified-100-current.json",
+    "artifact_sha256": "d4283e223cf6b8f378c2c00832bf2408cd86c7df687557813b71952eb575849c",
+    "certification_sha256": "e63961f7d175746c3d1ba985d293de0a822d041094c7991c41cffa661d982e28",
+    "source_ranges": [
+      {
+        "certification_sha256": "e63961f7d175746c3d1ba985d293de0a822d041094c7991c41cffa661d982e28",
+        "dataset": "Run2016G_DoubleMuon",
+        "declared_checksum": {
+          "algorithm": "adler32",
+          "value": "71602056"
+        },
+        "entry_start": 0,
+        "entry_stop": 100,
+        "integrity": "declared_only",
+        "is_data": true,
+        "manifest_sha256": "d3bb5b7a7d3ae06cb5bbc3e6b3b1eb94396be2e52edbcabe0eb64bc139c01aa8",
+        "reader": "nanoaod-2",
+        "source_id": "98345d1f1a6167fe5be8614beb2ed14158b6171b5e859d0afda6a929bd9f1d69",
+        "uri": "https://opendata.cern.ch/eos/opendata/cms/Run2016G/DoubleMuon/NANOAOD/UL2016_MiniAODv2_NanoAODv9-v2/2430000/05DD095C-F6C3-9A4F-9FB3-348A5A6403D5.root"
+      }
+    ]
+  },
+  "verified_requirement_scope": {
+    "DATA-002": "Exact-range N/M/full offline ROOT regression",
+    "DATA-004": "Certified interval endpoints, missing trigger guards and official 100-event sample",
+    "CORE-001": "Independent Lorentz analytic tests plus compiled/reference corpus",
+    "CORE-002": "Passive rest boost and inverse plus compiled/reference corpus",
+    "CORE-003": "Branch-cut tests; native wrap implementation unit check",
+    "CORE-004": "Canonical Unicode address vectors, order independence and compiled stream equivalence",
+    "CORE-005": "Signed weights, compensated cancellation, flow bins and native equivalence",
+    "CORE-006": "Pure Rust build without Python, invalid JSON/unknown-field/size guards and four-thread PyO3 calls",
+    "CORE-007": "507 CLI and 507 PyO3 comparisons against independent reference and analytic tests",
+    "TRANSPORT-001": "Uniform-field radius/sign/time/zero-field analytic checks and compiled parity",
+    "TRUST-001": "Untracked source mutation, payload integrity and installed-wheel source snapshot",
+    "TRUST-002": "Canonical unsupported-object/nonfinite rejection",
+    "TRUST-003": "Immutable parent, conflict guard and fit child hash regression"
+  },
+  "implemented_but_not_fully_accepted": {
+    "DATA-005": "Atomic commit, concurrent writers and corruption tests; exhaustive crash/power-loss proof remains",
+    "DATA-006": "Chunked ROOT input and output ceilings; measured full-workload RSS remains",
+    "SCHEMA-003": "Legacy native adapters preserve absent measurements; envelope-v2 integration remains",
+    "SCHEMA-004": "Legacy native scalar/jagged fixtures; production envelope-v2 offsets validation remains",
+    "SCHEMA-005": "Recorded HLT retained and explicit policy guarded; versioned menus/prescales remain",
+    "SCHEMA-006": "Generator weights retained; complete general multi-parent graph migration remains",
+    "RESPONSE-003": "T0 addressed positive response and endpoint/reorder checks; calibrated T1 domain remains",
+    "ANA-001": "Validated legacy processor cuts, limits, pairing and invalid measurement checks",
+    "ANA-002": "Weighted accumulators and event-cluster diagonal; distributed reduction remains",
+    "STAT-001": "Truncated Gaussian/uniform normalization and independent integration; broader target models remain",
+    "STAT-002": "Fit diagnostics retained; independent large coverage campaign remains",
+    "STAT-003": "Signed histogram/event-cluster variance; weighted inference not supported and rejected",
+    "STAT-004": "Compatible independent shape covariance implemented; systematic/cross-event covariance remains",
+    "API-001": "Shared catalog and explicit engine API; asynchronous service contracts remain",
+    "API-002": "Current read-only API path/origin guards; future state-changing session design remains"
+  },
+  "remaining_gates": [
+    "Target event-v2/truth migration",
+    "Complete generator/PDF/tune/image integration",
+    "Calibrated detector and material/reconstruction physics",
+    "Held-out physics/systematic coverage and independent review",
+    "Exhaustive cache recovery/offline replay and memory benchmarks",
+    "Native Windows/macOS wheels and full asynchronous run service"
+  ],
+  "physics_validated_requirements": 0,
+  "native_artifact_sha256": {
+    "kernels/physics-core/target/release/heplab-physics": "1eae7179d848e82bc0333801499e5e96bb4d49a437df188c4a88977c8d08db45",
+    "kernels/target/debug/libheplab_kernels.so": "580d8cb1dad7c679b2edfb665ef99cc9f390b96a7c60cdc3aa7cc58b8c30aa41",
+    "kernels/physics-core/Cargo.lock": "9d8c434f7d8a9baf876cebf5b9bb62f935248e6132b81fe067084da3380eaa7c",
+    "kernels/Cargo.lock": "b15aade9c05d20a4e5a26d6a52c85e307b9bd777439f89bf6972db8ffb823e96"
+  }
+}

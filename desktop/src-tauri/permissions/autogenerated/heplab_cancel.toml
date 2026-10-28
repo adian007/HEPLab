@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-heplab-cancel"
+description = "Enables the heplab_cancel command without any pre-configured scope."
+commands.allow = ["heplab_cancel"]
+
+[[permission]]
+identifier = "deny-heplab-cancel"
+description = "Denies the heplab_cancel command without any pre-configured scope."
+commands.deny = ["heplab_cancel"]

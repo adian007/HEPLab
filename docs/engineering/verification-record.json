@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-27",
+  "scope": "Handbook structural checks, proposed interchange contracts and Python numerical reference only",
+  "runtime": {
+    "python": "3.13.14",
+    "platform": "Windows"
+  },
+  "tools": {
+    "pytest": "9.1.1",
+    "ruff": "0.16.1",
+    "mypy": "1.14.1",
+    "jsonschema": "4.26.0",
+    "mkdocs": "1.6.1",
+    "mkdocs-material": "9.8.0"
+  },
+  "checks": [
+    {
+      "command": "python -m pytest tests -q",
+      "result": "passed",
+      "tests": 53
+    },
+    {
+      "command": "python -m pytest tests/test_physics_reference.py tests/test_handbook_contracts.py -q",
+      "result": "passed",
+      "tests": 32,
+      "numerical_tests": 22,
+      "contract_rejection_tests": 10
+    },
+    {
+      "command": "python -m mypy src",
+      "result": "passed",
+      "source_files": 25
+    },
+    {
+      "command": "python -m ruff check src tests tools/check_handbook.py",
+      "result": "passed"
+    },
+    {
+      "command": "python -m ruff format --check src tests",
+      "result": "passed",
+      "files": 34
+    },
+    {
+      "command": "python tools/check_handbook.py",
+      "result": "passed",
+      "handbook_pages": 21,
+      "requirements": 68,
+      "schemas": 4,
+      "examples": 3
+    },
+    {
+      "command": "node tools/check_mermaid.mjs",
+      "result": "passed",
+      "blocks": 50,
+      "markdown_files": 45,
+      "mermaid_version": "12.2.0",
+      "jsdom_version": "26.1.0"
+    },
+    {
+      "command": "python -m mkdocs build --strict --site-dir .cache/handbook-site",
+      "result": "passed"
+    }
+  ],
+  "source_sha256": {
+    "src/heplab/physics/__init__.py": "e69c1ba771c74752318effea583530b7589e6166a3509f7fcbb6412ece2ac58e",
+    "src/heplab/physics/reference.py": "d21e294de677d376e1ff5098d6f9cdebf08ce15320ea53edaf8f956b39b59839",
+    "tests/test_physics_reference.py": "a02fbf91c38737e2c79186c1a7dd776e1f5c28cca4ab015b7db89a5ebfb20417",
+    "tests/test_handbook_contracts.py": "be227e3e35a5ab395f5e67f5c2d05a41d0b081b368214cbc085d6b1d8bb57978",
+    "tools/check_handbook.py": "2b0603ebe63732707c2a13b986f38732640382ef4a7c7e23fd8b80ff1e9e9c9a",
+    "contracts/dataset.schema.json": "400f02415bd92cbed1dd86c3557517ddddd0016df7fcf67333f7440280d310e0",
+    "contracts/detector.schema.json": "41872d942c47e3914740ee574c80a425ed2ca4f76cf1ea94036ab50d5e849711",
+    "contracts/event-chunk.schema.json": "98fffa59ed10f15ffa0569a83da9b5d9cf7d80a077e0a7cfc0540207e10a01b5",
+    "contracts/examples/detector.json": "c3e99334ee40ee8e0b68d06de2f2e007623414da41360c152e58b8806ad52047",
+    "contracts/examples/event-chunk.json": "35ab2806f58d68c8f7d382a8cebe36c4c6203ccc40e6dadfbc1e843bfb100657",
+    "contracts/examples/run-plan.json": "579ba81b17828a989aca76d5045dc9dc5c4decb03b429402dcd092848f53568e",
+    "contracts/run-plan.schema.json": "389d8a8f1e54fb9ddfc6351ee5ee11fa29a5f901b90bf165af97989c10cbdf87"
+  },
+  "excluded_claims": [
+    "No compiled Rust physics engine was implemented or verified by these checks.",
+    "No calibrated detector/material/reconstruction model or physics measurement is validated.",
+    "Known prototype defects remain tracked in 17-delivery-plan.md.",
+    "No external physics reviewer or cross-platform package/reproduction gate is recorded.",
+    "Mermaid parsing checks syntax; it does not establish visual layout or code correspondence."
+  ],
+  "phase": "Historical specification baseline before native implementation",
+  "current_status_record": "implementation-evidence.json"
+}

@@ -1,0 +1,244 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-27",
+  "scope": "CMS display outlines, nominal nonuniform tracker field, numerical tracker transport and certified measured dimuon reference; no full-detector calibration claim",
+  "geometry": {
+    "layers": 7,
+    "vertices": 825728,
+    "bytes": 9908736,
+    "manifest_sha256": "467a7f0e4a284161e8d8816643584a881113ba5bf28f436a3080c3be373cf53f",
+    "source_commit": "42b7d687344877f25213ec7650fc58148e87af2e",
+    "transport_compatible": false
+  },
+  "field": {
+    "schema": "heplab-cms-field-reference-v1",
+    "model": "cms-oae-1103l-3.8T-tracker-v1",
+    "source": "https://github.com/cms-sw/cmssw/blob/c04fa510bb587b8ee3fa171888468f80de714fa8/MagneticField/ParametrizedEngine/src/BCyl.h",
+    "reference_rows": 1000000,
+    "tracker_rows": 14867,
+    "max_vector_error_t": 1.4163346880217494e-06,
+    "rms_vector_error_t": 4.0386313684308404e-07,
+    "gate_max_vector_error_t": 2e-06,
+    "passed": true,
+    "ideal_3_8t_mean_vector_error_t": 0.04909667649434973,
+    "ideal_3_8t_max_vector_error_t": 0.1552089380293035,
+    "scope": "Implementation regression against CMS software reference; not new measured-data calibration",
+    "full_map_transport": "not enabled: volume navigation and conditions IOV unresolved",
+    "conditions": {
+      "target_data": "Run2016G UL NanoAOD record 30522",
+      "nano_global_tag": "106X_dataRun2_v35",
+      "runs": [
+        278820,
+        280385
+      ],
+      "payload_iov_verified": false
+    },
+    "inventory": [
+      {
+        "url": "https://raw.githubusercontent.com/cms-data/MagneticField-Engine/3be1b543120a90dcbb8c1584da0ba27ca980a24d/Regression/referenceField_160812_RII_3_8T.bin",
+        "file": "referenceField_160812_RII_3_8T.bin",
+        "bytes": 24000000,
+        "sha256": "b785fa7a7a16b9dbbbabaf7751bd64e0cb7a15a0e51fcd9c60aa4263bde90e8b"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/cms-data/MagneticField-Interpolation/3b2fd38885ce884324f14470624dddd335865d0a/grid_160812_3_8t/merged.bin",
+        "file": "merged.bin",
+        "bytes": 76171296,
+        "sha256": "365c55dc50cd7c3c73251ecbfa38e965fb521f486486dd4188b17cc77bb91224"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/cms-data/MagneticField-Interpolation/3b2fd38885ce884324f14470624dddd335865d0a/grid_160812_3_8t/merged.index",
+        "file": "merged.index",
+        "bytes": 299217,
+        "sha256": "c1b8ec07461a59706a6face319b71dcf83d6e5a99ed4f315042c05f1bf1ed68b"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/cms-sw/cmssw/c04fa510bb587b8ee3fa171888468f80de714fa8/MagneticField/GeomBuilder/data/MagneticFieldVolumes_160812_1.xml",
+        "file": "MagneticFieldVolumes_160812_1.xml",
+        "bytes": 454047,
+        "sha256": "ca4bfb64a498c74fe3b5eb7de5f46a2ac605aa6c9f3c8571a644e3b1630600ad"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/cms-sw/cmssw/c04fa510bb587b8ee3fa171888468f80de714fa8/MagneticField/GeomBuilder/data/MagneticFieldVolumes_160812_2.xml",
+        "file": "MagneticFieldVolumes_160812_2.xml",
+        "bytes": 409889,
+        "sha256": "317753ee9a5716637a36e8c5d0a3ae94db5b57f63ab0a1b2ac5c78105e3f5319"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/cms-sw/cmssw/c04fa510bb587b8ee3fa171888468f80de714fa8/MagneticField/Engine/python/volumeBasedMagneticField_160812_cfi.py",
+        "file": "volumeBasedMagneticField_160812_cfi.py",
+        "bytes": 3861,
+        "sha256": "f8fa401f35720412d8d23efb243c1a8f2096eb8a9cf62883e88c8844ef7c0965"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/cms-sw/cmssw/c04fa510bb587b8ee3fa171888468f80de714fa8/MagneticField/ParametrizedEngine/src/BCyl.h",
+        "file": "BCyl.h",
+        "bytes": 2870,
+        "sha256": "dbfff0e66e06c7a5dee547407a12b10a3032e3e673202b4e5012af92caf31567"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/cms-sw/cmssw/c04fa510bb587b8ee3fa171888468f80de714fa8/MagneticField/ParametrizedEngine/src/TkBfield.cc",
+        "file": "TkBfield.cc",
+        "bytes": 2181,
+        "sha256": "40aaf146ed50714941afcdd91fa3f39baa5050ba4049629e8f428a165fd415ee"
+      }
+    ]
+  },
+  "measured_reference": {
+    "schema": "heplab-measured-cms-reference-v1",
+    "data_source": {
+      "url": "https://opendata.cern.ch/eos/opendata/cms/Run2016G/DoubleMuon/NANOAOD/UL2016_MiniAODv2_NanoAODv9-v2/2430000/05DD095C-F6C3-9A4F-9FB3-348A5A6403D5.root",
+      "entry_start": 0,
+      "entry_stop": 100000,
+      "branches": [
+        "run",
+        "luminosityBlock",
+        "event",
+        "Muon_pt",
+        "Muon_eta",
+        "Muon_phi",
+        "Muon_mass",
+        "Muon_charge",
+        "Muon_tightId",
+        "Muon_pfRelIso04_all",
+        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ",
+        "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ"
+      ],
+      "source_size_bytes": 2155974646,
+      "declared_adler32": "71602056",
+      "record": 30522,
+      "integrity": "range only; full source checksum not verified",
+      "manifest_sha256": "d3bb5b7a7d3ae06cb5bbc3e6b3b1eb94396be2e52edbcabe0eb64bc139c01aa8",
+      "derived_file_sha256": "03581363d6f0d9ba4f6f74e784ad96906531ccd07f0fdf45bc3ad1bbb0c50a1c"
+    },
+    "certification_sha256": "e63961f7d175746c3d1ba985d293de0a822d041094c7991c41cffa661d982e28",
+    "cutflow": {
+      "input": 100000,
+      "certified": 100000,
+      "trigger": 31779,
+      "two_selected_muons": 11868,
+      "mass_window": 10863
+    },
+    "split": "SHA256(cms-z-reference-v1:run:lumi:event) first byte parity",
+    "selection": "certified; either named DZ dimuon trigger; tight muons; relIso04<0.15; |eta|<2.4; pT>15, leading>25 GeV; OS highest-sum-pT pair; 60<=mass<120 GeV",
+    "training": {
+      "pairs": 5457,
+      "mean_gev": 90.06292944378406,
+      "quantiles_gev": [
+        86.99806369217782,
+        90.79623753638364,
+        93.46518426671827
+      ]
+    },
+    "heldout": {
+      "pairs": 5406,
+      "mean_gev": 89.967426196597,
+      "quantiles_gev": [
+        86.910500910347,
+        90.68654848389826,
+        93.52274095710588
+      ]
+    },
+    "consistency": {
+      "ks_statistic": 0.02115337406343254,
+      "ks_pvalue": 0.173377900311105,
+      "minimum_pairs_per_split": 1000,
+      "minimum_pvalue": 0.01,
+      "passed": true
+    },
+    "status": "measured_reference_ready",
+    "detector_calibration_status": "blocked: equivalent selected MC and era-matched correction payload required",
+    "limitations": [
+      "First 100k entries of one file; not a luminosity-representative Run2016G sample",
+      "Trigger accepted at event level; no trigger-object matching or efficiency measurement",
+      "Observed Z width includes natural width, FSR, backgrounds and selection",
+      "No Rochester correction applied; no raw-peak-to-PDG scale calibration",
+      "Split consistency cannot validate field/material maps or reconstruction response"
+    ],
+    "selected_pairs_sha256": "d712f1d5be83e28828a107c192539b1e1fdac9392d24ca29114eb5c2170e5fcc"
+  },
+  "rust_independent_verification": {
+    "cms_field_points": 14867,
+    "max_field_vector_error_t": 1.4163346880217494e-06,
+    "field_gate_t": 2e-06,
+    "dop853_transport_cases": 9,
+    "max_position_error_m": 3.243484497621002e-11,
+    "position_gate_m": 2e-09,
+    "max_momentum_error_gev": 3.4060461088534386e-11,
+    "momentum_gate_gev": 2e-09,
+    "passed": true
+  },
+  "compiled_parity": {
+    "status": "passed",
+    "cli_cases": 1141,
+    "extension_cases": 1141,
+    "extension_workers": 4,
+    "requirements": [
+      "CORE-001",
+      "CORE-002",
+      "CORE-004",
+      "CORE-005",
+      "CORE-006",
+      "CORE-007",
+      "TRANSPORT-001"
+    ],
+    "scope": "analytic numerical core and educational response; no detector calibration claim"
+  },
+  "verification": {
+    "python_tests": 129,
+    "rust_unit_tests": 14,
+    "ruff": "passed",
+    "mypy_source_files": 37,
+    "mypy": "passed",
+    "clippy": "passed -D warnings",
+    "rustfmt": "passed",
+    "wheel": "built; isolated layer hashes, field function and report resources checked",
+    "browser": {
+      "status": "passed",
+      "layers": 7,
+      "rust_tracker_crossings": 8,
+      "export": "passed",
+      "immutable_result_dirty_state": "passed",
+      "reference_table": "passed",
+      "mobile_390px_no_horizontal_overflow": true,
+      "console_errors": 0,
+      "console_warnings": 0
+    },
+    "documentation": {
+      "pages": 28,
+      "requirements": 76,
+      "mermaid_blocks": 62,
+      "mermaid_files": 54,
+      "mermaid_failures": 0,
+      "strict_mkdocs": "passed"
+    }
+  },
+  "open_gates": [
+    {
+      "gate": "Full CMS solids and material export",
+      "status": "not_executed",
+      "reason": "CMSSW unavailable; prepared ideal Extended2016 export config requires runtime and completeness audit"
+    },
+    {
+      "gate": "Run2016G conditions compatibility",
+      "status": "unverified",
+      "reason": "Resolve geometry/alignment/field current and payload IOV together; merged-grid compatibility with older CMSSW configuration unverified"
+    },
+    {
+      "gate": "Full material/field transport",
+      "status": "not_implemented",
+      "reason": "No volume-aware merged-grid reader, material navigator or Geant4 equivalence checks yet"
+    },
+    {
+      "gate": "Measured CMS detector calibration",
+      "status": "not_validated",
+      "reason": "Measured target ready; matched selected MC, era-correct correction payload, FSR/background/uncertainty model and independent validation still required"
+    }
+  ],
+  "automatic_approval_rejection": {
+    "action": "Launch Docker Desktop hidden",
+    "reason": "blocked by policy",
+    "workaround_attempted": false
+  },
+  "requirement_status_changes": "None; scoped evidence appended without promoting full requirements or physics_validated status"
+}

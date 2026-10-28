@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.cache/
+site/
+artifacts/
+.mypy_cache/
+.ruff_cache/
+.playwright-cli/
+output/playwright/
+.coverage
+htmlcov/
+
+# HEPLab data plane — never commit event caches or fetched data
+data/
+!src/heplab/data/
+src/heplab/data/*
+!src/heplab/data/reference/
+!src/heplab/data/reference/**
+!src/heplab/data/cms-display/
+!src/heplab/data/cms-display/**
+*.parquet
+*.root
+!tests/golden/*.root
+
+# Rust (kernels/, Tier 1)
+kernels/target/
+Cargo.lock
+!kernels/physics-core/Cargo.lock
+!kernels/Cargo.lock
+
+# Environment / IDE
+.env
+.idea/
+.vscode/
+.DS_Store
+
+# Frontend dependencies and build outputs
+web/node_modules/
+web/dist/
+web/tsconfig.tsbuildinfo

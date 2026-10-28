@@ -1,0 +1,44 @@
+{
+  "protocol": "heplab-desktop-ipc-v1",
+  "max_request_bytes": 65536,
+  "max_response_bytes": 8388608,
+  "max_string_chars": 1024,
+  "handshake_timeout_s": 20,
+  "operations": {
+    "workbench.session": {"args": {}, "timeout_s": 30},
+    "detector.display": {"args": {}, "timeout_s": 15},
+    "jobs.submit": {
+      "args": {
+        "config": {"type": "object"},
+        "idempotency_key": {"type": "id", "optional": true}
+      },
+      "timeout_s": 30
+    },
+    "jobs.get": {"args": {"job_id": {"type": "id"}}, "timeout_s": 15},
+    "jobs.cancel": {"args": {"job_id": {"type": "id"}}, "timeout_s": 15},
+    "jobs.event": {
+      "args": {"job_id": {"type": "id"}, "index": {"type": "integer", "min": 0, "max": 999}},
+      "timeout_s": 120
+    },
+    "project.overview": {"args": {}, "timeout_s": 15},
+    "project.evidence": {"args": {}, "timeout_s": 15},
+    "engine.capabilities": {"args": {}, "timeout_s": 15},
+    "calibration.report": {"args": {}, "timeout_s": 15},
+    "detector.geometry": {"args": {}, "timeout_s": 15},
+    "datasets.list": {"args": {}, "timeout_s": 15},
+    "runs.list": {"args": {}, "timeout_s": 15},
+    "runs.get": {"args": {"run_id": {"type": "id"}}, "timeout_s": 15},
+    "lab.profile": {"args": {"profile": {"type": "path", "access": "read"}}, "timeout_s": 15},
+    "lab.replay": {
+      "args": {
+        "profile": {"type": "path", "access": "read"},
+        "raw": {"type": "path", "access": "read"},
+        "output": {"type": "path", "access": "create"},
+        "offsets": {"type": "path", "access": "read", "optional": true},
+        "window_ns": {"type": "number", "min": 0.001, "max": 1000000000, "optional": true},
+        "trigger_source": {"type": "id", "optional": true}
+      },
+      "timeout_s": 600
+    }
+  }
+}

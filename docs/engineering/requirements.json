@@ -1,0 +1,1071 @@
+{
+  "schema_version": 1,
+  "baseline_date": "2026-10-27",
+  "meaning": "Target requirements; status is not inferred from documentation or test names.",
+  "requirements": [
+    {
+      "id": "DATA-001",
+      "title": "Frozen dataset identity",
+      "document": "02-data-supply.md",
+      "verification": "A source checksum or file index update changes plan/cache identity.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "DATA-002",
+      "title": "Exact source coverage",
+      "document": "02-data-supply.md",
+      "verification": "N-event and M-event/full requests have distinct identities; incomplete coverage is rejected.",
+      "status": "verified",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Exact-range N/M/full offline ROOT regression"
+        }
+      ]
+    },
+    {
+      "id": "DATA-003",
+      "title": "Honest integrity state",
+      "document": "02-data-supply.md",
+      "verification": "Full-download checksum verification is distinguished from a projected range read.",
+      "status": "specified",
+      "evidence": [
+        {
+          "record": "cms-conditions-evidence.json",
+          "scope": "100k-entry projected source read explicitly records partial integrity and derived local SHA256; whole source checksum is not claimed."
+        }
+      ]
+    },
+    {
+      "id": "DATA-004",
+      "title": "Certified collision selection",
+      "document": "02-data-supply.md",
+      "verification": "Known lumi interval endpoints pass; bad/unknown lumi intervals do not.",
+      "status": "verified",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Certified interval endpoints, missing trigger guards and official 100-event sample"
+        },
+        {
+          "record": "cms-conditions-evidence.json",
+          "scope": "100,000 real Run2016G events processed with frozen certification and explicit triggers; 10,863 selected dimuon candidates."
+        }
+      ]
+    },
+    {
+      "id": "DATA-005",
+      "title": "Atomic cache publication",
+      "document": "02-data-supply.md",
+      "verification": "Fault injection at each commit boundary cannot expose incomplete chunks.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Atomic commit, concurrent writers and corruption tests; exhaustive crash/power-loss proof remains"
+        }
+      ]
+    },
+    {
+      "id": "DATA-006",
+      "title": "Bounded remote reading",
+      "document": "02-data-supply.md",
+      "verification": "Fixed chunk/worker peak memory is independent of total event count.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Chunked ROOT input and output ceilings; measured full-workload RSS remains"
+        }
+      ]
+    },
+    {
+      "id": "DATA-007",
+      "title": "Reference process applicability",
+      "document": "02-data-supply.md",
+      "verification": "An inclusive Z request rejects unsupported filtered/high-mass MC references.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "SCHEMA-001",
+      "title": "Unit and finite-value enforcement",
+      "document": "03-event-contracts.md",
+      "verification": "Wrong units/nonfinite measured values fail structural or semantic validation.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "SCHEMA-002",
+      "title": "Stable event and object identities",
+      "document": "03-event-contracts.md",
+      "verification": "Chunk reorder preserves source/object IDs and duplicates are detectable.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "SCHEMA-003",
+      "title": "Absent differs from empty or zero",
+      "document": "03-event-contracts.md",
+      "verification": "Missing isolation/pixel-seed/ID has explicit validity and cannot pass a required cut.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Legacy native adapters preserve absent measurements; envelope-v2 integration remains"
+        }
+      ]
+    },
+    {
+      "id": "SCHEMA-004",
+      "title": "Jagged and scalar shape safety",
+      "document": "03-event-contracts.md",
+      "verification": "Mismatched offsets/field lengths reject; scalar MET and empty collections work.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Legacy native scalar/jagged fixtures; production envelope-v2 offsets validation remains"
+        }
+      ]
+    },
+    {
+      "id": "SCHEMA-005",
+      "title": "Recorded and emulated trigger provenance",
+      "document": "03-event-contracts.md",
+      "verification": "Data HLT and simulation trigger definitions are retained separately with validity.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Recorded HLT retained and explicit policy guarded; versioned menus/prescales remain"
+        }
+      ]
+    },
+    {
+      "id": "SCHEMA-006",
+      "title": "Truth graph and signed weight preservation",
+      "document": "03-event-contracts.md",
+      "verification": "Multi-parent truth and negative generator weights survive reader normalization.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Generator weights retained; complete general multi-parent graph migration remains"
+        }
+      ]
+    },
+    {
+      "id": "SCHEMA-007",
+      "title": "Versioned semantic migration",
+      "document": "03-event-contracts.md",
+      "verification": "Unit/meaning changes invalidate old caches and produce explicit migration records.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "CORE-001",
+      "title": "Physical Lorentz vectors",
+      "document": "04-numerical-core.md",
+      "verification": "Independent rest/two-body oracles; invalid/spacelike physical masses reject.",
+      "status": "verified",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Independent Lorentz analytic tests plus compiled/reference corpus"
+        }
+      ]
+    },
+    {
+      "id": "CORE-002",
+      "title": "Lorentz boost invariance",
+      "document": "04-numerical-core.md",
+      "verification": "Zero boost and inverse boosts preserve vectors and invariant mass within tolerance.",
+      "status": "verified",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Passive rest boost and inverse plus compiled/reference corpus"
+        }
+      ]
+    },
+    {
+      "id": "CORE-003",
+      "title": "Canonical angular distances",
+      "document": "04-numerical-core.md",
+      "verification": "Phi branch-cut cases and periodic DeltaR are independently checked.",
+      "status": "verified",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Branch-cut tests; native wrap implementation unit check"
+        }
+      ]
+    },
+    {
+      "id": "CORE-004",
+      "title": "Addressed deterministic randomness",
+      "document": "04-numerical-core.md",
+      "verification": "Fixed vectors match and chunk/order/unrelated-stage changes preserve event draws.",
+      "status": "verified",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Canonical Unicode address vectors, order independence and compiled stream equivalence"
+        }
+      ]
+    },
+    {
+      "id": "CORE-005",
+      "title": "Weighted histogram semantics",
+      "document": "04-numerical-core.md",
+      "verification": "Negative weights, sumw2, exact final edge, flow bins and incompatible merges are checked.",
+      "status": "verified",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Signed weights, compensated cancellation, flow bins and native equivalence"
+        }
+      ]
+    },
+    {
+      "id": "CORE-006",
+      "title": "Explicit Rust errors and safe FFI",
+      "document": "04-numerical-core.md",
+      "verification": "Malformed buffers reject without panic/abort and Rust builds without Python.",
+      "status": "verified",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Pure Rust build without Python, invalid JSON/unknown-field/size guards and four-thread PyO3 calls"
+        }
+      ]
+    },
+    {
+      "id": "CORE-007",
+      "title": "Compiled backend equivalence",
+      "document": "04-numerical-core.md",
+      "verification": "Rust/Python compare to independent analytic cases before benchmark promotion.",
+      "status": "verified",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "507 CLI and 507 PyO3 comparisons against independent reference and analytic tests"
+        },
+        {
+          "record": "cms-conditions-evidence.json",
+          "scope": "CMS tracker field: 14,867 compiled Rust/reference vectors; nine DOP853 trajectory comparisons. General backend requirement status unchanged."
+        }
+      ]
+    },
+    {
+      "id": "GEN-001",
+      "title": "Coherent beam process tune PDF configuration",
+      "document": "05-generation.md",
+      "verification": "Config validation rejects incompatible energy/order/filter settings.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "Registered LO pp DY configuration freezes energy, mass window, tune, internal PDF and decay mode; generalized process validation remains."
+        }
+      ]
+    },
+    {
+      "id": "GEN-002",
+      "title": "Generator normalization ledger",
+      "document": "05-generation.md",
+      "verification": "Signed sums and pre/post-filter cross-section convention produce independent expected yield.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "Signed weights and generator-estimated normalization ledger implemented; independent cross-section/yield validation remains pending."
+        }
+      ]
+    },
+    {
+      "id": "GEN-003",
+      "title": "Generator sharding reproducibility",
+      "document": "05-generation.md",
+      "verification": "Declared fixed build/config/shards reproduce generated event identities.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "Two 100-event fixed-runtime/card/seed serial shards match physical truth and detector content; arbitrary repartitioning is not promised."
+        }
+      ]
+    },
+    {
+      "id": "GEN-004",
+      "title": "Pileup and origin preservation",
+      "document": "05-generation.md",
+      "verification": "No double overlay; vertex/time distributions and hard/pileup IDs are verified.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "GEN-005",
+      "title": "External process lifecycle",
+      "document": "05-generation.md",
+      "verification": "Timeout/cancel/nonzero-exit and missing image fail explicitly with bounded diagnostics.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "Real native timeout/cancellation discard staging; version/hash checks and bounded outputs. Container network isolation is not implemented."
+        }
+      ]
+    },
+    {
+      "id": "TRANSPORT-001",
+      "title": "Analytic uniform-field helix",
+      "document": "06-transport.md",
+      "verification": "Charge/field sign, radius, line limit, norm, step composition and time verified.",
+      "status": "verified",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Uniform-field radius/sign/time/zero-field analytic checks and compiled parity"
+        }
+      ]
+    },
+    {
+      "id": "TRANSPORT-002",
+      "title": "Geometry navigation",
+      "document": "06-transport.md",
+      "verification": "Tangent/on-boundary/thin-layer/zero-step fixtures establish no skipped volume.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "geometry-calibration-evidence.json",
+          "scope": "Analytic finite cylinders/disks, tangencies, zero-root exclusion, finite extents, thin separated surfaces and repeated turns checked in Python/Rust; full volumes/transforms/overlap priorities remain."
+        },
+        {
+          "record": "cms-conditions-evidence.json",
+          "scope": "CMS display outlines remain non-transport assets; 5 mm polyline crossings are display predictions. Full solid/material navigation remains open."
+        }
+      ]
+    },
+    {
+      "id": "TRANSPORT-003",
+      "title": "Adaptive integration convergence",
+      "document": "06-transport.md",
+      "verification": "Tightened tolerances converge against analytic and external field benchmarks.",
+      "status": "specified",
+      "evidence": [
+        {
+          "record": "cms-conditions-evidence.json",
+          "scope": "Bounded fixed-step RK4 plus field-edge step reduction passes independent DOP853 tests; general error-controlled adaptive integration remains specified."
+        }
+      ]
+    },
+    {
+      "id": "TRANSPORT-004",
+      "title": "Material and energy ledger",
+      "document": "06-transport.md",
+      "verification": "Deposits, escaped energy and secondaries balance within specified model boundary.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "Bounded heavy-particle continuous loss, Gaussian scattering and energy ledger verified numerically; secondaries/showers remain absent."
+        },
+        {
+          "record": "geometry-calibration-evidence.json",
+          "scope": "Held-out PDG mean-ionization fit coupled to one slab and continued trajectory with energy ledger; full detector material processes remain."
+        },
+        {
+          "record": "cms-conditions-evidence.json",
+          "scope": "One PDG silicon slab coupled to nonuniform tracker field with energy ledger. Full material-map transport remains absent."
+        }
+      ]
+    },
+    {
+      "id": "TRANSPORT-005",
+      "title": "Proper-time decay law",
+      "document": "06-transport.md",
+      "verification": "Lifetime distribution and two-body conservation verified against independent oracles.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "TRANSPORT-006",
+      "title": "Bounded particle lifecycle",
+      "document": "06-transport.md",
+      "verification": "Step/secondary exhaustion produces explicit incomplete/failure status.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "RESPONSE-001",
+      "title": "Response model domain and calibration",
+      "document": "07-detector-response.md",
+      "verification": "Out-of-domain species/kinematics reject; calibration and validation sets are disjoint.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "Thin-slab and electronics domains reject invalid inputs; held-out detector calibration is not implemented."
+        },
+        {
+          "record": "geometry-calibration-evidence.json",
+          "scope": "Muon/silicon domains, hashed coefficients, separate native seeds and frozen held-out reference gates; experimental calibration remains."
+        },
+        {
+          "record": "cms-conditions-evidence.json",
+          "scope": "Certified measured CMS Z target and frozen identity split available; matched MC, era corrections and uncertainty-based detector calibration remain open."
+        }
+      ]
+    },
+    {
+      "id": "RESPONSE-002",
+      "title": "Correlated positive response model",
+      "document": "07-detector-response.md",
+      "verification": "Covariance invalidity and forbidden momentum states have declared outcomes.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "RESPONSE-003",
+      "title": "Efficiency and correlation reproducibility",
+      "document": "07-detector-response.md",
+      "verification": "Efficiency endpoints and shared nominal/variation random groups are verified.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "T0 addressed positive response and endpoint/reorder checks; calibrated T1 domain remains"
+        },
+        {
+          "record": "geometry-calibration-evidence.json",
+          "scope": "Calibrated positive lognormal scale/resolution and efficiency implemented as separate addressed truth-to-object branch; full correlations remain."
+        }
+      ]
+    },
+    {
+      "id": "RESPONSE-004",
+      "title": "Digitization and energy accounting",
+      "document": "07-detector-response.md",
+      "verification": "Threshold/noise/saturation/time aggregation preserve calibrated channel semantics.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "Addressed noise, inclusive threshold, quantization and saturation implemented; timed hit aggregation/calibration remain absent."
+        }
+      ]
+    },
+    {
+      "id": "RECO-001",
+      "title": "Reconstruction mode truthfulness",
+      "document": "08-reconstruction.md",
+      "verification": "Smearing backend cannot advertise measured hits/native track finding.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "RECO-002",
+      "title": "Deterministic association and overlap",
+      "document": "08-reconstruction.md",
+      "verification": "Crowded/permuted fixtures preserve matching and avoid double-counted energy.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "RECO-003",
+      "title": "Jet definition and MET propagation",
+      "document": "08-reconstruction.md",
+      "verification": "Balanced/missing-particle fixtures and coherent variations reproduce expected MET.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "RECO-004",
+      "title": "Isolation and trigger compatibility",
+      "document": "08-reconstruction.md",
+      "verification": "Unsupported isolation/menu/unknown trigger cannot silently pass selection.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "ANA-001",
+      "title": "Validated candidate selection",
+      "document": "09-analysis.md",
+      "verification": "Same-sign, threshold, multi-candidate and invalid-isolation cases produce expected event counts.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Validated legacy processor cuts, limits, pairing and invalid measurement checks"
+        }
+      ]
+    },
+    {
+      "id": "ANA-002",
+      "title": "Weighted mergeable accumulators",
+      "document": "09-analysis.md",
+      "verification": "Entries/sumw/sumw2 and event/candidate distinction match independently calculated fixtures.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Weighted accumulators and event-cluster diagonal; distributed reduction remains"
+        }
+      ]
+    },
+    {
+      "id": "ANA-003",
+      "title": "Scoped physics portfolio",
+      "document": "09-analysis.md",
+      "verification": "Z/inclusive/diphoton claims require their own triggers/calibrations/acceptance evidence.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "ANA-004",
+      "title": "Bounded truthful event display",
+      "document": "09-analysis.md",
+      "verification": "Origin/units/fidelity visible and display-only truncation cannot alter analysis.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "STAT-001",
+      "title": "Finite-domain normalized likelihood",
+      "document": "10-statistics.md",
+      "verification": "Independent integration equals one over range; near-boundary toys show correct normalization.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Truncated Gaussian/uniform normalization and independent integration; broader target models remain"
+        }
+      ]
+    },
+    {
+      "id": "STAT-002",
+      "title": "Fit diagnostics and coverage",
+      "document": "10-statistics.md",
+      "verification": "Failed minima/covariance flagged; independent toys measure bias/pull/interval coverage.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Fit diagnostics retained; independent large coverage campaign remains"
+        }
+      ]
+    },
+    {
+      "id": "STAT-003",
+      "title": "Signed weights and clustered errors",
+      "document": "10-statistics.md",
+      "verification": "Unsupported weighted likelihood rejects; event-cluster correlation and sumw2 retained.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Signed histogram/event-cluster variance; weighted inference not supported and rejected"
+        }
+      ]
+    },
+    {
+      "id": "STAT-004",
+      "title": "Covariance-aware comparison",
+      "document": "10-statistics.md",
+      "verification": "Zero denominator is undefined; ratio/normalization covariance is tested.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Compatible independent shape covariance implemented; systematic/cross-event covariance remains"
+        }
+      ]
+    },
+    {
+      "id": "STAT-005",
+      "title": "Correlated systematic model",
+      "document": "10-statistics.md",
+      "verification": "Variations migrate selection and shared nuisances are not double counted.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "EXEC-001",
+      "title": "Frozen run plans",
+      "document": "11-execution.md",
+      "verification": "No mutable input/model resolution occurs after plan hashing.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "EXEC-002",
+      "title": "Legal durable run transitions",
+      "document": "11-execution.md",
+      "verification": "Retries/stale leases/cancellation cannot yield double success or duplicate work.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "EXEC-003",
+      "title": "Deterministic complete reduction",
+      "document": "11-execution.md",
+      "verification": "Overlapping/duplicate ranges reject; accepted coverage and numeric reduction match policy.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "EXEC-004",
+      "title": "Explicit resource ceilings",
+      "document": "11-execution.md",
+      "verification": "Object/pair/particle/memory/output limits cause declared failures without silent truncation.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "API-001",
+      "title": "Shared public application services",
+      "document": "12-interfaces.md",
+      "verification": "CLI/notebook/REST use the same contracts and error meanings.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Shared catalog and explicit engine API; asynchronous service contracts remain"
+        },
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "GUI, CLI and reference/Rust public operations share services; full typed run-plan API remains a target."
+        }
+      ]
+    },
+    {
+      "id": "API-002",
+      "title": "Safe local request boundary",
+      "document": "12-interfaces.md",
+      "verification": "Traversal/symlink/untrusted-origin/arbitrary-executable requests reject.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Current read-only API path/origin guards; future state-changing session design remains"
+        },
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "State-changing requests require local host, origin and session token; bounded bodies and fixed configuration reject arbitrary commands."
+        }
+      ]
+    },
+    {
+      "id": "API-003",
+      "title": "Bounded observable asynchronous jobs",
+      "document": "12-interfaces.md",
+      "verification": "Duplicate submit idempotent; status/cancel and paginated payloads honor limits.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "Bounded session jobs, idempotent command keys, status/cancel and selected-event reads; durable restart recovery remains pending."
+        }
+      ]
+    },
+    {
+      "id": "TRUST-001",
+      "title": "Source and output identity",
+      "document": "13-preservation-and-trust.md",
+      "verification": "Dirty/untracked source and payload mutation change recorded hashes.",
+      "status": "verified",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Untracked source mutation, payload integrity and installed-wheel source snapshot"
+        }
+      ]
+    },
+    {
+      "id": "TRUST-002",
+      "title": "Strict canonical hashes",
+      "document": "13-preservation-and-trust.md",
+      "verification": "Unsupported objects/nonfinite numbers reject; canonical fixtures match.",
+      "status": "verified",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Canonical unsupported-object/nonfinite rejection"
+        }
+      ]
+    },
+    {
+      "id": "TRUST-003",
+      "title": "Immutable child artifacts",
+      "document": "13-preservation-and-trust.md",
+      "verification": "Fit/correction creates child referencing unchanged parent content hash.",
+      "status": "verified",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Immutable parent, conflict guard and fit child hash regression"
+        }
+      ]
+    },
+    {
+      "id": "TRUST-004",
+      "title": "Preserved recipes and dependencies",
+      "document": "13-preservation-and-trust.md",
+      "verification": "Clean-machine bundle reproduction includes lockfiles/model inputs/notices.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "TRUST-005",
+      "title": "Scoped license and distribution review",
+      "document": "13-preservation-and-trust.md",
+      "verification": "Each distributed image includes dependency/data terms and required notices.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "QA-001",
+      "title": "Independent numerical and physics oracles",
+      "document": "14-verification.md",
+      "verification": "Critical algorithms have analytic/external checks independent of their implementation.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "QA-002",
+      "title": "Adversarial regression evidence",
+      "document": "14-verification.md",
+      "verification": "Known defects have minimized fixtures; critical-check mutations fail.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "QA-003",
+      "title": "Held-out physics acceptance",
+      "document": "14-verification.md",
+      "verification": "Domain-specific predeclared tolerances and independent review are archived.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "QA-004",
+      "title": "Contract and documentation integrity",
+      "document": "18-requirements.md",
+      "verification": "Handbook checker verifies schemas/examples/links/diagrams/requirement references.",
+      "status": "verified",
+      "evidence": [
+        {
+          "record": "implementation-evidence.json",
+          "scope": "Current strict HTML build, 53 Mermaid blocks, local links and schema/example checks"
+        }
+      ]
+    },
+    {
+      "id": "PERF-001",
+      "title": "Measured bounded memory",
+      "document": "15-performance.md",
+      "verification": "N and 10N workloads at fixed chunk size have a documented peak-memory envelope.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "PERF-002",
+      "title": "Reproducible benchmark disclosure",
+      "document": "15-performance.md",
+      "verification": "Hardware/build/model/hash/variance and numeric agreement accompany every speed claim.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "PERF-003",
+      "title": "Optional accelerator equivalence",
+      "document": "15-performance.md",
+      "verification": "CPU/GPU model normalization/gradient/fit equivalence precedes GPU release.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "GUI-001",
+      "title": "Exact numeric configuration",
+      "document": "gui-design.md",
+      "verification": "Seed, momentum, field, material and electronics values keep units and reject invalid input.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "Local browser/API acceptance; no professional-user usability certification."
+        }
+      ]
+    },
+    {
+      "id": "GUI-002",
+      "title": "Input/result distinction",
+      "document": "gui-design.md",
+      "verification": "Edited inputs require a new run and do not overwrite the committed event.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "Local browser/API acceptance; no professional-user usability certification."
+        },
+        {
+          "record": "cms-conditions-evidence.json",
+          "scope": "Input/result equivalence compares field values independently of JSON key order; exported immutable results remain unchanged by camera/layer edits."
+        }
+      ]
+    },
+    {
+      "id": "GUI-003",
+      "title": "Linked scientific selection",
+      "document": "gui-design.md",
+      "verification": "Tree, viewport and table select the same object ID and inspector properties.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "Local browser/API acceptance; no professional-user usability certification."
+        },
+        {
+          "record": "geometry-calibration-evidence.json",
+          "scope": "Geometry inspector, trajectory/particle selection and predicted-crossing association; native measured hits remain unavailable."
+        }
+      ]
+    },
+    {
+      "id": "GUI-004",
+      "title": "Predictable camera controls",
+      "document": "gui-design.md",
+      "verification": "Projection, orbit, pan, zoom and fit leave exported numerical results unchanged.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "Local browser/API acceptance; no professional-user usability certification."
+        },
+        {
+          "record": "geometry-calibration-evidence.json",
+          "scope": "Geometry region scales, surface visibility, XY/XZ/3D controls and extrapolated paths; numerical data remain independent of the camera."
+        },
+        {
+          "record": "cms-conditions-evidence.json",
+          "scope": "Seven sourced outline layers, deterministic layer order, source inspector, region filtering and viewport controls pass browser checks."
+        }
+      ]
+    },
+    {
+      "id": "GUI-005",
+      "title": "Backend capability coherence",
+      "document": "gui-design.md",
+      "verification": "Analytic models select reference/Rust; collision mode selects native DELPHES and rejects incompatible combinations.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "Local browser/API acceptance; no professional-user usability certification."
+        },
+        {
+          "record": "geometry-calibration-evidence.json",
+          "scope": "Registered backend coherence: Rust navigation for Rust bench; no additional reference smearing on DELPHES events."
+        }
+      ]
+    },
+    {
+      "id": "GUI-006",
+      "title": "Observable job lifecycle",
+      "document": "gui-design.md",
+      "verification": "Run/Stop, status, retained session log and immutable result export reflect actual worker results.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "Local browser/API acceptance; no professional-user usability certification."
+        }
+      ]
+    },
+    {
+      "id": "GUI-007",
+      "title": "Keyboard and resizable workspace",
+      "document": "gui-design.md",
+      "verification": "Numeric fields, tabs, selectors, splitters and commands support keyboard interaction; expert usability review remains pending.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "Local browser/API acceptance; no professional-user usability certification."
+        }
+      ]
+    },
+    {
+      "id": "GUI-008",
+      "title": "Bounded event inspection",
+      "document": "gui-design.md",
+      "verification": "One selected event is loaded from committed ROOT with checked indices; invalid event ranges reject.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "simulation-gui-evidence.json",
+          "scope": "Local browser/API acceptance; no professional-user usability certification."
+        },
+        {
+          "record": "geometry-calibration-evidence.json",
+          "scope": "Bounded selected-event ROOT reads now include predicted field-aware trajectories and sourced geometry."
+        }
+      ]
+    },
+    {
+      "id": "LAB-001",
+      "title": "Identified detector profile",
+      "document": "completion-plan.md",
+      "verification": "Device type, active dimensions, materials, channel map and readout are documented with serial and source identity; unknown values cannot become defaults.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "laboratory-replay-evidence.json",
+          "scope": "Profile states, source requirement, identified-status and control gates; user's equipment recorded as unidentified intake profile"
+        }
+      ]
+    },
+    {
+      "id": "LAB-002",
+      "title": "Loss-accounted raw-data ingestion",
+      "document": "completion-plan.md",
+      "verification": "Golden DAQ files preserve raw hashes, decode counters, invalid records, overflow, resets and dropped-event accounting.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "laboratory-replay-evidence.json",
+          "scope": "Byte/record loss ledger and raw-hash immutability on the synthetic test format only; real decoder and golden files need the device specification and a recorded sample"
+        }
+      ]
+    },
+    {
+      "id": "LAB-003",
+      "title": "Clock and channel calibration",
+      "document": "completion-plan.md",
+      "verification": "Known timing fixtures establish units, rollover, channel offsets and valid synchronization intervals.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "laboratory-replay-evidence.json",
+          "scope": "Rollover/epoch unwrap and profile-bound channel offsets; deriving offsets from known timing fixtures is not implemented"
+        }
+      ]
+    },
+    {
+      "id": "LAB-004",
+      "title": "Independent efficiency denominator",
+      "document": "completion-plan.md",
+      "verification": "Efficiency is measured only against independent tracks/triggers with active-area and live-time selection; self-trigger-only files reject an absolute efficiency claim.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "laboratory-replay-evidence.json",
+          "scope": "Independent-trigger denominator guard with dead-time exclusion; active-area selection needs external tracks"
+        }
+      ]
+    },
+    {
+      "id": "LAB-005",
+      "title": "Held-out device response",
+      "document": "completion-plan.md",
+      "verification": "Calibration runs and validation runs are disjoint; timing, noise, cluster and efficiency gates pass within a documented device domain.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "LAB-006",
+      "title": "Cosmic-source applicability",
+      "document": "completion-plan.md",
+      "verification": "Cosmic angular/energy source, acceptance, overburden and live-time normalization are independently checked; collider samples cannot masquerade as laboratory flux.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "LAB-007",
+      "title": "Hardware replay and control boundary",
+      "document": "completion-plan.md",
+      "verification": "Recorded-data replay works without hardware; control adapters require identified devices, explicit command schema and operator-approved operating limits.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "laboratory-replay-evidence.json",
+          "scope": "Replay without hardware; control refused without identification, operator and approved limits; no control adapter exists"
+        }
+      ]
+    },
+    {
+      "id": "LAB-008",
+      "title": "Experimental run preservation",
+      "document": "completion-plan.md",
+      "verification": "Run configuration, environment, masks, calibration identities, hardware versions and result lineage can be replayed and audited.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "laboratory-replay-evidence.json",
+          "scope": "Run record with raw, profile, config, calibration and source-tree identities; conditions and masks not yet captured by the CLI"
+        }
+      ]
+    },
+    {
+      "id": "DESKTOP-001",
+      "title": "Four native platform targets",
+      "document": "completion-plan.md",
+      "verification": "Install and run Windows x86-64, Linux x86-64, Intel macOS x86-64 and Apple silicon arm64 artifacts on matching native runners.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "DESKTOP-002",
+      "title": "Packaged worker independence",
+      "document": "completion-plan.md",
+      "verification": "App starts without system Python; only bundled version-checked workers launch and terminate with the app.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "desktop-evidence.json",
+          "scope": "Frozen worker starts without system Python on Windows and Linux x86-64; strict version/protocol/operation handshake; only the sidecar next to the shell executable is launched; the whole worker tree is killed on shutdown, cancellation, timeout and protocol errors, and with the app on Windows via Job Object. macOS pending CI"
+        }
+      ]
+    },
+    {
+      "id": "DESKTOP-003",
+      "title": "Bounded desktop IPC",
+      "document": "completion-plan.md",
+      "verification": "Unknown commands, malformed messages, shell injection, excessive payloads and unauthorized paths reject; cancellation and crash recovery pass.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "record": "desktop-evidence.json",
+          "scope": "Unknown commands, malformed messages, shell-style arguments, oversized requests/responses and path escapes reject in shell core and worker, including from the live Windows webview; Tauri permission check refuses unlisted commands; cancellation, grandchild cleanup and crash restart tested"
+        }
+      ]
+    },
+    {
+      "id": "DESKTOP-004",
+      "title": "Cross-architecture numerical fixtures",
+      "document": "completion-plan.md",
+      "verification": "Fixed physical/numerical fixtures pass on every release architecture within predeclared floating-point tolerances.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "DESKTOP-005",
+      "title": "Signed distributable lifecycle",
+      "document": "completion-plan.md",
+      "verification": "Installer, update, uninstall, macOS signing/notarization and package identity checks pass on supported OS baselines.",
+      "status": "specified",
+      "evidence": []
+    },
+    {
+      "id": "DESKTOP-006",
+      "title": "Optional CMS runtime capability",
+      "document": "completion-plan.md",
+      "verification": "Missing Linux CMS worker disables only its capabilities; local Rust simulation and recorded-data replay remain functional without Docker.",
+      "status": "specified",
+      "evidence": []
+    }
+  ]
+}

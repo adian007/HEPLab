@@ -1,0 +1,9 @@
+name: heplab-sim
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - delphes=3.5.1
+  - pythia8=8.312
+  - root_base=6.40.04
+  - hepmc3=3.3.1

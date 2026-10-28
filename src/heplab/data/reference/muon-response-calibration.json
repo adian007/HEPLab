@@ -1,0 +1,152 @@
+{
+  "id": "delphes-dy-muon-transfer-v1",
+  "reference": "PYTHIA8 8.312 / DELPHES 3.5.1 fixed CMS card",
+  "domain": {
+    "pt_gev": [
+      5,
+      200
+    ],
+    "abs_eta": [
+      0,
+      2.4
+    ],
+    "process": "pp gamma*/Z to mumu 60\u2013120 GeV, no pileup"
+  },
+  "matching": {
+    "max_delta_r": 0.05,
+    "charge_aware": true,
+    "one_to_one": true
+  },
+  "training_sha256": "048f27bb8caa388efb665c1d207cea68940b5f256dcd1d2b252523202ed46394",
+  "heldout_sha256": "255e9ca3075455bd5e83b6fe0384b4dc421631aea1efeef5c4d4a8dcfc4fa6c5",
+  "split": {
+    "training_seed": 1701,
+    "heldout_seed": 2903,
+    "training_events": 1000,
+    "heldout_events": 1000
+  },
+  "gates": {
+    "min_training_matches": 100,
+    "min_validation_matches": 100,
+    "max_abs_log_bias_difference": 0.01,
+    "width_ratio_range": [
+      0.6,
+      1.4
+    ],
+    "max_efficiency_pull": 3.5
+  },
+  "bins": [
+    {
+      "eta_abs": [
+        0,
+        0.9
+      ],
+      "training": {
+        "denominator": 496,
+        "matched": 422,
+        "efficiency": 0.8508064516129032,
+        "log_bias": -0.00011532886944183632,
+        "log_width": 0.014074898120714939,
+        "log_bias_standard_error": 0.0006851553203860634,
+        "efficiency_wilson_95": [
+          0.8167606108907652,
+          0.8794601484297146
+        ],
+        "fraction_beyond_three_sigma": 0.004739336492890996
+      },
+      "heldout": {
+        "denominator": 468,
+        "matched": 393,
+        "efficiency": 0.8397435897435898,
+        "log_bias": -4.6177275234708e-06,
+        "log_width": 0.01321876997863723,
+        "log_bias_standard_error": 0.000666798739617528,
+        "efficiency_wilson_95": [
+          0.8037619905235557,
+          0.8701931994141817
+        ],
+        "fraction_beyond_three_sigma": 0.010178117048346057
+      },
+      "width_ratio": 0.9391734039752878,
+      "efficiency_pull": -0.47489525797038834,
+      "passed": true
+    },
+    {
+      "eta_abs": [
+        0.9,
+        1.7
+      ],
+      "training": {
+        "denominator": 402,
+        "matched": 339,
+        "efficiency": 0.8432835820895522,
+        "log_bias": 0.00039765531171599976,
+        "log_width": 0.020691669072705723,
+        "log_bias_standard_error": 0.0011238172005879625,
+        "efficiency_wilson_95": [
+          0.8045170325826069,
+          0.8755514867894868
+        ],
+        "fraction_beyond_three_sigma": 0.008849557522123894
+      },
+      "heldout": {
+        "denominator": 409,
+        "matched": 348,
+        "efficiency": 0.8508557457212714,
+        "log_bias": -0.00047400665265865636,
+        "log_width": 0.02220204475300655,
+        "log_bias_standard_error": 0.0011901545239364007,
+        "efficiency_wilson_95": [
+          0.8130735934603306,
+          0.8821085251665932
+        ],
+        "fraction_beyond_three_sigma": 0.011494252873563218
+      },
+      "width_ratio": 1.0729943860494635,
+      "efficiency_pull": 0.2995821180241506,
+      "passed": true
+    },
+    {
+      "eta_abs": [
+        1.7,
+        2.4
+      ],
+      "training": {
+        "denominator": 362,
+        "matched": 297,
+        "efficiency": 0.8204419889502762,
+        "log_bias": -0.0012286737755740206,
+        "log_width": 0.028532298327923485,
+        "log_bias_standard_error": 0.0016556118706511991,
+        "efficiency_wilson_95": [
+          0.7776032098005562,
+          0.8565512699783678
+        ],
+        "fraction_beyond_three_sigma": 0.003367003367003367
+      },
+      "heldout": {
+        "denominator": 355,
+        "matched": 312,
+        "efficiency": 0.8788732394366198,
+        "log_bias": -0.001979268120600033,
+        "log_width": 0.029215977074511002,
+        "log_bias_standard_error": 0.001654028993578191,
+        "efficiency_wilson_95": [
+          0.8408163083399679,
+          0.9088183656579826
+        ],
+        "fraction_beyond_three_sigma": 0.0
+      },
+      "width_ratio": 1.0239615729069547,
+      "efficiency_pull": 2.1870197063528063,
+      "passed": true
+    }
+  ],
+  "status": "reference_calibrated",
+  "limits": [
+    "eta-binned transfer, pT dependence and non-Gaussian tails unresolved",
+    "efficiency includes the declared DY selection and DELPHES object definitions",
+    "not an experimental CMS calibration"
+  ],
+  "sha256": "c0f6c0beb8579c444a6ebdcf542f04fe4b9f5e799f7cba9ea11524e774ef70fc"
+}

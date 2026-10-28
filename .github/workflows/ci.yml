@@ -1,0 +1,86 @@
+# Software, numerical Rust and documentation checks. Independent physics-model
+# acceptance and large micro-closure jobs remain separate delivery gates.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-and-type:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "ruff==0.8.4" "mypy==1.14.1" "types-PyYAML>=6"
+      - run: ruff check src tests
+      - run: ruff format --check src tests
+      - run: mypy src
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest pyyaml jsonschema
+      - run: pip install -e . --no-deps
+      - run: pytest -q
+
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: pip install "mkdocs-material==9.8.0" "jsonschema>=4.22"
+      - run: python tools/check_handbook.py
+      - run: npm install --prefix .cache/handbook-tools --ignore-scripts --no-audit --no-fund mermaid@12.2.0 jsdom@26.1.0
+      - run: node tools/check_mermaid.mjs
+      - run: node --check src/heplab/server/static/workbench.js
+      - run: python -m mkdocs build --strict --site-dir .cache/handbook-site
+
+  scientific-regressions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e '.[analysis,serve,dev]'
+      - run: pytest -q
+      - run: python -m build --wheel --outdir .cache/wheels
+      - run: python tools/verify_wheel.py .cache/wheels/heplab-0.1.0.dev0-py3-none-any.whl
+
+  rust-physics:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/.cache/cargo-target
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: rustup toolchain install 1.99.1 --profile minimal --component rustfmt,clippy
+      - run: cargo fmt --manifest-path kernels/physics-core/Cargo.toml --check
+      - run: cargo fmt --manifest-path kernels/Cargo.toml --check
+      - run: cargo test --locked --manifest-path kernels/physics-core/Cargo.toml
+      - run: cargo clippy --locked --manifest-path kernels/physics-core/Cargo.toml --all-targets -- -D warnings
+      - run: cargo build --locked --release --manifest-path kernels/physics-core/Cargo.toml
+      - run: cargo build --locked --manifest-path kernels/Cargo.toml
+      - run: python tools/verify_rust_engine.py --binary .cache/cargo-target/release/heplab-physics --extension .cache/cargo-target/debug/libheplab_kernels.so
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f deploy/Dockerfile -t heplab-base:ci .
+      - run: docker run --rm heplab-base:ci version

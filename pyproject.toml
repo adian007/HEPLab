@@ -1,0 +1,67 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "heplab"
+version = "0.1.0.dev0"
+description = "Reproducible LHC analysis and simulation on CERN Open Data — one tool for real data and your own Monte Carlo."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.12"
+authors = [{ name = "HEPLab contributors" }]
+keywords = ["physics", "hep", "cms", "open-data", "lhc", "simulation", "columnar"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Education",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Physics",
+]
+# Heavy dependencies are declared here but imported lazily, so the skeleton
+# is importable (and testable) with the standard library alone.
+dependencies = ["pyyaml>=6"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "jsonschema>=4.22", "ruff>=0.8", "mypy>=1.14", "types-PyYAML>=6", "build>=1.2", "hatchling>=1.25"]
+docs = ["mkdocs-material>=9.5"]
+analysis = ["numpy>=1.26", "scipy>=1.12", "awkward>=2.6", "uproot>=5.3", "pyarrow>=17", "vector>=1.4", "hist>=2.7", "mplhep>=0.3", "iminuit>=2.25", "matplotlib>=3.8"]
+parallel = ["coffea>=2024.7", "dask>=2024.7"]
+fit = ["zfit>=0.24"]
+serve = ["fastapi>=0.111", "uvicorn>=0.30", "pydantic>=2.7"]
+gpu = ["jax[cuda12]>=0.4"]        # Tier-2 GPU fitting / toy-MC ensembles (ADR-0010)
+kernels = ["heplab-kernels"]
+sim = []                            # PYTHIA8/DELPHES live in the heplab-sim container
+all = ["numpy>=1.26", "awkward>=2.6", "uproot>=5.3", "pyarrow>=17", "vector>=1.4", "hist>=2.7", "mplhep>=0.3", "iminuit>=2.25", "matplotlib>=3.8", "coffea>=2024.7", "dask>=2024.7", "zfit>=0.24", "fastapi>=0.111", "uvicorn>=0.30", "pydantic>=2.7"]
+
+[project.scripts]
+heplab = "heplab.cli:main"
+
+[project.urls]
+"Project sketch" = "docs/PROJECT.md"
+"Architecture" = "docs/ARCHITECTURE.md"
+"Workflows" = "docs/WORKFLOW.md"
+"ADRs" = "docs/adr/README.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/heplab"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"manifests/datasets" = "heplab/data/manifests"
+"manifests/certification" = "heplab/data/certification"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+check_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -1,0 +1,258 @@
+{
+  "schema": "heplab-cms-display-v1",
+  "commit": "42b7d687344877f25213ec7650fc58148e87af2e",
+  "source": "https://github.com/cms-outreach/ispy-webgl",
+  "license": "MIT",
+  "units": "m",
+  "encoding": "little-endian float32 XYZ pairs",
+  "scope": "Original-pixel display outlines; ECAL barrel reduced representation",
+  "conditions": "No GlobalTag, alignment IOV or material properties in source meshes",
+  "transport_compatible": false,
+  "omissions": [
+    "beam pipe and services",
+    "magnet/yoke solids",
+    "passive materials",
+    "alignment and condition-dependent geometry"
+  ],
+  "layers": [
+    {
+      "id": "pixel",
+      "file": "pixel.f32",
+      "vertices": 11520,
+      "sha256": "e20d7b18a8f88da1fc39df7e59b72b88771d6015d8d20caabb00edfc142af26b",
+      "bytes": 138240,
+      "bounds_m": [
+        [
+          -0.14597199857234955,
+          -0.14597000181674957,
+          -0.5106179714202881
+        ],
+        [
+          0.14597700536251068,
+          0.14597100019454956,
+          0.5106120109558105
+        ]
+      ],
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/PixelBarrel3D_V1.glb",
+          "sha256": "474e5e7e794c4672bb09629d15b27e40c496fcb185464b7e0a1cd7cc2e18132f"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/PixelEndcapMinus3D_V1.glb",
+          "sha256": "74cc253db548f86d8e8eaa61404fecd0ead3e3568a3920698e9fa0d5c02c7a80"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/PixelEndcapPlus3D_V1.glb",
+          "sha256": "05196dba73100553c9cef39b613ea657712e69c5fdfe4cf65f6a9c6f08c7fe26"
+        }
+      ]
+    },
+    {
+      "id": "strips",
+      "file": "strips.f32",
+      "vertices": 147488,
+      "sha256": "b65f7876f98a25a52af19dea801d86219e6c785d34e2b4ec9c0eeb2562181bb1",
+      "bytes": 1769856,
+      "bounds_m": [
+        [
+          -1.0998400449752808,
+          -1.0996999740600586,
+          -2.7174699306488037
+        ],
+        [
+          1.0998599529266357,
+          1.0997300148010254,
+          2.7174301147460938
+        ]
+      ],
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/SiStripTIB3D_V1.glb",
+          "sha256": "cdf5f2f8e9aebb015b411ed9f8ca01e5e533983ff526c47c5c895c2fe8e3c450"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/SiStripTIDMinus3D_V1.glb",
+          "sha256": "cbd54365addcbd001760c56b636a7f7c30e43f924409ce2df81ea9bafc28beb7"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/SiStripTIDPlus3D_V1.glb",
+          "sha256": "cab86ef89bc1ed48f2098f975bface19612e0ade6e43254f9c16523ab8ba1973"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/SiStripTOB3D_V1.glb",
+          "sha256": "fcda8a4cbf07160df19fa56ae2389ae9ea69c227279fa973398b016cddb3ea36"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/SiStripTECMinus3D_V1.glb",
+          "sha256": "18007e88cb9ca6436193cf0cb678362100bcf9e12e741919412fe3c5d02e3540"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/SiStripTECPlus3D_V1.glb",
+          "sha256": "00733aa0ad9ca44bd16bc6cebe85a39ce614a441eab7fa5f3ba4f22004583f4b"
+        }
+      ]
+    },
+    {
+      "id": "ecal",
+      "file": "ecal.f32",
+      "vertices": 362352,
+      "sha256": "9faf3f7691aadea114adc7b30fd5bbe098ca668ac4eb9f29e9daa84f2640bf20",
+      "bytes": 4348224,
+      "bounds_m": [
+        [
+          -1.5817099809646606,
+          -1.5810400247573853,
+          -3.4451301097869873
+        ],
+        [
+          1.5817099809646606,
+          1.5819200277328491,
+          3.4451301097869873
+        ]
+      ],
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/EcalBarrel3D_V2.glb",
+          "sha256": "d139a349f0dcc4fab3514a6250aa85ffa524ea44d391617d846c07691fbfdec9"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/EcalEndcapMinus3D_V1.glb",
+          "sha256": "585c4a83c0ac7007bd35f58dc1683bb5954aa8132fd683099cd9506687fbd1e5"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/EcalEndcapPlus3D_V1.glb",
+          "sha256": "824606b518d9503077902c75a7ee36244fe9c840c21d41a6e1d3b5d74f7fe42e"
+        }
+      ]
+    },
+    {
+      "id": "hcal",
+      "file": "hcal.f32",
+      "vertices": 217728,
+      "sha256": "d6c8496420613efcd3e485df118a3b638a561a6ab6d4602da2decd183c9fac66",
+      "bytes": 2612736,
+      "bounds_m": [
+        [
+          -4.139939785003662,
+          -4.139939785003662,
+          -12.800999641418457
+        ],
+        [
+          4.139939785003662,
+          4.139939785003662,
+          12.800999641418457
+        ]
+      ],
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/HcalBarrel3D_V1.glb",
+          "sha256": "4ce4d7d71c77837effc606fcae294a280701a3b6bf388d8b67b942383515c98c"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/HcalEndcapMinus3D_V1.glb",
+          "sha256": "b50b4caa81e7ca2cca9fbadd90d60814dbcbf5c4b88a61a6c20bc4f7b7fde61f"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/HcalEndcapPlus3D_V1.glb",
+          "sha256": "3d6234d87e25fd8c1d3d46a72b3004120e37b6fef31c46e9f799147e1336d58f"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/HcalForwardMinus3D_V1.glb",
+          "sha256": "72f51938c6c15c0fc8f9f55e5338e0c12db8c3308c3ed6ffe0c51f7a66f166ba"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/HcalForwardPlus3D_V1.glb",
+          "sha256": "b0f65f59eb4a7c4653105dfed7348f9d343a4d75f851581dc9a21efaa3a1e252"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/HcalOuter3D_V1.glb",
+          "sha256": "db1e3ef7128fc7b99e802dc85ba0c225c238195446d3c8fe710c15f8f4421e28"
+        }
+      ]
+    },
+    {
+      "id": "dt",
+      "file": "dt.f32",
+      "vertices": 6000,
+      "sha256": "5c422fa2af88e33914317bf35cb1b5bd60988f56df048dec6b8139dbdc167778",
+      "bytes": 72000,
+      "bounds_m": [
+        [
+          -7.9018402099609375,
+          -7.371059894561768,
+          -6.592050075531006
+        ],
+        [
+          7.9037699699401855,
+          7.370110034942627,
+          6.594099998474121
+        ]
+      ],
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/DTs3D_V1.glb",
+          "sha256": "f27ea107092f29befcab16c10296a319edc21c6afdbbf909c87dbc190dcb0416"
+        }
+      ]
+    },
+    {
+      "id": "csc",
+      "file": "csc.f32",
+      "vertices": 14688,
+      "sha256": "762e2b0ee047ce0ce045fd4577646d9945c566bd3f14a2698857fc73f2075100",
+      "bytes": 176256,
+      "bounds_m": [
+        [
+          -6.982079982757568,
+          -6.9822998046875,
+          -10.466400146484375
+        ],
+        [
+          6.982510089874268,
+          6.982419967651367,
+          10.468199729919434
+        ]
+      ],
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/CSC3D_V1.glb",
+          "sha256": "dfbe7ce37f1117f2bea0bc15c85e6a84f0d88354a22970e2b6a220ab77abac25"
+        }
+      ]
+    },
+    {
+      "id": "rpc",
+      "file": "rpc.f32",
+      "vertices": 65952,
+      "sha256": "d1fcb45717b99aec7f607db0ceba54ce0d96ce320e42a7136b14604c0cca5e65",
+      "bytes": 791424,
+      "bounds_m": [
+        [
+          -7.556809902191162,
+          -7.047500133514404,
+          -10.657299995422363
+        ],
+        [
+          7.556809902191162,
+          7.047500133514404,
+          10.657299995422363
+        ]
+      ],
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/RPCBarrel3D_V1.glb",
+          "sha256": "ec1052da771b71f77f56654c739ec368f19909bb914191f89cee74ecefe657be"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/RPCMinusEndcap3D_V1.glb",
+          "sha256": "e610d55d2cb2d1f7bf78d4f036ce8e983e10a0655edaca7cba3e0fac77aeca04"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/RPCPlusEndcap3D_V1.glb",
+          "sha256": "c71911a8da5297441566d62823d865d27a050995c138703c03432fdd80a57cbb"
+        }
+      ]
+    }
+  ]
+}

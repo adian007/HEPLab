@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-heplab-invoke"
+description = "Enables the heplab_invoke command without any pre-configured scope."
+commands.allow = ["heplab_invoke"]
+
+[[permission]]
+identifier = "deny-heplab-invoke"
+description = "Denies the heplab_invoke command without any pre-configured scope."
+commands.deny = ["heplab_invoke"]

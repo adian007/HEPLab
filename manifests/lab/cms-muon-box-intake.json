@@ -1,0 +1,38 @@
+{
+  "schema": "heplab-lab-device-profile-v1",
+  "profile_id": "cms-muon-box-intake-2026-10-28",
+  "identification": {
+    "status": "unidentified",
+    "reported_description": "Equipment reported to detect muons, believed to originate from CMS; not physically inspected. Not a confirmed iRPC.",
+    "inspected": false,
+    "next_steps": [
+      "Photograph and transcribe asset label and serial number",
+      "Obtain chamber drawing and manual",
+      "List front-end, TDC/ADC, clock, trigger, interfaces and DAQ software",
+      "Obtain a recorded raw-data sample and its decoding specification",
+      "Identify the authorized operator and existing gas, power and interlock procedures"
+    ]
+  },
+  "quantities": {
+    "enclosure_height": {
+      "state": "reported",
+      "value": [1.0, 1.5],
+      "unit": "m",
+      "source": "user report, 2026-10-27; enclosure only, not the active area"
+    },
+    "device_type": {"state": "unknown"},
+    "serial_number": {"state": "unknown"},
+    "active_length": {"state": "unknown"},
+    "active_width": {"state": "unknown"},
+    "gas_gaps": {"state": "unknown"},
+    "strip_pitch": {"state": "unknown"},
+    "readout_ends": {"state": "unknown"},
+    "front_end_electronics": {"state": "unknown"},
+    "tdc_adc": {"state": "unknown"},
+    "data_format": {"state": "unknown"}
+  },
+  "channel_map": {"state": "unknown"},
+  "clock": {"state": "unknown"},
+  "trigger_sources": {},
+  "control": {"permitted": false}
+}

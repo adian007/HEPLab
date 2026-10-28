@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "run_id": "educational-analytic-001",
+  "source_snapshot_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "source_ranges": [
+    {
+      "source_id": "0000000000000000000000000000000000000000000000000000000000000000",
+      "uri": "synthetic:analytic-two-muon-fixture",
+      "entry_start": 0,
+      "entry_stop": 1,
+      "declared_checksum": {
+        "algorithm": "sha256",
+        "value": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "integrity": "declared_only"
+    }
+  ],
+  "analysis": {
+    "name": "z_dimuon",
+    "config_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "candidate_policy": "highest_sum_pt"
+  },
+  "model_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "code_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "certification_sha256": null,
+  "randomness": {
+    "algorithm": "heplab-sha256-address-v1",
+    "master_seed": 42,
+    "generator_shards": 1,
+    "correlation_groups": [
+      "nominal"
+    ]
+  },
+  "budgets": {
+    "max_events": 1,
+    "chunk_events": 1,
+    "worker_memory_bytes": 104857600,
+    "max_workers": 1,
+    "max_particle_steps": 1000,
+    "max_output_bytes": 10485760
+  },
+  "validation": {
+    "mode": "educational",
+    "required_evidence_ids": [
+      "CORE-001",
+      "TRANSPORT-001"
+    ]
+  }
+}

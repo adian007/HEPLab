@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "model_id": "educational-uniform-field-v1",
+  "fidelity": "T0",
+  "units": {
+    "length": "m",
+    "energy": "GeV",
+    "time": "ns",
+    "field": "T"
+  },
+  "field": {
+    "model": "uniform_axial",
+    "bz": 2
+  },
+  "geometry": [
+    {
+      "volume_id": "educational_cylinder",
+      "shape": "cylinder",
+      "radius": 1,
+      "half_length": 2,
+      "material": "vacuum"
+    }
+  ],
+  "response": {
+    "mode": "object_fast",
+    "efficiency": 1,
+    "relative_pt_resolution": 0,
+    "valid_pt": [
+      0,
+      1000
+    ],
+    "valid_abs_eta": 3,
+    "calibration": null
+  }
+}

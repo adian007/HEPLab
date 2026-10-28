@@ -1,0 +1,524 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-27",
+  "scope": "Sourced nominal CMS tracking surfaces, bounded trajectory navigation, single-slab coupling, PDG and DELPHES reference calibration. No experimental CMS validation claim.",
+  "geometry": {
+    "id": "cms-original-tracker-surfaces-v1",
+    "surfaces": 9,
+    "era": "original pixel detector through 2016",
+    "field": "ideal uniform finite solenoid, zero outside bore; return/fringe field omitted"
+  },
+  "verification": {
+    "python_tests": 118,
+    "rust_unit_tests": 12,
+    "mypy_source_files": 35,
+    "ruff": "passed",
+    "compiled_parity": {
+      "status": "passed",
+      "cli_cases": 1007,
+      "extension_cases": 1007,
+      "extension_workers": 4,
+      "requirements": [
+        "CORE-001",
+        "CORE-002",
+        "CORE-004",
+        "CORE-005",
+        "CORE-006",
+        "CORE-007",
+        "TRANSPORT-001"
+      ],
+      "scope": "analytic numerical core and educational response; no detector calibration claim"
+    },
+    "rust_clippy": "passed -D warnings",
+    "browser": [
+      "Rust navigation used by bench",
+      "calibrated reference-response branch",
+      "field-aware coupled outgoing paths",
+      "surface visibility and source/dimension inspector",
+      "Pixel/Tracker/Solenoid regions",
+      "predicted crossing coordinates/path/time",
+      "reference comparison table",
+      "native event extrapolation and navigation",
+      "390 px screen without page overflow"
+    ],
+    "known_rejected_browser_requests": "stale cached requests attempted duplicate detector response; rejected with 422, corrected current assets passed",
+    "fresh_browser_console_errors": 0,
+    "fresh_browser_console_warnings": 0,
+    "wheel": "built and isolated geometry, calibration payload, catalog and UI asset checks passed",
+    "mermaid": "57 parsed blocks across 52 Markdown files, no failures",
+    "documentation": "27 handbook pages, 76 requirement IDs, strict MkDocs passed",
+    "packaging_fix": "Reference payloads are explicitly unignored for source packaging; isolated-wheel lookup verifies installation independence"
+  },
+  "reference_calibration": {
+    "silicon": {
+      "id": "pdg-si-muon-loglinear-split-v1",
+      "scope": "mean ionization, muons in silicon only",
+      "source_sha256": "4f1fbf9a287a59765de8b5ea840471fe72c2b675c982e995bac9b57d2c0425fd",
+      "source_url": "https://pdg.lbl.gov/2025/AtomicNuclearProperties/MUE/muE_silicon_Si.txt",
+      "training_rows": [
+        0,
+        2,
+        4,
+        6,
+        8,
+        10,
+        12,
+        14,
+        16,
+        18,
+        20,
+        22,
+        24,
+        26,
+        28,
+        30,
+        32,
+        34,
+        36,
+        38,
+        40,
+        42,
+        44,
+        46,
+        48
+      ],
+      "heldout_rows": [
+        1,
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19,
+        21,
+        23,
+        25,
+        27,
+        29,
+        31,
+        33,
+        35,
+        37,
+        39,
+        41,
+        43,
+        45,
+        47
+      ],
+      "knots": [
+        [
+          0.1,
+          0.4306321000000001
+        ],
+        [
+          0.14,
+          0.40454730000000005
+        ],
+        [
+          0.2,
+          0.39080620000000005
+        ],
+        [
+          0.3,
+          0.3877785
+        ],
+        [
+          0.4,
+          0.39150490000000004
+        ],
+        [
+          0.5,
+          0.39662870000000006
+        ],
+        [
+          0.6,
+          0.40198540000000005
+        ],
+        [
+          0.8,
+          0.4115343
+        ],
+        [
+          1.0,
+          0.41991870000000003
+        ],
+        [
+          1.4,
+          0.4331940000000001
+        ],
+        [
+          2.0,
+          0.4476338
+        ],
+        [
+          3.0,
+          0.46370390000000006
+        ],
+        [
+          4.0,
+          0.47465019999999997
+        ],
+        [
+          5.0,
+          0.4830346
+        ],
+        [
+          6.0,
+          0.48955580000000004
+        ],
+        [
+          8.0,
+          0.49957050000000003
+        ],
+        [
+          10.0,
+          0.5070233000000001
+        ],
+        [
+          14.0,
+          0.5179696000000001
+        ],
+        [
+          20.0,
+          0.528683
+        ],
+        [
+          30.0,
+          0.5400951
+        ],
+        [
+          40.0,
+          0.5477808000000001
+        ],
+        [
+          50.0,
+          0.5536033
+        ],
+        [
+          60.0,
+          0.5580284
+        ],
+        [
+          80.0,
+          0.5652483
+        ],
+        [
+          100.0,
+          0.5708379000000001
+        ]
+      ],
+      "acceptance": {
+        "max_abs_relative_error": 0.02,
+        "chosen_before_fit": true
+      },
+      "heldout_errors": [
+        {
+          "row": 1,
+          "energy_gev": 0.12,
+          "relative_error": 0.004105246179865185
+        },
+        {
+          "row": 3,
+          "energy_gev": 0.17,
+          "relative_error": 0.0034628302292913915
+        },
+        {
+          "row": 5,
+          "energy_gev": 0.25,
+          "relative_error": 0.003510861098035001
+        },
+        {
+          "row": 7,
+          "energy_gev": 0.35,
+          "relative_error": 0.0009410232971194255
+        },
+        {
+          "row": 9,
+          "energy_gev": 0.45,
+          "relative_error": 0.0003619242561336833
+        },
+        {
+          "row": 11,
+          "energy_gev": 0.55,
+          "relative_error": 0.000597112061758498
+        },
+        {
+          "row": 13,
+          "energy_gev": 0.7,
+          "relative_error": 0.0005548450581041031
+        },
+        {
+          "row": 15,
+          "energy_gev": 0.9,
+          "relative_error": 1.1587674235702394e-06
+        },
+        {
+          "row": 17,
+          "energy_gev": 1.2,
+          "relative_error": -6.208266689422537e-05
+        },
+        {
+          "row": 19,
+          "energy_gev": 1.7,
+          "relative_error": -0.00013215337187122422
+        },
+        {
+          "row": 21,
+          "energy_gev": 2.5,
+          "relative_error": -1.355091239219064e-05
+        },
+        {
+          "row": 23,
+          "energy_gev": 3.5,
+          "relative_error": -0.0004043946832912315
+        },
+        {
+          "row": 25,
+          "energy_gev": 4.5,
+          "relative_error": 1.0061053077325965e-06
+        },
+        {
+          "row": 27,
+          "energy_gev": 5.5,
+          "relative_error": -0.00017365075721875733
+        },
+        {
+          "row": 29,
+          "energy_gev": 7.0,
+          "relative_error": -0.00045108740093791067
+        },
+        {
+          "row": 31,
+          "energy_gev": 9.0,
+          "relative_error": -5.054186098518709e-05
+        },
+        {
+          "row": 33,
+          "energy_gev": 12.0,
+          "relative_error": -0.0002417070957537737
+        },
+        {
+          "row": 35,
+          "energy_gev": 17.0,
+          "relative_error": 1.7830646087180213e-05
+        },
+        {
+          "row": 37,
+          "energy_gev": 25.0,
+          "relative_error": -1.4520702025566656e-05
+        },
+        {
+          "row": 39,
+          "energy_gev": 35.0,
+          "relative_error": 0.00029221696922787643
+        },
+        {
+          "row": 41,
+          "energy_gev": 45.0,
+          "relative_error": 8.282521688340871e-05
+        },
+        {
+          "row": 43,
+          "energy_gev": 55.0,
+          "relative_error": -2.8313666359025547e-05
+        },
+        {
+          "row": 45,
+          "energy_gev": 70.0,
+          "relative_error": -0.0001612329171080118
+        },
+        {
+          "row": 47,
+          "energy_gev": 90.0,
+          "relative_error": -0.00013604656868326792
+        }
+      ],
+      "max_abs_relative_error": 0.004105246179865185,
+      "status": "reference_calibrated",
+      "not_established": [
+        "experimental CMS calibration",
+        "radiative or stochastic energy-loss validation"
+      ],
+      "sha256": "670c2b4bac80a6c157494819cf3b6de413cf0acf926ccb60cc705f7eafd22bbf"
+    },
+    "muon_response": {
+      "id": "delphes-dy-muon-transfer-v1",
+      "reference": "PYTHIA8 8.312 / DELPHES 3.5.1 fixed CMS card",
+      "domain": {
+        "pt_gev": [
+          5,
+          200
+        ],
+        "abs_eta": [
+          0,
+          2.4
+        ],
+        "process": "pp gamma*/Z to mumu 60\u2013120 GeV, no pileup"
+      },
+      "matching": {
+        "max_delta_r": 0.05,
+        "charge_aware": true,
+        "one_to_one": true
+      },
+      "training_sha256": "048f27bb8caa388efb665c1d207cea68940b5f256dcd1d2b252523202ed46394",
+      "heldout_sha256": "255e9ca3075455bd5e83b6fe0384b4dc421631aea1efeef5c4d4a8dcfc4fa6c5",
+      "split": {
+        "training_seed": 1701,
+        "heldout_seed": 2903,
+        "training_events": 1000,
+        "heldout_events": 1000
+      },
+      "gates": {
+        "min_training_matches": 100,
+        "min_validation_matches": 100,
+        "max_abs_log_bias_difference": 0.01,
+        "width_ratio_range": [
+          0.6,
+          1.4
+        ],
+        "max_efficiency_pull": 3.5
+      },
+      "bins": [
+        {
+          "eta_abs": [
+            0,
+            0.9
+          ],
+          "training": {
+            "denominator": 496,
+            "matched": 422,
+            "efficiency": 0.8508064516129032,
+            "log_bias": -0.00011532886944183632,
+            "log_width": 0.014074898120714939,
+            "log_bias_standard_error": 0.0006851553203860634,
+            "efficiency_wilson_95": [
+              0.8167606108907652,
+              0.8794601484297146
+            ],
+            "fraction_beyond_three_sigma": 0.004739336492890996
+          },
+          "heldout": {
+            "denominator": 468,
+            "matched": 393,
+            "efficiency": 0.8397435897435898,
+            "log_bias": -4.6177275234708e-06,
+            "log_width": 0.01321876997863723,
+            "log_bias_standard_error": 0.000666798739617528,
+            "efficiency_wilson_95": [
+              0.8037619905235557,
+              0.8701931994141817
+            ],
+            "fraction_beyond_three_sigma": 0.010178117048346057
+          },
+          "width_ratio": 0.9391734039752878,
+          "efficiency_pull": -0.47489525797038834,
+          "passed": true
+        },
+        {
+          "eta_abs": [
+            0.9,
+            1.7
+          ],
+          "training": {
+            "denominator": 402,
+            "matched": 339,
+            "efficiency": 0.8432835820895522,
+            "log_bias": 0.00039765531171599976,
+            "log_width": 0.020691669072705723,
+            "log_bias_standard_error": 0.0011238172005879625,
+            "efficiency_wilson_95": [
+              0.8045170325826069,
+              0.8755514867894868
+            ],
+            "fraction_beyond_three_sigma": 0.008849557522123894
+          },
+          "heldout": {
+            "denominator": 409,
+            "matched": 348,
+            "efficiency": 0.8508557457212714,
+            "log_bias": -0.00047400665265865636,
+            "log_width": 0.02220204475300655,
+            "log_bias_standard_error": 0.0011901545239364007,
+            "efficiency_wilson_95": [
+              0.8130735934603306,
+              0.8821085251665932
+            ],
+            "fraction_beyond_three_sigma": 0.011494252873563218
+          },
+          "width_ratio": 1.0729943860494635,
+          "efficiency_pull": 0.2995821180241506,
+          "passed": true
+        },
+        {
+          "eta_abs": [
+            1.7,
+            2.4
+          ],
+          "training": {
+            "denominator": 362,
+            "matched": 297,
+            "efficiency": 0.8204419889502762,
+            "log_bias": -0.0012286737755740206,
+            "log_width": 0.028532298327923485,
+            "log_bias_standard_error": 0.0016556118706511991,
+            "efficiency_wilson_95": [
+              0.7776032098005562,
+              0.8565512699783678
+            ],
+            "fraction_beyond_three_sigma": 0.003367003367003367
+          },
+          "heldout": {
+            "denominator": 355,
+            "matched": 312,
+            "efficiency": 0.8788732394366198,
+            "log_bias": -0.001979268120600033,
+            "log_width": 0.029215977074511002,
+            "log_bias_standard_error": 0.001654028993578191,
+            "efficiency_wilson_95": [
+              0.8408163083399679,
+              0.9088183656579826
+            ],
+            "fraction_beyond_three_sigma": 0.0
+          },
+          "width_ratio": 1.0239615729069547,
+          "efficiency_pull": 2.1870197063528063,
+          "passed": true
+        }
+      ],
+      "status": "reference_calibrated",
+      "limits": [
+        "eta-binned transfer, pT dependence and non-Gaussian tails unresolved",
+        "efficiency includes the declared DY selection and DELPHES object definitions",
+        "not an experimental CMS calibration"
+      ],
+      "sha256": "c0f6c0beb8579c444a6ebdcf542f04fe4b9f5e799f7cba9ea11524e774ef70fc"
+    }
+  },
+  "artifacts": {
+    "report": "artifacts/reference-calibration.json",
+    "figure": "artifacts/reference-calibration.png",
+    "screenshots": [
+      "output/playwright/geometry-solenoid.png",
+      "output/playwright/geometry-pixel.png",
+      "output/playwright/geometry-calibration.png",
+      "output/playwright/geometry-native.png",
+      "output/playwright/geometry-mobile.png"
+    ]
+  },
+  "payloads": {
+    "muE_silicon_Si.txt": "4f1fbf9a287a59765de8b5ea840471fe72c2b675c982e995bac9b57d2c0425fd",
+    "muon-response-calibration.json": "a8759317b8972ffe9aea2b0965f5826397f396ec97294edb74156d2595612c29",
+    "silicon-calibration.json": "dc9c1c70896e00ace6c2b12f0438ed4307939aaca80979d23c3aa9462e523917",
+    "silicon-muon.json": "6e1931c28982dcba31b2539b795d8f62bbe7c115e62c14940c2a17c1adf94c22"
+  },
+  "remaining_gates": [
+    "Full transformed volumes, overlaps, alignment/module/service geometry",
+    "CMS field map and return/fringe fields",
+    "Complete material budget, straggling, secondaries and showers",
+    "Experimental detector calibration and pT/occupancy-resolved transfer validation",
+    "Measured-hit and native track-fit overlays"
+  ]
+}

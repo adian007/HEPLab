@@ -1,0 +1,74 @@
+{
+  "schema": "heplab-cms-field-reference-v1",
+  "model": "cms-oae-1103l-3.8T-tracker-v1",
+  "source": "https://github.com/cms-sw/cmssw/blob/c04fa510bb587b8ee3fa171888468f80de714fa8/MagneticField/ParametrizedEngine/src/BCyl.h",
+  "reference_rows": 1000000,
+  "tracker_rows": 14867,
+  "max_vector_error_t": 1.4163346880217494e-06,
+  "rms_vector_error_t": 4.0386313684308404e-07,
+  "gate_max_vector_error_t": 2e-06,
+  "passed": true,
+  "ideal_3_8t_mean_vector_error_t": 0.04909667649434973,
+  "ideal_3_8t_max_vector_error_t": 0.1552089380293035,
+  "scope": "Implementation regression against CMS software reference; not new measured-data calibration",
+  "full_map_transport": "not enabled: volume navigation and conditions IOV unresolved",
+  "conditions": {
+    "target_data": "Run2016G UL NanoAOD record 30522",
+    "nano_global_tag": "106X_dataRun2_v35",
+    "runs": [
+      278820,
+      280385
+    ],
+    "payload_iov_verified": false
+  },
+  "inventory": [
+    {
+      "url": "https://raw.githubusercontent.com/cms-data/MagneticField-Engine/3be1b543120a90dcbb8c1584da0ba27ca980a24d/Regression/referenceField_160812_RII_3_8T.bin",
+      "file": "referenceField_160812_RII_3_8T.bin",
+      "bytes": 24000000,
+      "sha256": "b785fa7a7a16b9dbbbabaf7751bd64e0cb7a15a0e51fcd9c60aa4263bde90e8b"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/cms-data/MagneticField-Interpolation/3b2fd38885ce884324f14470624dddd335865d0a/grid_160812_3_8t/merged.bin",
+      "file": "merged.bin",
+      "bytes": 76171296,
+      "sha256": "365c55dc50cd7c3c73251ecbfa38e965fb521f486486dd4188b17cc77bb91224"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/cms-data/MagneticField-Interpolation/3b2fd38885ce884324f14470624dddd335865d0a/grid_160812_3_8t/merged.index",
+      "file": "merged.index",
+      "bytes": 299217,
+      "sha256": "c1b8ec07461a59706a6face319b71dcf83d6e5a99ed4f315042c05f1bf1ed68b"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/cms-sw/cmssw/c04fa510bb587b8ee3fa171888468f80de714fa8/MagneticField/GeomBuilder/data/MagneticFieldVolumes_160812_1.xml",
+      "file": "MagneticFieldVolumes_160812_1.xml",
+      "bytes": 454047,
+      "sha256": "ca4bfb64a498c74fe3b5eb7de5f46a2ac605aa6c9f3c8571a644e3b1630600ad"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/cms-sw/cmssw/c04fa510bb587b8ee3fa171888468f80de714fa8/MagneticField/GeomBuilder/data/MagneticFieldVolumes_160812_2.xml",
+      "file": "MagneticFieldVolumes_160812_2.xml",
+      "bytes": 409889,
+      "sha256": "317753ee9a5716637a36e8c5d0a3ae94db5b57f63ab0a1b2ac5c78105e3f5319"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/cms-sw/cmssw/c04fa510bb587b8ee3fa171888468f80de714fa8/MagneticField/Engine/python/volumeBasedMagneticField_160812_cfi.py",
+      "file": "volumeBasedMagneticField_160812_cfi.py",
+      "bytes": 3861,
+      "sha256": "f8fa401f35720412d8d23efb243c1a8f2096eb8a9cf62883e88c8844ef7c0965"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/cms-sw/cmssw/c04fa510bb587b8ee3fa171888468f80de714fa8/MagneticField/ParametrizedEngine/src/BCyl.h",
+      "file": "BCyl.h",
+      "bytes": 2870,
+      "sha256": "dbfff0e66e06c7a5dee547407a12b10a3032e3e673202b4e5012af92caf31567"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/cms-sw/cmssw/c04fa510bb587b8ee3fa171888468f80de714fa8/MagneticField/ParametrizedEngine/src/TkBfield.cc",
+      "file": "TkBfield.cc",
+      "bytes": 2181,
+      "sha256": "40aaf146ed50714941afcdd91fa3f39baa5050ba4049629e8f428a165fd415ee"
+    }
+  ]
+}

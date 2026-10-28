@@ -1,0 +1,25 @@
+{
+  "schema": "heplab-lab-device-profile-v1",
+  "profile_id": "synthetic-two-strip-fixture",
+  "identification": {
+    "status": "identified",
+    "reported_description": "Synthetic educational fixture; not a real chamber and not the user's equipment."
+  },
+  "quantities": {
+    "device_type": {"state": "documented", "value": "synthetic strip counter", "source": "test fixture"},
+    "serial_number": {"state": "documented", "value": "SYN-0001", "source": "test fixture"},
+    "active_length": {"state": "measured", "value": 100.0, "unit": "cm", "source": "test fixture"},
+    "active_width": {"state": "measured", "value": 50.0, "unit": "cm", "source": "test fixture"}
+  },
+  "channel_map": {
+    "state": "documented",
+    "source": "test fixture",
+    "channels": [{"channel": 0, "strip": 0, "end": "left"}, {"channel": 1, "strip": 0, "end": "right"}]
+  },
+  "clock": {"state": "documented", "source": "test fixture", "tick_ns": 1.0, "counter_bits": 8},
+  "trigger_sources": {
+    "1": {"independent": true, "description": "synthetic external scintillator coincidence"},
+    "9": {"independent": false, "description": "synthetic self-trigger from the chamber"}
+  },
+  "control": {"permitted": false}
+}

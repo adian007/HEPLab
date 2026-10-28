@@ -1,0 +1,6 @@
+# Frozen sidecars are built per target by build_worker.py, never committed.
+src-tauri/binaries/
+frontend/
+src-tauri/target/
+src-tauri/gen/
+core/target/

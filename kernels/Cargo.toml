@@ -1,0 +1,20 @@
+[package]
+name = "heplab-kernels"
+version = "0.1.0"
+edition = "2021"
+description = "Tier-1 Rust compute kernels for HEPLab (ADR-0010) — exposed to Python via PyO3/maturin."
+license = "Apache-2.0"
+
+[lib]
+name = "heplab_kernels"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.22.6", features = ["extension-module", "abi3-py312"] }
+heplab-physics = { path = "physics-core" }
+serde_json = "1"
+
+# Tier-1 rule (ADR-0010): every Rust kernel is golden-tested against its
+# numba/NumPy reference in tests/ before it can be imported by analyses.
+# Kernels arrive profile-first in Phase 2–3: ingest transcoding + checksums,
+# jagged pair combinatorics, toy-smearing vectorization.

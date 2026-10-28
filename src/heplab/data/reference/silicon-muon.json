@@ -1,0 +1,256 @@
+{
+  "id": "pdg2025-muon-silicon-ionization-v1",
+  "source_url": "https://pdg.lbl.gov/2025/AtomicNuclearProperties/MUE/muE_silicon_Si.txt",
+  "source_sha256": "4f1fbf9a287a59765de8b5ea840471fe72c2b675c982e995bac9b57d2c0425fd",
+  "density_g_cm3": 2.329,
+  "radiation_length_m": 0.0937,
+  "mass_gev": 0.10565839,
+  "quantity": "mean ionization only; radiative component excluded",
+  "rows": [
+    {
+      "kinetic_gev": 0.1,
+      "ionization_gev_per_m": 0.4306321000000001,
+      "radiative_fraction": 5.5110870740941046e-05
+    },
+    {
+      "kinetic_gev": 0.12,
+      "ionization_gev_per_m": 0.4147949000000001,
+      "radiative_fraction": 6.513194834362718e-05
+    },
+    {
+      "kinetic_gev": 0.14,
+      "ionization_gev_per_m": 0.40454730000000005,
+      "radiative_fraction": 7.50719631548647e-05
+    },
+    {
+      "kinetic_gev": 0.17,
+      "ionization_gev_per_m": 0.3956971000000001,
+      "radiative_fraction": 8.993525603296056e-05
+    },
+    {
+      "kinetic_gev": 0.2,
+      "ionization_gev_per_m": 0.39080620000000005,
+      "radiative_fraction": 0.00010470798569725864
+    },
+    {
+      "kinetic_gev": 0.25,
+      "ionization_gev_per_m": 0.3877785,
+      "radiative_fraction": 0.00012930930930930932
+    },
+    {
+      "kinetic_gev": 0.3,
+      "ionization_gev_per_m": 0.3877785,
+      "radiative_fraction": 0.00015384153661464586
+    },
+    {
+      "kinetic_gev": 0.35,
+      "ionization_gev_per_m": 0.3894088,
+      "radiative_fraction": 0.00017852870813397128
+    },
+    {
+      "kinetic_gev": 0.4,
+      "ionization_gev_per_m": 0.39150490000000004,
+      "radiative_fraction": 0.0002033313503866746
+    },
+    {
+      "kinetic_gev": 0.45,
+      "ionization_gev_per_m": 0.39406680000000005,
+      "radiative_fraction": 0.00022819148936170213
+    },
+    {
+      "kinetic_gev": 0.5,
+      "ionization_gev_per_m": 0.39662870000000006,
+      "radiative_fraction": 0.0002533176746917205
+    },
+    {
+      "kinetic_gev": 0.55,
+      "ionization_gev_per_m": 0.39919060000000006,
+      "radiative_fraction": 0.0002783673469387755
+    },
+    {
+      "kinetic_gev": 0.6,
+      "ionization_gev_per_m": 0.40198540000000005,
+      "radiative_fraction": 0.00030370799536500576
+    },
+    {
+      "kinetic_gev": 0.7,
+      "ionization_gev_per_m": 0.4068763000000001,
+      "radiative_fraction": 0.00035469107551487416
+    },
+    {
+      "kinetic_gev": 0.8,
+      "ionization_gev_per_m": 0.4115343,
+      "radiative_fraction": 0.00040622171945701356
+    },
+    {
+      "kinetic_gev": 0.9,
+      "ionization_gev_per_m": 0.41595940000000003,
+      "radiative_fraction": 0.00045808617795187466
+    },
+    {
+      "kinetic_gev": 1.0,
+      "ionization_gev_per_m": 0.41991870000000003,
+      "radiative_fraction": 0.0005205654101995566
+    },
+    {
+      "kinetic_gev": 1.2,
+      "ionization_gev_per_m": 0.4271386000000001,
+      "radiative_fraction": 0.0006724795640326976
+    },
+    {
+      "kinetic_gev": 1.4,
+      "ionization_gev_per_m": 0.4331940000000001,
+      "radiative_fraction": 0.0008308270676691729
+    },
+    {
+      "kinetic_gev": 1.7,
+      "ionization_gev_per_m": 0.4411126000000001,
+      "radiative_fraction": 0.0010785864978902955
+    },
+    {
+      "kinetic_gev": 2.0,
+      "ionization_gev_per_m": 0.4476338,
+      "radiative_fraction": 0.0013383575883575884
+    },
+    {
+      "kinetic_gev": 2.5,
+      "ionization_gev_per_m": 0.45648400000000006,
+      "radiative_fraction": 0.0017942973523421587
+    },
+    {
+      "kinetic_gev": 3.0,
+      "ionization_gev_per_m": 0.46370390000000006,
+      "radiative_fraction": 0.0022711779448621556
+    },
+    {
+      "kinetic_gev": 3.5,
+      "ionization_gev_per_m": 0.46975930000000005,
+      "radiative_fraction": 0.0027636003956478736
+    },
+    {
+      "kinetic_gev": 4.0,
+      "ionization_gev_per_m": 0.47465019999999997,
+      "radiative_fraction": 0.0032699266503667486
+    },
+    {
+      "kinetic_gev": 4.5,
+      "ionization_gev_per_m": 0.4790753000000001,
+      "radiative_fraction": 0.0037883777239709443
+    },
+    {
+      "kinetic_gev": 5.0,
+      "ionization_gev_per_m": 0.4830346,
+      "radiative_fraction": 0.004316850696111377
+    },
+    {
+      "kinetic_gev": 5.5,
+      "ionization_gev_per_m": 0.4865281000000001,
+      "radiative_fraction": 0.004854692710814673
+    },
+    {
+      "kinetic_gev": 6.0,
+      "ionization_gev_per_m": 0.48955580000000004,
+      "radiative_fraction": 0.005397350993377484
+    },
+    {
+      "kinetic_gev": 7.0,
+      "ionization_gev_per_m": 0.4951454,
+      "radiative_fraction": 0.006504672897196261
+    },
+    {
+      "kinetic_gev": 8.0,
+      "ionization_gev_per_m": 0.49957050000000003,
+      "radiative_fraction": 0.007641073080481037
+    },
+    {
+      "kinetic_gev": 9.0,
+      "ionization_gev_per_m": 0.5035298,
+      "radiative_fraction": 0.008799266727772686
+    },
+    {
+      "kinetic_gev": 10.0,
+      "ionization_gev_per_m": 0.5070233000000001,
+      "radiative_fraction": 0.009977262391996363
+    },
+    {
+      "kinetic_gev": 12.0,
+      "ionization_gev_per_m": 0.5130787,
+      "radiative_fraction": 0.012394618834080719
+    },
+    {
+      "kinetic_gev": 14.0,
+      "ionization_gev_per_m": 0.5179696000000001,
+      "radiative_fraction": 0.01486929552503323
+    },
+    {
+      "kinetic_gev": 17.0,
+      "ionization_gev_per_m": 0.5237921000000001,
+      "radiative_fraction": 0.018651832460732987
+    },
+    {
+      "kinetic_gev": 20.0,
+      "ionization_gev_per_m": 0.528683,
+      "radiative_fraction": 0.02251076658053402
+    },
+    {
+      "kinetic_gev": 25.0,
+      "ionization_gev_per_m": 0.5349713,
+      "radiative_fraction": 0.029146238377007604
+    },
+    {
+      "kinetic_gev": 30.0,
+      "ionization_gev_per_m": 0.5400951,
+      "radiative_fraction": 0.03588773388773389
+    },
+    {
+      "kinetic_gev": 35.0,
+      "ionization_gev_per_m": 0.5440544,
+      "radiative_fraction": 0.042687423187218354
+    },
+    {
+      "kinetic_gev": 40.0,
+      "ionization_gev_per_m": 0.5477808000000001,
+      "radiative_fraction": 0.04955537590945836
+    },
+    {
+      "kinetic_gev": 45.0,
+      "ionization_gev_per_m": 0.5508085000000001,
+      "radiative_fraction": 0.056424581005586595
+    },
+    {
+      "kinetic_gev": 50.0,
+      "ionization_gev_per_m": 0.5536033,
+      "radiative_fraction": 0.06326369728025227
+    },
+    {
+      "kinetic_gev": 55.0,
+      "ionization_gev_per_m": 0.5559323,
+      "radiative_fraction": 0.07004285157771717
+    },
+    {
+      "kinetic_gev": 60.0,
+      "ionization_gev_per_m": 0.5580284,
+      "radiative_fraction": 0.07681047765793528
+    },
+    {
+      "kinetic_gev": 70.0,
+      "ionization_gev_per_m": 0.5619877,
+      "radiative_fraction": 0.09023378582202111
+    },
+    {
+      "kinetic_gev": 80.0,
+      "ionization_gev_per_m": 0.5652483,
+      "radiative_fraction": 0.10347247875877356
+    },
+    {
+      "kinetic_gev": 90.0,
+      "ionization_gev_per_m": 0.568276,
+      "radiative_fraction": 0.11651575516117348
+    },
+    {
+      "kinetic_gev": 100.0,
+      "ionization_gev_per_m": 0.5708379000000001,
+      "radiative_fraction": 0.12930728241563055
+    }
+  ]
+}

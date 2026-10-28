@@ -1,0 +1,8 @@
+{
+  "op": "simulate",
+  "particles": [
+    {"object_id": 0, "state": {"position": [0, 0, 0], "momentum": {"energy": 5, "px": 3, "py": 0, "pz": 0}, "charge": 1, "time_ns": 0}},
+    {"object_id": 1, "state": {"position": [0, 0, 0], "momentum": {"energy": 5, "px": -3, "py": 0, "pz": 0}, "charge": -1, "time_ns": 0}}
+  ],
+  "config": {"seed": 42, "event_key": "educational-1", "efficiency": 1.0, "relative_pt_resolution": 0.01, "path_length_m": 2.0, "bz_tesla": 2.0, "max_objects": 100}
+}

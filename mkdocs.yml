@@ -1,0 +1,77 @@
+site_name: HEPLab engineering handbook
+site_description: Versioned physics and engineering contracts for HEPLab
+docs_dir: docs
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - content.code.copy
+plugins:
+  - search
+markdown_extensions:
+  - tables
+  - admonition
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+nav:
+  - Overview: index.md
+  - Implementation evidence: engineering/implementation.md
+  - Native engine build and use: engineering/native-engine.md
+  - Handbook: engineering/README.md
+  - Product and architecture:
+      - Charter: engineering/00-charter.md
+      - Architecture: engineering/01-architecture.md
+      - Data supply: engineering/02-data-supply.md
+      - Event contracts: engineering/03-event-contracts.md
+  - Physics engine:
+      - Numerical core: engineering/04-numerical-core.md
+      - Event generation: engineering/05-generation.md
+      - Transport: engineering/06-transport.md
+      - Detector response: engineering/07-detector-response.md
+      - Native simulation runtime: engineering/sim-runtime.md
+      - Material and electronics increment: engineering/material-response.md
+      - Geometry and reference calibration: engineering/geometry-calibration.md
+      - CMS conditions and measured reference: engineering/cms-conditions-and-measurements.md
+      - CMS export and conditional calibration: engineering/cms-export-workflow.md
+      - Reconstruction: engineering/08-reconstruction.md
+  - Analysis and execution:
+      - Analysis portfolio: engineering/09-analysis.md
+      - Statistical inference: engineering/10-statistics.md
+      - Execution: engineering/11-execution.md
+      - Interfaces: engineering/12-interfaces.md
+      - Simulator GUI design: engineering/gui-design.md
+  - Assurance and release:
+      - Preservation and trust: engineering/13-preservation-and-trust.md
+      - Verification: engineering/14-verification.md
+      - Performance: engineering/15-performance.md
+      - Operations: engineering/16-operations.md
+      - Delivery plan: engineering/17-delivery-plan.md
+      - CMS, laboratory and desktop completion: engineering/completion-plan.md
+      - Laboratory profile and offline replay: engineering/laboratory-replay.md
+      - Desktop shell and packaged worker: engineering/desktop-shell.md
+      - Requirements: engineering/18-requirements.md
+      - Sources: engineering/19-sources.md
+  - Design decisions:
+      - Index: adr/README.md
+      - Rust engine: adr/0011-rust-engine-and-verifiable-contracts.md
+      - Original Python stack: adr/0001-python-uproot-stack.md
+      - Original cache proposal: adr/0002-stream-data-with-parquet-cache.md
+      - Original event model: adr/0003-unified-event-schema.md
+      - DELPHES baseline: adr/0004-delphes-for-detector-simulation.md
+      - PYTHIA baseline: adr/0005-pythia8-primary-generator.md
+      - Original orchestration: adr/0006-snakemake-dask-orchestration.md
+      - Original statistics: adr/0007-iminuit-zfit-statistics.md
+      - Original preservation: adr/0008-docker-reproducible-releases.md
+      - Original dashboard: adr/0009-fastapi-dashboard-interface.md
+      - Original compute proposal: adr/0010-polyglot-compute-strategy.md
+      - ADR template: adr/TEMPLATE.md
+  - Historical sketches:
+      - Project: PROJECT.md
+      - Architecture: ARCHITECTURE.md
+      - Workflow: WORKFLOW.md
+      - Skeleton snapshot: SKELETON.md

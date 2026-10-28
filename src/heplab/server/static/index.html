@@ -1,0 +1,124 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>HEPLab — Simulation control</title>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='27' font-size='28'%3EH%3C/text%3E%3C/svg%3E">
+
+  <link rel="stylesheet" href="/ui/workbench.css?v=cms-display-2"><script src="/ui/workbench.js?v=cms-display-2" defer></script>
+
+</head>
+
+<body>
+
+<header class="application-bar"><strong>HEPLab</strong><span>Particle simulation</span><span id="document-title">Muon thin-slab bench</span><span class="build">0.1 · Development</span></header>
+
+<nav class="command-bar" aria-label="Application commands">
+
+  <button id="save-setup" title="Download the current parameter configuration">Save setup…</button>
+
+  <button id="undo" disabled title="Undo parameter change (Ctrl+Z)">↶ Undo</button><button id="redo" disabled title="Redo parameter change (Ctrl+Y)">↷ Redo</button>
+
+  <span class="divider"></span><label for="mode">Simulation</label><select id="mode" form="run-form"><option value="analytic">Muon thin-slab bench</option><option value="pythia">Drell–Yan · PYTHIA8 / DELPHES</option></select>
+
+  <label for="backend">Engine</label><select id="backend" form="run-form"><option value="reference">Python reference</option><option value="rust">Rust</option><option value="delphes" disabled>PYTHIA8 + DELPHES</option></select>
+
+  <span class="divider"></span><button class="primary" id="run-button" type="submit" form="run-form" title="Run the configured simulation (F5)">▶ Run</button><button id="cancel" disabled title="Cancel active computation (Escape)">■ Stop</button>
+
+  <span id="dirty" class="modified" role="status">No computed result</span><button class="end-command" id="download" disabled title="Export current result (Ctrl+S)">Export result…</button>
+
+</nav>
+
+<div class="work-area" id="work-area">
+
+  <aside class="scene-pane" aria-label="Scene and run hierarchy">
+
+    <div class="pane-title">Model browser</div>
+
+    <div class="tree" role="tree" aria-label="Simulation model">
+
+      <button class="tree-item root-node selected" data-section="source" role="treeitem" aria-selected="true">▾ <span class="node-icon">◇</span> Simulation</button>
+
+      <button class="tree-item indent" data-section="source" role="treeitem">↳ Source / run settings</button>
+
+      <button class="tree-item indent bench-node" data-section="field" role="treeitem">↳ Magnetic field</button>
+
+      <button class="tree-item indent bench-node" data-section="material" role="treeitem">↳ Thin material slab</button>
+
+      <button class="tree-item indent bench-node" data-section="electronics" role="treeitem">↳ Channel electronics</button>
+
+      <details><summary class="pane-title secondary">▸ Guide surfaces</summary><div id="geometry-tree" role="group" aria-label="Detector surfaces"></div></details><div class="pane-title secondary">CMS display layers</div><div id="cms-display-tree" role="group" aria-label="CMS display layers"></div><div class="tree-group">▾ Event objects <span id="object-count">0</span></div>
+
+      <div id="track-list" class="object-tree" role="group"></div>
+
+    </div>
+
+    <div class="pane-title secondary">Session runs</div><div id="run-history" class="run-history"><p class="muted inset">No runs in this session.</p></div>
+
+    <div class="scene-summary"><dl><dt>Coordinate system</dt><dd>Right-handed · metres</dd><dt>Backend state</dt><dd id="connection">Connecting…</dd><dt>Model validity</dt><dd>Unvalidated</dd></dl><button id="show-capabilities">Open capability report</button></div>
+
+  </aside>
+
+  <div class="splitter vertical" id="left-splitter" role="separator" aria-label="Resize model browser" aria-orientation="vertical" tabindex="0"></div>
+
+  <section class="view-pane" aria-label="Event viewport">
+
+    <div class="pane-title viewport-title"><strong>Event viewport</strong><span id="view-label">XY · orthographic</span><span id="event-label">No event loaded</span></div>
+
+    <div class="viewport-tools"><div class="segmented" aria-label="Projection"><button id="xy" aria-pressed="true" title="XY projection (1)">XY</button><button id="xz" aria-pressed="false" title="XZ projection (2)">XZ</button><button id="three-d" aria-pressed="false" title="3D orbit view (3)">3D</button></div><label for="detector-focus">Region</label><select id="detector-focus"><option value="tracker">Tracker</option><option value="pixel">Pixel</option><option value="solenoid">Solenoid</option><option value="cms" selected>CMS</option></select><button id="reset-view" title="Fit view (F)">Fit</button><label><input id="show-grid" type="checkbox" checked> Grid</label><label><input id="show-guides" type="checkbox" checked> Guide surfaces</label><label><input id="show-modules" type="checkbox" checked> CMS outlines</label><span class="viewport-hint" id="navigation-hint">Drag: pan · wheel: zoom</span></div>
+
+    <div class="viewport"><canvas id="detector" tabindex="0" aria-label="Event viewport. Drag to pan or orbit in 3D. Scroll to zoom. Click a track to select it."></canvas><div id="empty-state"><strong>No event loaded</strong><span>Choose the simulation and engine, check the parameters, then select Run.</span></div><div id="display-note">Detector surfaces provide scale only; no detector geometry is loaded.</div></div>
+
+    <div class="event-toolbar"><button id="previous-event" disabled aria-label="Previous event">◀</button><label for="event-index">Event</label><input id="event-index" type="number" value="0" min="0" max="0" disabled><span id="event-total">/ —</span><button id="next-event" disabled aria-label="Next event">▶</button><span id="event-source">No result</span></div>
+
+  </section>
+
+  <div class="splitter vertical" id="right-splitter" role="separator" aria-label="Resize properties" aria-orientation="vertical" tabindex="0"></div>
+
+  <aside class="property-pane" aria-label="Properties and configuration">
+
+    <div class="pane-title">Properties <span id="selection-title">Simulation</span></div>
+
+    <div class="tab-bar" role="tablist" aria-label="Inspector views"><button id="settings-tab" role="tab" aria-selected="true" aria-controls="settings-panel">Parameters</button><button id="selection-tab" role="tab" aria-selected="false" aria-controls="selection-panel">Selection</button></div>
+
+    <section id="settings-panel" role="tabpanel" aria-labelledby="settings-tab">
+
+    <form id="run-form">
+
+      <div class="property-section" data-property="source"><h2>Source / run</h2><div class="property-row"><label for="seed">Random seed</label><input id="seed" type="number" min="1" max="900000000" value="42" required></div><div class="property-row" id="event-budget-row" hidden><label for="events">Event budget</label><input id="events" type="number" min="1" max="1000" value="100" required></div><div class="bench-settings"><div class="property-row"><label for="momentum">Muon |p| <span>GeV/c</span></label><input id="momentum" type="number" min="1" max="100" step="0.1" value="45" required></div><div class="property-row"><label for="response-model">Tracking response</label><select id="response-model"><option value="ideal">Ideal / no smearing</option><option value="delphes_reference" title="Eta-binned fit integrated over the DY pT distribution; local pT dependence is unvalidated">DY reference fit (coarse)</option></select></div><div class="readonly-row"><span>Particles</span><span>μ− + μ+ · back-to-back</span></div><div class="readonly-row"><span>Events</span><span>1 · declared test fixture</span></div></div><div class="collision-settings" hidden><div class="readonly-row"><span>Beams</span><span>pp · √s = 13 TeV</span></div><div class="readonly-row"><span>Process</span><span>γ*/Z → μμ</span></div><div class="readonly-row"><span>Hard mass</span><span>60–120 GeV</span></div><div class="readonly-row"><span>Tune / PDF</span><span>Monash / internal set 13</span></div><div class="readonly-row"><span>Detector</span><span>DELPHES CMS card</span></div><div class="readonly-row"><span>Pileup</span><span>None</span></div></div></div>
+
+      <div class="property-section bench-settings" data-property="field"><h2>Magnetic field</h2><div class="property-row"><label for="field-model">Field model</label><select id="field-model"><option value="ideal_bore">Ideal solenoid bore</option><option value="cms_tracker">CMS OAE tracker / 3.8 T</option></select></div><div class="property-row"><label for="field">Bz <span>T</span></label><input id="field" type="number" min="-8" max="8" step="0.1" value="3.8" required></div><div class="readonly-row"><span>Propagation</span><span id="propagation-model">Analytic vacuum helix</span></div><div class="readonly-row"><span>Path to slab</span><span>1.000 m</span></div></div>
+
+      <div class="property-section bench-settings" data-property="material"><h2>Thin material slab</h2><div class="property-row"><label for="thickness">Path thickness <span>mm</span></label><input id="thickness" type="number" min="0.1" max="5" step="0.1" value="1" required></div><div class="readonly-row"><span>Material</span><span>Silicon / PDG reference</span></div><div class="readonly-row"><span>Radiation length</span><span>0.0937 m</span></div><div class="readonly-row"><span>Stopping power</span><span>PDG muon table / 0.1-100 GeV</span></div><div class="readonly-row"><span>Scattering</span><span>Highland Gaussian core</span></div><p class="field-note">Heavy, singly charged particles only. No straggling, secondary production, or showers.</p></div>
+
+      <div class="property-section bench-settings" data-property="electronics"><h2>Channel electronics</h2><div class="property-row"><label for="noise">Noise σ <span>ADC</span></label><input id="noise" type="number" min="0" max="10" step="0.1" value="1" required></div><div class="property-row"><label for="threshold">Threshold <span>ADC</span></label><input id="threshold" type="number" min="0" max="100" step="1" value="5" required></div><div class="readonly-row"><span>Gain</span><span>100000 ADC/GeV</span></div><div class="readonly-row"><span>Saturation</span><span>255 ADC</span></div><div class="readonly-row"><span>Pedestal</span><span>0 ADC</span></div></div>
+
+    </form><div class="notice">Model status: unvalidated. Numeric verification does not establish detector calibration.</div></section>
+
+    <section id="selection-panel" role="tabpanel" aria-labelledby="selection-tab" hidden><div class="selection-path" id="selection-path">No particle selected</div><dl id="properties" class="property-list"></dl></section>
+
+  </aside>
+
+  <section class="results-pane" aria-label="Results and diagnostics"><div class="tab-bar results-tabs" role="tablist" aria-label="Result views"><button id="particles-tab" role="tab" aria-selected="true" aria-controls="particles-panel">Particles <span id="particle-total">0</span></button><button id="diagnostics-tab" role="tab" aria-selected="false" aria-controls="diagnostics-panel">Run log</button><button id="crossings-tab" role="tab" aria-selected="false" aria-controls="crossings-panel">Surface crossings</button><button id="calibration-tab" role="tab" aria-selected="false" aria-controls="calibration-panel">Reference validation</button><button id="checks-tab" role="tab" aria-selected="false" aria-controls="checks-panel">Capabilities / checks</button><span id="status" role="status" aria-live="polite">IDLE</span></div>
+
+    <div id="particles-panel" class="result-content" role="tabpanel" aria-labelledby="particles-tab"><table id="particle-table"><thead><tr><th scope="col">Object</th><th scope="col">PDG</th><th scope="col">q / e</th><th scope="col">|p| / GeV</th><th scope="col">pT / GeV</th><th scope="col">Deposit / MeV</th><th scope="col">Signal / ADC</th><th scope="col">Status</th></tr></thead><tbody id="particle-rows"><tr><td colspan="8" class="muted">No computed particles. Run a simulation to populate this table.</td></tr></tbody></table></div>
+
+    <div id="diagnostics-panel" class="result-content" role="tabpanel" aria-labelledby="diagnostics-tab" hidden><pre id="log" aria-live="polite">Ready. No simulation has been run.</pre></div>
+
+    <div id="crossings-panel" class="result-content" role="tabpanel" aria-labelledby="crossings-tab" hidden><table><thead><tr><th>Object</th><th>Surface</th><th>Path / m</th><th>X / m</th><th>Y / m</th><th>Z / m</th><th>Time / ns</th></tr></thead><tbody id="crossing-rows"></tbody></table></div>
+    <div id="calibration-panel" class="result-content" role="tabpanel" aria-labelledby="calibration-tab" hidden><p class="field-note">PDG and generator fits use held-out references. CMS field checks use software reference points. Measured Z data provide a target; detector calibration remains pending.</p><table><thead><tr><th>Model / domain</th><th>Training</th><th>Held-out</th><th>Result</th></tr></thead><tbody id="calibration-rows"></tbody></table></div>
+    <div id="checks-panel" class="result-content" role="tabpanel" aria-labelledby="checks-tab" hidden><table><thead><tr><th scope="col">Capability / check</th><th scope="col">State</th><th scope="col">Scope</th></tr></thead><tbody id="capability-rows"></tbody></table></div>
+
+  </section>
+
+</div>
+
+<footer class="status-bar"><span id="operation-status">Ready</span><span id="metric-events">Events: —</span><span id="metric-deposit">Deposit: —</span><span id="metric-digits">Channels: —</span><span id="metric-residual">Energy residual: —</span><span class="validation-state">Physics validation: pending</span></footer>
+
+</body></html>
+

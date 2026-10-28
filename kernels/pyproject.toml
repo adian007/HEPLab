@@ -1,0 +1,15 @@
+# maturin build config for the Rust kernel crate (ADR-0010 Tier 1).
+# Build: uv/pip install maturin && maturin develop --release  (in kernels/)
+[build-system]
+requires = ["maturin>=1.5"]
+build-backend = "maturin"
+
+[project]
+name = "heplab-kernels"
+version = "0.1.0"
+description = "Tier-1 Rust compute kernels for HEPLab (ADR-0010)"
+license = "Apache-2.0"
+requires-python = ">=3.12"
+
+[tool.maturin]
+module-name = "heplab_kernels"

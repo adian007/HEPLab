@@ -1,0 +1,294 @@
+{
+  "id": "pdg-si-muon-loglinear-split-v1",
+  "scope": "mean ionization, muons in silicon only",
+  "source_sha256": "4f1fbf9a287a59765de8b5ea840471fe72c2b675c982e995bac9b57d2c0425fd",
+  "source_url": "https://pdg.lbl.gov/2025/AtomicNuclearProperties/MUE/muE_silicon_Si.txt",
+  "training_rows": [
+    0,
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    16,
+    18,
+    20,
+    22,
+    24,
+    26,
+    28,
+    30,
+    32,
+    34,
+    36,
+    38,
+    40,
+    42,
+    44,
+    46,
+    48
+  ],
+  "heldout_rows": [
+    1,
+    3,
+    5,
+    7,
+    9,
+    11,
+    13,
+    15,
+    17,
+    19,
+    21,
+    23,
+    25,
+    27,
+    29,
+    31,
+    33,
+    35,
+    37,
+    39,
+    41,
+    43,
+    45,
+    47
+  ],
+  "knots": [
+    [
+      0.1,
+      0.4306321000000001
+    ],
+    [
+      0.14,
+      0.40454730000000005
+    ],
+    [
+      0.2,
+      0.39080620000000005
+    ],
+    [
+      0.3,
+      0.3877785
+    ],
+    [
+      0.4,
+      0.39150490000000004
+    ],
+    [
+      0.5,
+      0.39662870000000006
+    ],
+    [
+      0.6,
+      0.40198540000000005
+    ],
+    [
+      0.8,
+      0.4115343
+    ],
+    [
+      1.0,
+      0.41991870000000003
+    ],
+    [
+      1.4,
+      0.4331940000000001
+    ],
+    [
+      2.0,
+      0.4476338
+    ],
+    [
+      3.0,
+      0.46370390000000006
+    ],
+    [
+      4.0,
+      0.47465019999999997
+    ],
+    [
+      5.0,
+      0.4830346
+    ],
+    [
+      6.0,
+      0.48955580000000004
+    ],
+    [
+      8.0,
+      0.49957050000000003
+    ],
+    [
+      10.0,
+      0.5070233000000001
+    ],
+    [
+      14.0,
+      0.5179696000000001
+    ],
+    [
+      20.0,
+      0.528683
+    ],
+    [
+      30.0,
+      0.5400951
+    ],
+    [
+      40.0,
+      0.5477808000000001
+    ],
+    [
+      50.0,
+      0.5536033
+    ],
+    [
+      60.0,
+      0.5580284
+    ],
+    [
+      80.0,
+      0.5652483
+    ],
+    [
+      100.0,
+      0.5708379000000001
+    ]
+  ],
+  "acceptance": {
+    "max_abs_relative_error": 0.02,
+    "chosen_before_fit": true
+  },
+  "heldout_errors": [
+    {
+      "row": 1,
+      "energy_gev": 0.12,
+      "relative_error": 0.004105246179865185
+    },
+    {
+      "row": 3,
+      "energy_gev": 0.17,
+      "relative_error": 0.0034628302292913915
+    },
+    {
+      "row": 5,
+      "energy_gev": 0.25,
+      "relative_error": 0.003510861098035001
+    },
+    {
+      "row": 7,
+      "energy_gev": 0.35,
+      "relative_error": 0.0009410232971194255
+    },
+    {
+      "row": 9,
+      "energy_gev": 0.45,
+      "relative_error": 0.0003619242561336833
+    },
+    {
+      "row": 11,
+      "energy_gev": 0.55,
+      "relative_error": 0.000597112061758498
+    },
+    {
+      "row": 13,
+      "energy_gev": 0.7,
+      "relative_error": 0.0005548450581041031
+    },
+    {
+      "row": 15,
+      "energy_gev": 0.9,
+      "relative_error": 1.1587674235702394e-06
+    },
+    {
+      "row": 17,
+      "energy_gev": 1.2,
+      "relative_error": -6.208266689422537e-05
+    },
+    {
+      "row": 19,
+      "energy_gev": 1.7,
+      "relative_error": -0.00013215337187122422
+    },
+    {
+      "row": 21,
+      "energy_gev": 2.5,
+      "relative_error": -1.355091239219064e-05
+    },
+    {
+      "row": 23,
+      "energy_gev": 3.5,
+      "relative_error": -0.0004043946832912315
+    },
+    {
+      "row": 25,
+      "energy_gev": 4.5,
+      "relative_error": 1.0061053077325965e-06
+    },
+    {
+      "row": 27,
+      "energy_gev": 5.5,
+      "relative_error": -0.00017365075721875733
+    },
+    {
+      "row": 29,
+      "energy_gev": 7.0,
+      "relative_error": -0.00045108740093791067
+    },
+    {
+      "row": 31,
+      "energy_gev": 9.0,
+      "relative_error": -5.054186098518709e-05
+    },
+    {
+      "row": 33,
+      "energy_gev": 12.0,
+      "relative_error": -0.0002417070957537737
+    },
+    {
+      "row": 35,
+      "energy_gev": 17.0,
+      "relative_error": 1.7830646087180213e-05
+    },
+    {
+      "row": 37,
+      "energy_gev": 25.0,
+      "relative_error": -1.4520702025566656e-05
+    },
+    {
+      "row": 39,
+      "energy_gev": 35.0,
+      "relative_error": 0.00029221696922787643
+    },
+    {
+      "row": 41,
+      "energy_gev": 45.0,
+      "relative_error": 8.282521688340871e-05
+    },
+    {
+      "row": 43,
+      "energy_gev": 55.0,
+      "relative_error": -2.8313666359025547e-05
+    },
+    {
+      "row": 45,
+      "energy_gev": 70.0,
+      "relative_error": -0.0001612329171080118
+    },
+    {
+      "row": 47,
+      "energy_gev": 90.0,
+      "relative_error": -0.00013604656868326792
+    }
+  ],
+  "max_abs_relative_error": 0.004105246179865185,
+  "status": "reference_calibrated",
+  "not_established": [
+    "experimental CMS calibration",
+    "radiative or stochastic energy-loss validation"
+  ],
+  "sha256": "670c2b4bac80a6c157494819cf3b6de413cf0acf926ccb60cc705f7eafd22bbf"
+}

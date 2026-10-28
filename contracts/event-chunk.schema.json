@@ -1,0 +1,347 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://heplab.invalid/contracts/event-chunk.schema.json",
+  "title": "HEPLab target JSON event envelope v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source",
+    "units",
+    "capabilities",
+    "events"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "uri",
+        "entry_start",
+        "entry_stop",
+        "declared_checksum",
+        "integrity"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entry_start": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "entry_stop": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "declared_checksum": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "algorithm",
+            "value"
+          ],
+          "properties": {
+            "algorithm": {
+              "enum": [
+                "adler32",
+                "sha256"
+              ]
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^(?:[0-9a-f]{8}|[0-9a-f]{64})$"
+            }
+          }
+        },
+        "integrity": {
+          "enum": [
+            "declared_only",
+            "full_file_verified"
+          ]
+        }
+      }
+    },
+    "units": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "energy",
+        "length",
+        "time",
+        "field",
+        "angle"
+      ],
+      "properties": {
+        "energy": {
+          "const": "GeV"
+        },
+        "length": {
+          "const": "m"
+        },
+        "time": {
+          "const": "ns"
+        },
+        "field": {
+          "const": "T"
+        },
+        "angle": {
+          "const": "rad"
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "events": {
+      "type": "array",
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "EventInfo",
+          "Muon"
+        ],
+        "properties": {
+          "EventInfo": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "dataset_id",
+              "source_id",
+              "source_entry",
+              "run",
+              "luminosity_block",
+              "event",
+              "kind",
+              "weight"
+            ],
+            "properties": {
+              "dataset_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "source_entry": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "run": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "luminosity_block": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "event": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "kind": {
+                "enum": [
+                  "data",
+                  "simulation"
+                ]
+              },
+              "weight": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "generator",
+                  "normalization",
+                  "pileup",
+                  "corrections",
+                  "variations"
+                ],
+                "properties": {
+                  "generator": {
+                    "type": "number"
+                  },
+                  "normalization": {
+                    "type": "number"
+                  },
+                  "pileup": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "corrections": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "number"
+                    }
+                  },
+                  "variations": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "Muon": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "object_id",
+                "pt",
+                "eta",
+                "phi",
+                "mass",
+                "charge",
+                "isolation",
+                "id_flags"
+              ],
+              "properties": {
+                "object_id": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "pt": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "eta": {
+                  "type": "number"
+                },
+                "phi": {
+                  "type": "number",
+                  "minimum": -3.141592653589793,
+                  "exclusiveMaximum": 3.141592653589793
+                },
+                "mass": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "charge": {
+                  "enum": [
+                    -1,
+                    0,
+                    1
+                  ]
+                },
+                "isolation": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "value",
+                    "definition",
+                    "valid"
+                  ],
+                  "properties": {
+                    "value": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "definition": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "valid": {
+                      "type": "boolean"
+                    }
+                  },
+                  "allOf": [
+                    {
+                      "if": {
+                        "properties": {
+                          "valid": {
+                            "const": true
+                          }
+                        }
+                      },
+                      "then": {
+                        "properties": {
+                          "value": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "definition": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "if": {
+                        "properties": {
+                          "valid": {
+                            "const": false
+                          }
+                        }
+                      },
+                      "then": {
+                        "properties": {
+                          "value": {
+                            "type": "null"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "id_flags": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "MET": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "px",
+              "py",
+              "definition"
+            ],
+            "properties": {
+              "px": {
+                "type": "number"
+              },
+              "py": {
+                "type": "number"
+              },
+              "definition": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

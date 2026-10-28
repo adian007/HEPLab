@@ -1,0 +1,95 @@
+# M7 desktop build matrix: native build and smoke test on each OS/CPU.
+# Produces unsigned bundles. Signing/notarization (DESKTOP-005) needs release
+# credentials and is a separate gate; nothing here publishes a release.
+name: Desktop
+
+on:
+  push:
+    branches: [main]
+    paths: ["desktop/**", "src/heplab/**", ".github/workflows/desktop.yml"]
+  pull_request:
+    paths: ["desktop/**", "src/heplab/**", ".github/workflows/desktop.yml"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows-x86_64
+            runner: windows-latest
+            triple: x86_64-pc-windows-msvc
+            bundles: nsis,msi
+          - name: linux-x86_64
+            runner: ubuntu-22.04
+            triple: x86_64-unknown-linux-gnu
+            bundles: appimage,deb,rpm
+          - name: macos-intel-x86_64
+            runner: macos-15-intel
+            triple: x86_64-apple-darwin
+            bundles: app,dmg
+          - name: macos-apple-silicon-arm64
+            runner: macos-15
+            triple: aarch64-apple-darwin
+            bundles: app,dmg
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v4
+      - name: Linux webview dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf rpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: rustup toolchain install 1.99.1 --profile minimal --component rustfmt,clippy
+      - name: Confirm native architecture
+        shell: bash
+        run: |
+          host=$(rustc -vV | sed -n 's/^host: //p')
+          echo "rust host $host, expected ${{ matrix.triple }}"
+          test "$host" = "${{ matrix.triple }}"
+      - name: Freeze and smoke-test the packaged worker
+        shell: bash
+        run: |
+          python -m pip install pyinstaller pyyaml pydantic
+          python -m pip install --no-deps .
+          python desktop/build_worker.py
+      - name: IPC core tests against source and frozen workers
+        shell: bash
+        env:
+          HEPLAB_TEST_PYTHON: python
+        run: |
+          suffix=""; [ "$RUNNER_OS" = "Windows" ] && suffix=".exe"
+          export HEPLAB_TEST_WORKER_BINARY="$PWD/desktop/src-tauri/binaries/heplab-worker-${{ matrix.triple }}$suffix"
+          cargo fmt --manifest-path desktop/core/Cargo.toml --check
+          cargo clippy --locked --manifest-path desktop/core/Cargo.toml --all-targets -- -D warnings
+          cargo test --locked --manifest-path desktop/core/Cargo.toml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Assemble the simulator workbench frontend
+        run: python desktop/prepare_frontend.py
+      - name: Shell lint (needs the sidecar and frontend present)
+        run: cargo clippy --locked --manifest-path desktop/src-tauri/Cargo.toml -- -D warnings
+      - name: Build bundles
+        working-directory: desktop
+        run: npx --yes @tauri-apps/cli@2 build --ci --target ${{ matrix.triple }} --bundles ${{ matrix.bundles }}
+      - name: Record bundle hashes
+        shell: bash
+        run: |
+          out=desktop/src-tauri/target/${{ matrix.triple }}/release/bundle
+          find "$out" -type f \( -name '*.exe' -o -name '*.msi' -o -name '*.AppImage' -o -name '*.deb' -o -name '*.rpm' -o -name '*.dmg' \) -print0 \
+            | xargs -0 shasum -a 256 | tee bundle-sha256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: heplab-desktop-${{ matrix.name }}-unsigned
+          path: |
+            desktop/src-tauri/target/${{ matrix.triple }}/release/bundle
+            bundle-sha256.txt
+          if-no-files-found: error

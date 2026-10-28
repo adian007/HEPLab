@@ -1,0 +1,31 @@
+# A1 dimuon spectrum — analysis config (Phase 2)
+# Consumed by heplab.analyses.dimuon; hashed into the provenance stamp (ADR-0008).
+schema: heplab-analysis-config/v0
+
+datasets:
+  data: Run2016_DoubleMuon        # resolved from manifests/datasets/
+  sim: DYToMuMu_Pythia8_Delphes   # produced by heplab sim (Phase 3)
+
+selection:
+  muons:
+    min_pt: 25.0          # GeV
+    max_abs_eta: 2.4
+    max_rel_iso: 0.15     # pfRelIso04-style, schema v1 `iso`
+    min_n: 2
+  pairs:
+    require_opposite_charge: true
+    mass_window: [0.5, 200.0]   # GeV — retain J/ψ, Υ, and Z spectrum for A1
+
+binning:
+  dimuon_mass:
+    range: [0.5, 200.0]
+    bins: 400
+    log_bins: false             # uniformly spaced bin edges over the configured range
+
+fit:
+  model: gaussian_plus_uniform      # fitted implementation available in stats/fits.py
+  variable: dimuon_mass
+  range: [70.0, 110.0]
+  backend: auto   # CPU | GPU | AUTO (ADR-0010)
+
+systematics: []   # skeleton — efficiency and scale variations land in Phase 4

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "heplab-api",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-c", "import sys; sys.path.insert(0, 'src'); from heplab.cli import main; sys.exit(main(['gui', '--port', '8765']))"],
+      "port": 8765
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "web", "dev"],
+      "port": 5173
+    }
+  ]
+}

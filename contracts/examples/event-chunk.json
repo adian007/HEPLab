@@ -1,0 +1,80 @@
+{
+  "schema_version": 2,
+  "source": {
+    "source_id": "0000000000000000000000000000000000000000000000000000000000000000",
+    "uri": "synthetic:analytic-two-muon-fixture",
+    "entry_start": 0,
+    "entry_stop": 1,
+    "declared_checksum": {
+      "algorithm": "sha256",
+      "value": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "integrity": "declared_only"
+  },
+  "units": {
+    "energy": "GeV",
+    "length": "m",
+    "time": "ns",
+    "field": "T",
+    "angle": "rad"
+  },
+  "capabilities": [
+    "muon_kinematics",
+    "educational_fixture"
+  ],
+  "events": [
+    {
+      "EventInfo": {
+        "dataset_id": "synthetic-two-muon",
+        "source_id": "0000000000000000000000000000000000000000000000000000000000000000",
+        "source_entry": 0,
+        "run": 0,
+        "luminosity_block": 0,
+        "event": 1,
+        "kind": "simulation",
+        "weight": {
+          "generator": 1,
+          "normalization": 1,
+          "pileup": 1,
+          "corrections": {},
+          "variations": {}
+        }
+      },
+      "Muon": [
+        {
+          "object_id": 0,
+          "pt": 45.6,
+          "eta": 0,
+          "phi": 0,
+          "mass": 0.105658,
+          "charge": 1,
+          "isolation": {
+            "value": 0.01,
+            "definition": "synthetic_relative_iso",
+            "valid": true
+          },
+          "id_flags": {}
+        },
+        {
+          "object_id": 1,
+          "pt": 45.6,
+          "eta": 0,
+          "phi": -3.141592653589793,
+          "mass": 0.105658,
+          "charge": -1,
+          "isolation": {
+            "value": 0.01,
+            "definition": "synthetic_relative_iso",
+            "valid": true
+          },
+          "id_flags": {}
+        }
+      ],
+      "MET": {
+        "px": 0,
+        "py": 0,
+        "definition": "synthetic_balanced_pair"
+      }
+    }
+  ]
+}

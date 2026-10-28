@@ -1,0 +1,243 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://heplab.invalid/contracts/run-plan.schema.json",
+  "title": "HEPLab target frozen run plan v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "source_snapshot_sha256",
+    "source_ranges",
+    "analysis",
+    "model_sha256",
+    "code_sha256",
+    "certification_sha256",
+    "randomness",
+    "budgets",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$"
+    },
+    "source_snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_ranges": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_id",
+          "uri",
+          "entry_start",
+          "entry_stop",
+          "declared_checksum",
+          "integrity"
+        ],
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "uri": {
+            "type": "string",
+            "minLength": 1
+          },
+          "entry_start": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "entry_stop": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "declared_checksum": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "enum": [
+                  "adler32",
+                  "sha256"
+                ]
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^(?:[0-9a-f]{8}|[0-9a-f]{64})$"
+              }
+            }
+          },
+          "integrity": {
+            "enum": [
+              "declared_only",
+              "full_file_verified"
+            ]
+          }
+        }
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "config_sha256",
+        "candidate_policy"
+      ],
+      "properties": {
+        "name": {
+          "enum": [
+            "dimuon_inclusive",
+            "z_dimuon",
+            "z_measurement",
+            "diphoton"
+          ]
+        },
+        "config_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "candidate_policy": {
+          "enum": [
+            "all_pairs",
+            "closest_to_reference_mass",
+            "highest_sum_pt"
+          ]
+        }
+      }
+    },
+    "model_sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "code_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "certification_sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "randomness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "master_seed",
+        "generator_shards",
+        "correlation_groups"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "heplab-sha256-address-v1"
+        },
+        "master_seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "generator_shards": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "correlation_groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_events",
+        "chunk_events",
+        "worker_memory_bytes",
+        "max_workers",
+        "max_particle_steps",
+        "max_output_bytes"
+      ],
+      "properties": {
+        "max_events": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "chunk_events": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "worker_memory_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_workers": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_particle_steps": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_output_bytes": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "required_evidence_ids"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "educational",
+            "exploratory",
+            "measurement"
+          ]
+        },
+        "required_evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-28",
+  "scope": "M4/M5 laboratory software foundation on synthetic fixtures; no identified device, real DAQ data or hardware contact",
+  "tests": "tests/test_lab_replay.py (8 tests)",
+  "requirements": {
+    "LAB-001": "Profile states, source requirement, identified-status and control gates; user's equipment recorded as unidentified intake profile",
+    "LAB-002": "Byte/record loss ledger and raw-hash immutability on the synthetic test format only; real decoder and golden files need the device specification and a recorded sample",
+    "LAB-003": "Rollover/epoch unwrap and profile-bound channel offsets; deriving offsets from known timing fixtures is not implemented",
+    "LAB-004": "Independent-trigger denominator guard with dead-time exclusion; active-area selection needs external tracks",
+    "LAB-007": "Replay without hardware; control refused without identification, operator and approved limits; no control adapter exists",
+    "LAB-008": "Run record with raw, profile, config, calibration and source-tree identities; conditions and masks not yet captured by the CLI"
+  }
+}

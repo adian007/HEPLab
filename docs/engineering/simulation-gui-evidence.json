@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-27",
+  "scope": "Native generator/fast-simulation integration, bounded educational material/electronics, and local simulator GUI. No physics-validation release.",
+  "platform": {
+    "python": "3.13.14 on Windows",
+    "rust": "1.99.1 on Ubuntu WSL",
+    "native_runtime": "Linux-64 x86-64-v3",
+    "versions": {
+      "pythia8": "8.312",
+      "delphes": "3.5.1",
+      "root_base": "6.40.04",
+      "hepmc3": "3.3.1"
+    },
+    "package_count": 182
+  },
+  "verification": {
+    "python_tests": 102,
+    "rust_unit_tests": 11,
+    "compiled_parity": {
+      "status": "passed",
+      "cli_cases": 707,
+      "extension_cases": 707,
+      "extension_workers": 4,
+      "requirements": [
+        "CORE-001",
+        "CORE-002",
+        "CORE-004",
+        "CORE-005",
+        "CORE-006",
+        "CORE-007",
+        "TRANSPORT-001"
+      ],
+      "scope": "analytic numerical core and educational response; no detector calibration claim"
+    },
+    "mypy_source_files": 33,
+    "ruff": "passed",
+    "rust_fmt_clippy": "passed; clippy -D warnings",
+    "wheel": "built and isolated catalog/certification/UI asset presence verified",
+    "mermaid": "56 blocks across 51 Markdown files, zero parser failures",
+    "mkdocs": "strict build passed",
+    "late_cancellation_commit_regression": "passed: committed native results remain completed"
+  },
+  "native_acceptance": {
+    "status": "passed",
+    "events_per_repeat": 100,
+    "physical_content_sha256": [
+      "02e53bdff8328eca8dc41c1bff8cb36b7a28d688e9ad71b9a86e220adb0078c2",
+      "02e53bdff8328eca8dc41c1bff8cb36b7a28d688e9ad71b9a86e220adb0078c2"
+    ],
+    "fixed_shard_repeatable": true,
+    "cancel_no_commit": true,
+    "timeout_no_commit": true,
+    "summaries": [
+      {
+        "events": 100,
+        "sumw": 100.0,
+        "sumw2": 100.0,
+        "positive_sumw": 100.0,
+        "negative_sumw": 0.0,
+        "max_truth_four_momentum_residual_gev": 0.0002760188654065132,
+        "truth_conservation_tolerance": "max(0.002 GeV, 2e-5 * beam total energy)",
+        "truth_graph": "native Particle mother/daughter indices preserved in ROOT",
+        "normalization": "generator log retained; cross section not independently validated",
+        "trials": 401,
+        "selected": 100,
+        "accepted": 100,
+        "cross_section_pb": 1341.0,
+        "cross_section_error_pb": 78.97,
+        "cross_section_source": "PYTHIA stat() sum row, rounded printed precision",
+        "cross_section_convention": "registered mass window and forced muon decay included; no extra decay factor",
+        "independent_validation": "pending"
+      },
+      {
+        "events": 100,
+        "sumw": 100.0,
+        "sumw2": 100.0,
+        "positive_sumw": 100.0,
+        "negative_sumw": 0.0,
+        "max_truth_four_momentum_residual_gev": 0.0002760188654065132,
+        "truth_conservation_tolerance": "max(0.002 GeV, 2e-5 * beam total energy)",
+        "truth_graph": "native Particle mother/daughter indices preserved in ROOT",
+        "normalization": "generator log retained; cross section not independently validated",
+        "trials": 401,
+        "selected": 100,
+        "accepted": 100,
+        "cross_section_pb": 1341.0,
+        "cross_section_error_pb": 78.97,
+        "cross_section_source": "PYTHIA stat() sum row, rounded printed precision",
+        "cross_section_convention": "registered mass window and forced muon decay included; no extra decay factor",
+        "independent_validation": "pending"
+      }
+    ],
+    "independent_cross_section_validation": "pending"
+  },
+  "gui_acceptance": {
+    "browser": "Chromium through Playwright CLI",
+    "layouts": [
+      {
+        "width": 1600,
+        "height": 1000
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "page_horizontal_overflow": false
+      }
+    ],
+    "checks": [
+      "real Rust bench run",
+      "numeric parameter undo/redo",
+      "linked table/tree/inspector selection",
+      "XY/XZ/3D projection and orbit/zoom",
+      "pane keyboard resize",
+      "numerical export identical before/after camera changes",
+      "explicit PYTHIA8+DELPHES backend",
+      "real 100-event collision run",
+      "selected ROOT event navigation",
+      "capability/conservation report",
+      "actual cancellation with no published failed result",
+      "completed session result reopening",
+      "configuration and result export"
+    ],
+    "console_errors": 0,
+    "console_warnings": 0,
+    "screenshots": [
+      "output/playwright/heplab-bench-final.png",
+      "output/playwright/heplab-collision-final.png",
+      "output/playwright/heplab-mobile-final.png"
+    ]
+  },
+  "source_review": {
+    "report": "gui-design.md",
+    "reviewed": [
+      "NVIDIA Physics Umbrella UI",
+      "Microsoft Research The Magic of UI Physics",
+      "Creative Navy professional simulation case study"
+    ],
+    "unavailable": [
+      "IEEE DIGITEL resource content could not be retrieved; no findings attributed"
+    ]
+  },
+  "limits": [
+    "Constant stopping power and Gaussian-core scattering are bounded approximations; no calibrated transport/shower claim.",
+    "Digitization has no timed hit aggregation or detector calibration.",
+    "DELPHES displayed muons are direction guides; no fitted tracks or measured hits.",
+    "Generator cross section is a rounded stat() estimate; independent comparison pending.",
+    "The native lock targets x86-64-v3 Linux; other platform wheels/runtime locks remain open.",
+    "Session job recovery across server restarts and container network isolation remain unimplemented.",
+    "Browser acceptance is not a professional-user usability study."
+  ],
+  "native_lock_sha256": "ba5bf5aefc299f2d92abd7f00db1749bb988c6356d7c6e651008d67913498bf2"
+}

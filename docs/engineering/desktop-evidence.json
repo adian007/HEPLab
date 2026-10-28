@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-28",
+  "scope": "M7: simulator workbench runs as a native Windows x86-64 desktop app (build, launch, simulate, export, shutdown tested); IPC core and frozen worker also tested on Linux x86-64; Linux and macOS bundles not yet built",
+  "platform": {
+    "python_host": "Windows, Python 3.13.14",
+    "native_host": "Ubuntu via WSL, x86_64-unknown-linux-gnu, Rust 1.99.1, Python 3.14.4",
+    "windows_native": "Windows 11, Rust 1.99.1 x86_64-pc-windows-msvc, MSVC 14.51, Windows SDK 10.0.26100, WebView2 156.0.4314.50"
+  },
+  "tests": {
+    "python": "tests/test_desktop_worker.py (21 tests, including a simulator job lifecycle through the worker)",
+    "rust": "desktop/core: 5 unit + 9 integration tests on Windows and Linux, clippy -D warnings, rustfmt",
+    "frozen_sidecar": "PyInstaller 6.22.3 one-file workers for Linux x86-64 (12.9 MB) and Windows x86-64 (11.2 MB); handshake with PYTHON* variables removed; supervisor integration test against each binary"
+  },
+  "requirements": {
+    "DESKTOP-002": "Frozen worker starts without system Python on Windows and Linux x86-64; strict version/protocol/operation handshake; only the sidecar next to the shell executable is launched; the whole worker tree is killed on shutdown, cancellation, timeout and protocol errors, and with the app on Windows via Job Object. macOS pending CI",
+    "DESKTOP-003": "Unknown commands, malformed messages, shell-style arguments, oversized requests/responses and path escapes reject in shell core and worker, including from the live Windows webview; Tauri permission check refuses unlisted commands; cancellation, grandchild cleanup and crash restart tested",
+    "DESKTOP-006": "Missing native PYTHIA8/DELPHES runtime disables only the collision mode; the analytic simulator, display and export work in the desktop app without Docker or WSL"
+  },
+  "pending": {
+    "DESKTOP-001": "Windows x86-64 built and launched locally (installer not executed); Linux and both macOS bundles need native runners",
+    "DESKTOP-004": "Cross-architecture numerical fixtures",
+    "DESKTOP-005": "Signing, notarization, update and uninstall",
+    "DESKTOP-006": "Optional CMS worker capability"
+  },
+  "windows_build": {
+    "installer": "HEPLab_0.1.0-dev.0_x64-setup.exe (unsigned NSIS, not executed)",
+    "installer_sha256": "f842f262292eb27c8d53a4d6401c81035a23f2f43361a5208a0df6bebc5e982c",
+    "webview_probe": "runs.list, engine.capabilities and detector.geometry succeeded through heplab_invoke; unknown op, path escapes, CSP-blocked external fetch and unlisted plugin command refused",
+    "lifecycle": "No worker processes after normal close or force-kill of the app",
+    "defect_fixed": "Killing the one-file bootloader orphaned the Python child; workers now run in a kill-on-close Job Object (Windows) or their own process group (Unix)"
+  },
+  "simulator_app": {
+    "frontend": "src/heplab/server/static workbench, copied by desktop/prepare_frontend.py; CMS display layers bundled and SHA-256 checked",
+    "run": "Analytic thin-slab bench submitted from the UI, completed (educational_unvalidated), particle table populated, result exported to JSON (179 KB)",
+    "shutdown": "Clean exit with no worker processes after normal close and after force-kill",
+    "unavailable": "PYTHIA8/DELPHES collision mode reported unavailable and disabled (no native runtime in the app)",
+    "defects_fixed": [
+      "Orphaned Python child on cancel",
+      "Run disabled without a session token",
+      "CSP blocked bundled display layers",
+      "Exit could wait indefinitely on a held worker lock"
+    ]
+  }
+}

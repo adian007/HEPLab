@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://heplab.invalid/contracts/dataset.schema.json",
+  "title": "HEPLab target dataset manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "dataset_id",
+    "kind",
+    "format",
+    "record",
+    "doi",
+    "portal_url",
+    "era",
+    "files"
+  ],
+  "properties": {
+    "schema": {
+      "const": "heplab-dataset-manifest/v1"
+    },
+    "dataset_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$"
+    },
+    "kind": {
+      "enum": [
+        "data",
+        "simulation"
+      ]
+    },
+    "format": {
+      "enum": [
+        "NANOAOD",
+        "NANOAODSIM",
+        "DELPHES",
+        "HEPMC3"
+      ]
+    },
+    "record": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "doi": {
+      "type": "string",
+      "pattern": "^10\\.[0-9]{4,9}/.+$"
+    },
+    "portal_url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "era": {
+      "type": "string",
+      "minLength": 1
+    },
+    "certification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "uri",
+        "sha256",
+        "scope"
+      ],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "scope": {
+          "enum": [
+            "full",
+            "muon_only"
+          ]
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "uri",
+          "size_bytes",
+          "checksum"
+        ],
+        "properties": {
+          "uri": {
+            "type": "string",
+            "pattern": "^(https://|root://)"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "entries": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "checksum": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "enum": [
+                  "adler32",
+                  "sha256"
+                ]
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^(?:[0-9a-f]{8}|[0-9a-f]{64})$"
+              }
+            }
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "data"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "certification"
+        ]
+      }
+    }
+  ]
+}
