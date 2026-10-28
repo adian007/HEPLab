@@ -42,6 +42,7 @@ Cargo.lock
 .env
 .idea/
 .vscode/
+.claude/
 .DS_Store
 
 # Frontend dependencies and build outputs
