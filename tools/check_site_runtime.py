@@ -166,8 +166,8 @@ def check_preview(html: str) -> None:
         "SYNTHETIC FIXTURE",
         "B = +z",
         "1 mm Si slab at s = 1 m",
-        "Dashed: outside field region",
-        "3 m bore boundary",
+        "Dashed: beyond 3 m bore · B = 0",
+        "zero outside the 3 m bore",
         fixture["geometry"]["id"],
     )
     missing = [token for token in requirements if token not in html]
