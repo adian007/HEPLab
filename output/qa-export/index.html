@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HEPLab gallery</title><style>
+:root{--bg:#f7f7f5;--panel:#fff;--ink:#1d1f23;--muted:#62666d;--line:#dcdcd6;
+--accent:#2f6fb0;--accent2:#c2562b;--grid:#ecece6;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--panel:#1d2024;--ink:#e7e8ea;
+--muted:#9aa0a8;--line:#30343a;--accent:#6aa7e6;--accent2:#e98a5f;--grid:#262a2f}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);line-height:1.45}
+main{max-width:1080px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:1.35rem;margin:0 0 4px}h2{font-size:1rem;margin:0 0 12px}
+.muted{color:var(--muted);font-size:.85rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-top:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+canvas{width:100%;height:320px;display:block;touch-action:none}
+table{border-collapse:collapse;width:100%;font-size:.85rem}
+td,th{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+code,pre{font-family:ui-monospace,Consolas,monospace;font-size:.8rem}
+pre{white-space:pre-wrap;word-break:break-all;max-height:360px;overflow:auto;margin:0}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+button{font:inherit;font-size:.8rem;padding:4px 10px;border-radius:6px;border:1px solid var(--line);
+background:var(--panel);color:var(--ink);cursor:pointer}button[aria-pressed=true]{border-color:var(--accent)}
+.tip{position:fixed;pointer-events:none;background:var(--panel);border:1px solid var(--line);
+border-radius:6px;padding:4px 8px;font-size:.8rem;display:none}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:16px}
+.card{display:flex;flex-direction:column;gap:6px;padding:14px;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);text-decoration:none}
+.card:hover{border-color:var(--accent)}.kind{font-size:.75rem;text-transform:uppercase;color:var(--accent)}
+</style></head>
+<body><main><h1>HEPLab gallery</h1><p class="muted">2 exported runs ·
+each page is self-contained and works offline.</p>
+<div class="cards"><a class="card" href="event.html"><span class="kind">event</span><strong>Workbench event · 45.0 GeV · seed 4</strong><span class="muted">2026-10-29 · 6491d784251a</span></a>
+<a class="card" href="z-peak.html"><span class="kind">analysis</span><strong>Rediscover the Z boson · practice sample</strong><span class="muted">2026-10-29 · 6293c65c02af</span></a></div></main></body></html>

@@ -1,0 +1,84 @@
+{
+  "lab": "z-boson",
+  "title": "Rediscover the Z boson",
+  "completed": 6,
+  "steps": 6,
+  "results": {
+    "load": {
+      "step": "load",
+      "passed": true,
+      "message": "Loaded 4000 events; 4000 have at least two muons.",
+      "details": {
+        "events": 4000,
+        "with_two_muons": 4000
+      }
+    },
+    "select": {
+      "step": "select",
+      "passed": true,
+      "message": "Good selection: pT \u2265 20 GeV, isolation \u2264 0.15, opposite charge.",
+      "details": {}
+    },
+    "mass": {
+      "step": "mass",
+      "passed": true,
+      "message": "Correct: 89.837 GeV.",
+      "details": {
+        "expected": 89.83674465552446
+      }
+    },
+    "histogram": {
+      "step": "histogram",
+      "passed": true,
+      "message": "Peak near 91.5 GeV from 2155 pairs: that is the Z boson.",
+      "details": {
+        "peak_gev": 91.5,
+        "entries": 2155
+      }
+    },
+    "fit": {
+      "step": "fit",
+      "passed": true,
+      "message": "m = 91.15 \u00b1 0.06 GeV, 0.6\u03c3 from the PDG value 91.1876 GeV.",
+      "details": {
+        "mass_gev": 91.15337065987687,
+        "uncertainty_gev": 0.05680483321794583,
+        "pull": -0.6025779530379696
+      }
+    },
+    "width": {
+      "step": "width",
+      "passed": true,
+      "message": "Right: the measured width combines the natural width (2.5 GeV) with the muon momentum resolution of the detector.",
+      "details": {}
+    }
+  },
+  "context": {
+    "events": 4000,
+    "config": {
+      "selection": {
+        "muons": {
+          "min_pt": 20,
+          "max_rel_iso": 0.15
+        },
+        "pairs": {
+          "require_opposite_charge": true
+        }
+      },
+      "binning": {
+        "dimuon_mass": {
+          "range": [
+            40,
+            140
+          ],
+          "bins": 100
+        }
+      }
+    },
+    "peak_gev": 91.5,
+    "fit": {
+      "mass_gev": 91.15337065987687,
+      "uncertainty_gev": 0.05680483321794583
+    }
+  }
+}

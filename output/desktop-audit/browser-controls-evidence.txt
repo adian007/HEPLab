@@ -1,0 +1,90 @@
+### Result
+{"projection_XY":"true","projection_XZ":"true","projection_3D":"true","region":"pixel","grid_toggles":true,"outlines_toggle":true,"crossing_rows":11,"reference_validation":"PDG and generator fits use held-out references. CMS field checks use software reference points. Measured Z data provide a target; detector calibration remains pending.\n\nModel / domain\tTraining\tHeld-out\tResult\nMuon ionization in silicon\t25\t24\treference_calibrated / max error 0.411%\nMuon |eta| 0 to 0.9\t422 / 496 matched\t393 / 468 matched\tPASS / width ratio 0.939 / efficiency pull -0.47\nMuon |eta| 0.9 to 1.7\t339 / 402 matched\t348 / 409 matched\tPASS / width ratio 1.073 / efficiency pull 0.30\nMuon |eta| 1.7 to 2.4\t297 / 362 matched\t312 / 355 matched\tPASS / width ratio 1.024 / efficiency pull 2.19\nCMS tracker OAE field\tFixed CMS coefficients\t14867 CMS reference points\tPASS / max 1.416 µT\nMeasured CMS Z→μμ target\t5457 pairs\t5406 pairs\tSplit check PASS / KS p=0.173; detector calibration pending\nCMS Z mass template (exploratory)\t5457 data / 5753 MC\t5406 data / 5677 MC\tPASS / p=0.737 / 100 bootstrap fits; detector calibration pending","capabilities":"Capability / check\tState\tScope\nPython reference\tAvailable\tAnalytic bench and response\nRust engine\tUnavailable\tInstall binding or configure executable\nPYTHIA8 / DELPHES\tUnavailable\tPYTHIA8/DELPHES runtime unavailable; set HEPLAB_SIM_PREFIX (see runtime guide)\nSelected model\tThin-slab bench\tVacuum helix, continuous loss, Gaussian scattering\nInput validation\tIn range\tServer revalidates all submitted values\nMaterial domain\tRestricted approximation\tHeavy singly charged particles; thin steps only\nDetector calibration\tPending\tMeasured Z target available; selected MC and correction payload pending\nCMS tracker field\tReference passed\tOAE 3.8 T; r<1.15 m, |z|<2.8 m; no full-map transport\nCMS display layers\tSHA256 verified\t7 outline layers; no material properties\nGeometry navigation\tSurface intersections\tFinite cylinders/disks; original CMS pixel dimensions; envelope model\nSilicon ionization reference\treference_calibrated\tPDG fit with held-out table points\nMuon response reference\treference_calibrated\tIndependent native generator shards; not measured CMS calibration\nEvent energy ledger\tPassed\t1.969e-15 GeV residual","selection":"Event 0 / Muon / 1\nPDG ID\n-13\nCharge\n1 e\nInput |p|\n45 GeV/c\nMaterial deposit\n0.550793 MeV\nScattering θ₀\n25.8353 μrad\nAnalog signal\n54.2353 ADC\nDigitized channel\n54 ADC\nSaturation\nNo\nEnergy residual\n1.9687e-15 GeV\nOutgoing energy\n44.99957325 GeV\nPredicted crossings\n5\nMaterial reference\npdg-si-muon-loglinear-split-v1\nValidation\nAnalytic trajectory; scoped reference calibration only","export_name":"heplab-event-0.json","dirty":"Parameters modified · run required","undo_value":"45","redo_value":"20","setup_name":"heplab-setup.json","new_run_particle_table":"Object\tPDG\tq / e\t|p| / GeV\tpT / GeV\tDeposit / MeV\tSignal / ADC\tStatus\nMuon / 0\t13\t-1\t20.000\t20.000\t0.5285\t53\tDigit accepted\nMuon / 1\t-13\t1\t20.000\t20.000\t0.5285\t52\tDigit accepted","run_count":2,"recalled_result":"Event 0 / Muon / 0\nPDG ID\n13\nCharge\n-1 e\nInput |p|\n45 GeV/c\nMaterial deposit\n0.550793 MeV\nScattering θ₀\n25.8353 μrad\nAnalog signal\n55.2699 ADC\nDigitized channel\n55 ADC\nSaturation\nNo\nEnergy residual\n1.9687e-15 GeV\nOutgoing energy\n44.99957325 GeV\nPredicted crossings\n5\nMaterial reference\npdg-si-muon-loglinear-split-v1\nValidation\nAnalytic trajectory; scoped reference calibration only","recalled_momentum_control":"20","recalled_dirty":"Parameters modified · run required","collision_run_disabled":true,"collision_stop_disabled":true,"incompatible_config_capability":"Capability / check\tState\tScope\nPython reference\tAvailable\tAnalytic bench and response\nRust engine\tUnavailable\tInstall binding or configure executable\nPYTHIA8 / DELPHES\tUnavailable\tPYTHIA8/DELPHES runtime unavailable; set HEPLAB_SIM_PREFIX (see runtime guide)\nSelected model\tThin-slab bench\tVacuum helix, continuous loss, Gaussian scattering\nInput validation\tIn range\tServer revalidates all submitted values\nMaterial domain\tRestricted approximation\tHeavy singly charged particles; thin steps only\nDetector calibration\tPending\tMeasured Z target available; selected MC and correction payload pending\nCMS tracker field\tReference passed\tOAE 3.8 T; r<1.15 m, |z|<2.8 m; no full-map transport\nCMS display layers\tSHA256 verified\t7 outline layers; no material properties\nGeometry navigation\tSurface intersections\tFinite cylinders/disks; original CMS pixel dimensions; envelope model\nSilicon ionization reference\treference_calibrated\tPDG fit with held-out table points\nMuon response reference\treference_calibrated\tIndependent native generator shards; not measured CMS calibration\nEvent energy ledger\tPassed\t1.969e-15 GeV residual","failed_log":"Ready. No simulation has been run.\n3:56:48 PM  Local service connected. Capability report is available.\n3:56:49 PM  CMS iSpy outlines loaded and SHA256 verified. Transport conditions remain separate.\n3:56:49 PM  Submitted bc7792855d6e40290cdf741e: analytic, seed 42.\n3:56:49 PM  Completed bc7792855d6e40290cdf741e. analytic; validation: educational_unvalidated.\n3:56:51 PM  Submitted 12cd7acafd8d6cd20702adf7: analytic, seed 42.\n3:56:52 PM  Completed 12cd7acafd8d6cd20702adf7. analytic; validation: educational_unvalidated.\n3:56:53 PM  1 validation error for RunConfig\n  Value error, reference response is a separate bench branch requiring momentum >=5 GeV [type=value_error, input_value={'mode': 'analytic', 'bac...l': 'delphes_reference'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error","export_after_failed_run_enabled":true}
+### Ran Playwright code
+```js
+await (async (page) => {
+  const out = {};
+  const path = 'D:/HEPLab/output/playwright/';
+  await page.setViewportSize({width:1440,height:900});
+  await page.reload();
+  await page.getByRole('button',{name:'▶ Run',exact:true}).click();
+  await page.getByRole('status').filter({hasText:'COMPLETED'}).waitFor();
+  for (const name of ['XY','XZ','3D']) {
+    const b = page.getByRole('button',{name,exact:true});
+    await b.click();
+    out['projection_'+name] = await b.getAttribute('aria-pressed');
+  }
+  await page.getByRole('combobox',{name:'Region',exact:true}).selectOption('pixel');
+  await page.getByRole('button',{name:'Fit',exact:true}).click();
+  out.region = await page.getByRole('combobox',{name:'Region',exact:true}).inputValue();
+  const grid = page.getByRole('checkbox',{name:'Grid',exact:true});
+  await grid.uncheck(); out.grid_toggles = !(await grid.isChecked()); await grid.check();
+  const outlines=page.getByRole('checkbox',{name:'CMS outlines',exact:true});
+  await outlines.uncheck(); out.outlines_toggle=!(await outlines.isChecked()); await outlines.check();
+  await page.getByRole('tab',{name:'Surface crossings',exact:true}).click();
+  out.crossing_rows = await page.getByRole('tabpanel',{name:'Surface crossings'}).getByRole('row').count();
+  await page.getByRole('tab',{name:'Reference validation',exact:true}).click();
+  out.reference_validation = await page.getByRole('tabpanel',{name:'Reference validation'}).innerText();
+  await page.getByRole('button',{name:'Open capability report'}).click();
+  out.capabilities = await page.getByRole('tabpanel',{name:'Capabilities / checks'}).innerText();
+  await page.getByRole('tab',{name:'Particles 2',exact:true}).click();
+  await page.getByRole('cell',{name:'Muon / 1',exact:true}).click();
+  out.selection = await page.getByRole('tabpanel',{name:'Selection',exact:true}).innerText();
+  const exportEvent=page.waitForEvent('download');
+  await page.getByRole('button',{name:'Export result…',exact:true}).click();
+  const exported=await exportEvent; await exported.saveAs(path+'desktop-audit-event.json');
+  out.export_name=exported.suggestedFilename();
+  await page.getByRole('tab',{name:'Parameters',exact:true}).click();
+  const momentum=page.getByRole('spinbutton',{name:'Muon |p| GeV/c',exact:true});
+  await momentum.fill('20'); await momentum.press('Tab');
+  out.dirty=await page.getByRole('status').first().innerText();
+  await page.getByRole('button',{name:'↶ Undo',exact:true}).click();
+  out.undo_value=await momentum.inputValue();
+  await page.getByRole('button',{name:'↷ Redo',exact:true}).click();
+  out.redo_value=await momentum.inputValue();
+  const saveEvent=page.waitForEvent('download');
+  await page.getByRole('button',{name:'Save setup…',exact:true}).click();
+  const saved=await saveEvent; await saved.saveAs(path+'desktop-audit-setup.json');
+  out.setup_name=saved.suggestedFilename();
+  await page.getByRole('button',{name:'▶ Run',exact:true}).click();
+  await page.getByRole('status').filter({hasText:'COMPLETED'}).waitFor();
+  out.new_run_particle_table=await page.getByRole('tabpanel',{name:'Particles 2'}).innerText();
+  const runs=page.locator('#run-history button');
+  out.run_count=await runs.count();
+  await runs.last().click();
+  out.recalled_result=await page.getByRole('tabpanel',{name:'Selection'}).innerText();
+  await page.getByRole('tab',{name:'Parameters',exact:true}).click();
+  out.recalled_momentum_control=await momentum.inputValue();
+  out.recalled_dirty=await page.getByRole('status').first().innerText();
+  await page.screenshot({path:path+'desktop-audit-history-mismatch.png'});
+  await page.getByRole('combobox',{name:'Simulation',exact:true}).selectOption('pythia');
+  out.collision_run_disabled=await page.getByRole('button',{name:'▶ Run',exact:true}).isDisabled();
+  out.collision_stop_disabled=await page.getByRole('button',{name:'■ Stop',exact:true}).isDisabled();
+  await page.screenshot({path:path+'desktop-audit-unavailable-collision.png'});
+  await page.getByRole('combobox',{name:'Simulation',exact:true}).selectOption('analytic');
+  await page.getByRole('combobox',{name:'Tracking response',exact:true}).selectOption('delphes_reference');
+  await momentum.fill('1'); await momentum.press('Tab');
+  await page.getByRole('button',{name:'Open capability report'}).click();
+  out.incompatible_config_capability=await page.getByRole('tabpanel',{name:'Capabilities / checks'}).innerText();
+  await page.getByRole('button',{name:'▶ Run',exact:true}).click();
+  await page.getByRole('status').filter({hasText:'FAILED'}).waitFor();
+  out.failed_log=await page.getByRole('tabpanel',{name:'Run log'}).innerText();
+  out.export_after_failed_run_enabled=await page.getByRole('button',{name:'Export result…',exact:true}).isEnabled();
+  await page.screenshot({path:path+'desktop-audit-validation-failure.png'});
+  return out;
+}
+)(page);
+```
+### Open tabs
+- 0: (current) [HEPLab Workbench — Local simulation](http://127.0.0.1:8766/workbench)
+- 1: [Downloads](edge://downloads-hub/)
+### Page
+- Page URL: http://127.0.0.1:8766/workbench
+- Page Title: HEPLab Workbench — Local simulation
+- Console: 1 errors, 0 warnings
+### Events
+- New console entries: .playwright-cli\console-2026-10-28T14-53-19-563Z.log#L2
+- Downloading file heplab-event-0.json ...
+- Downloaded file heplab-event-0.json to ".playwright-cli\heplab-event-0.json"
+- Downloading file heplab-setup.json ...
+- Downloaded file heplab-setup.json to ".playwright-cli\heplab-setup.json"

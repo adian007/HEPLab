@@ -1,0 +1,49 @@
+{
+  "driver": "drivers/profile_bench_rust.py",
+  "entry_point": "heplab.server.workbench.Jobs._run analytic loop (bench + analyze_events)",
+  "config": {
+    "mode": "analytic",
+    "backend": "rust",
+    "seed": 42,
+    "events": 200,
+    "momentum_gev": 45.0,
+    "bz_tesla": 3.8,
+    "thickness_mm": 1.0,
+    "noise_adc": 1.0,
+    "threshold_adc": 5.0,
+    "response_model": "ideal",
+    "field_model": "ideal_bore",
+    "source_model": "angular_sample",
+    "muon_pt_min_gev": 20.0,
+    "muon_abs_eta_max": 2.4,
+    "muon_iso_max": 0.15,
+    "mass_min_gev": 60.0,
+    "mass_max_gev": 120.0
+  },
+  "events": 200,
+  "tracks_per_event": 2,
+  "timings": {
+    "V0_full_s": 3.5591077420000374,
+    "V1_no_transport_s": 2.5497802790000605,
+    "V2_floor_s": 0.04112440599999445,
+    "gui_muon_display_ms": {
+      "calls": 20,
+      "min_ms": 2.5967000000264306,
+      "mean_ms": 2.9185086999859777,
+      "max_ms": 3.247289999990244
+    }
+  },
+  "derived": {
+    "transport_share": 0.28359002766035574,
+    "engine_ops_and_calibration_share": 0.7048552768987907,
+    "free_transport_ceiling_ratio": 1.3958487997231674,
+    "free_engine_ceiling_ratio": 86.54490333551608
+  },
+  "environment": {
+    "python": "3.12.16",
+    "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+    "machine": "x86_64",
+    "cpu_count": 8,
+    "gpu": "Intel Arc 140V (no CUDA device present)"
+  }
+}

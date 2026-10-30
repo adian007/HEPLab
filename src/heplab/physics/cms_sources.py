@@ -16,9 +16,15 @@ def display_manifest() -> dict:
 
 
 def display_asset(layer_id: str) -> Path:
-    layer = next((x for x in display_manifest()["layers"] if x["id"] == layer_id), None)
+    suffix = next((s for s in ("-surface-outlines", "-surfaces") if layer_id.endswith(s)), "")
+    identity = layer_id.removesuffix(suffix) if suffix else layer_id
+    layer = next((x for x in display_manifest()["layers"] if x["id"] == identity), None)
     if layer is None:
         raise ValueError("unknown detector display layer")
+    if suffix:
+        layer = layer.get("surface_outlines" if suffix == "-surface-outlines" else "surfaces")
+        if layer is None:
+            raise ValueError("unknown detector display surface")
     path = DISPLAY / layer["file"]
     raw = path.read_bytes()
     if (

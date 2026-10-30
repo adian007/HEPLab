@@ -88,8 +88,10 @@ calibrated material/reconstruction/CMS detector model. No speedup is claimed.
 
 Target event-envelope v2 and general truth graphs need migration/adapters.
 Cache concurrency tests are not a power-loss proof; leases, offline plan replay,
-actual transfer-byte ceilings and large-data RSS measurement remain. Projected
-reads do not verify complete raw-file Adler checksums and say `declared_only`.
+actual transfer-byte ceilings and large-data RSS measurement remain. Source
+checksums are now checked against CERN's whole-file HTTP digest response or
+computed from complete local/streamed bytes; projected ROOT ranges are still
+not themselves a full-file byte stream.
 
 Generator/PDF/tune validation, built simulator image, realistic fields/materials,
 native reconstruction, calibrated detector response, held-out tolerances,

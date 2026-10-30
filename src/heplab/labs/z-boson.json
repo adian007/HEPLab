@@ -1,0 +1,83 @@
+{
+  "id": "z-boson",
+  "title": "Rediscover the Z boson",
+  "audience": "First-year university courses and International Masterclasses",
+  "duration_minutes": 60,
+  "summary": "Select muon pairs, compute their invariant mass, find the resonance and measure its mass, the way the Z boson was confirmed in 1983 and is still calibrated at the LHC today.",
+  "reference": {
+    "quantity": "Z boson mass",
+    "value_gev": 91.1876,
+    "uncertainty_gev": 0.0021,
+    "width_gev": 2.4952,
+    "source": "Particle Data Group, Review of Particle Physics"
+  },
+  "steps": [
+    {
+      "id": "load",
+      "title": "Load collision events",
+      "task": "Load at least 1000 events. Use heplab.labs.practice_events() for the offline practice sample, or heplab.read(path) for CMS Open Data NanoAOD.",
+      "answer": "the list of events",
+      "hints": [
+        "events = heplab.labs.practice_events()",
+        "Each event is a dictionary with an EventInfo record and a Muon list."
+      ]
+    },
+    {
+      "id": "select",
+      "title": "Choose a muon selection",
+      "task": "Write an analysis configuration that keeps well-measured, isolated muons and pairs them with opposite electric charge.",
+      "answer": "an analysis configuration dictionary",
+      "hints": [
+        "A Z boson is electrically neutral, so its two muons have opposite charge.",
+        "Muons from a Z decay carry tens of GeV of transverse momentum: try min_pt of 20 GeV.",
+        "Muons produced inside jets are surrounded by other particles. A relative isolation below 0.15 removes most of them.",
+        "{'selection': {'muons': {'min_pt': 20, 'max_rel_iso': 0.15}, 'pairs': {'require_opposite_charge': True}}}"
+      ]
+    },
+    {
+      "id": "mass",
+      "title": "Compute one invariant mass by hand",
+      "task": "Take the first event that has two muons and compute the invariant mass of its first two muons yourself, from pt, eta, phi and mass.",
+      "answer": "a number in GeV",
+      "hints": [
+        "Build each four-vector: px = pt·cos φ, py = pt·sin φ, pz = pt·sinh η, E = √(px² + py² + pz² + m²).",
+        "Add the two four-vectors, then m = √(E² − |p|²)."
+      ]
+    },
+    {
+      "id": "histogram",
+      "title": "Histogram the dimuon mass",
+      "task": "Run the analysis with your selection over all events and look at the dimuon mass histogram. Where is the peak?",
+      "answer": "the result of heplab.run(events, config=...)",
+      "hints": [
+        "result = heplab.run(events, config=config)",
+        "heplab.notebook.show(result) draws it; drag across the plot to zoom into 60–120 GeV."
+      ]
+    },
+    {
+      "id": "fit",
+      "title": "Measure the Z mass",
+      "task": "Fit the peak and report the fitted mass and its uncertainty.",
+      "answer": "the result of heplab.fit_peak(result), or a (mass, uncertainty) pair in GeV",
+      "hints": [
+        "fit = heplab.fit_peak(result, window=(70, 110))",
+        "The fit models the peak as a Gaussian on a flat background; mass is fit['values']['mean']."
+      ]
+    },
+    {
+      "id": "width",
+      "title": "Explain the width",
+      "task": "Your fitted peak is wider than the Z boson's natural width of 2.5 GeV. Why?",
+      "answer": "one letter",
+      "choices": {
+        "a": "The Z boson lives longer in the detector than at rest.",
+        "b": "The detector measures muon momenta with finite resolution, which smears the peak.",
+        "c": "Opposite-charge muons always carry less energy.",
+        "d": "The fit used too few bins."
+      },
+      "hints": [
+        "The width you measure combines the particle's natural width and how precisely each muon is measured."
+      ]
+    }
+  ]
+}

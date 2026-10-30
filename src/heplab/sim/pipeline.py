@@ -7,6 +7,7 @@ ROOT structure and event weights have been checked.
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import math
 import os
@@ -16,11 +17,89 @@ import subprocess
 import tempfile
 import threading
 import time
+from functools import lru_cache
 from pathlib import Path
 
 from ..io.provenance import config_hash, file_hash, source_snapshot
 
 VERSIONS = {"pythia8": "8.312", "delphes": "3.5.1", "root_base": "6.40.04"}
+
+
+def _process_options() -> dict:
+    # wsl.exe forwards standard input even for noninteractive commands. It must
+    # never inherit the desktop worker's JSON request pipe and consume requests
+    # intended for the IPC loop while a generation job runs in another thread.
+    options = {"stdin": subprocess.DEVNULL}
+    if os.name == "nt":
+        options["creationflags"] = subprocess.CREATE_NO_WINDOW
+    return options
+
+
+@lru_cache(maxsize=1)
+def _discover_runtime() -> tuple[str, str]:
+    """Find the conventional per-user install; never accept a command from the UI."""
+    if os.name != "nt":
+        prefix = Path.home() / ".cache/heplab/sim-runtime"
+        if (prefix / "heplab-runtime.json").is_file():
+            return str(prefix), ""
+        raise RuntimeError(
+            "No runtime in ~/.cache/heplab/sim-runtime. See the runtime setup guide."
+        )
+    return _discover_wsl_runtime()
+
+
+def _discover_wsl_runtime() -> tuple[str, str]:
+    try:
+        listed = subprocess.run(
+            ["wsl.exe", "--list", "--quiet"],
+            capture_output=True,
+            timeout=5,
+            check=True,
+            **_process_options(),
+        ).stdout
+        names = listed.decode("utf-16-le" if b"\x00" in listed else "utf-8-sig").splitlines()
+        names = [
+            n.strip().lstrip("\ufeff") for n in names if n.strip() and "docker" not in n.lower()
+        ]
+        names.sort(key=lambda name: ("ubuntu" not in name.lower(), name.lower()))
+        probe = (
+            "import json,os,pathlib; p=pathlib.Path.home()/'.cache/heplab/sim-runtime'; "
+            "assert (p/'heplab-runtime.json').is_file() and (p/'bin/DelphesPythia8').is_file(); "
+            "print(json.dumps({'prefix':str(p),'distro':os.environ['WSL_DISTRO_NAME']}))"
+        )
+        failures = []
+        for name in names[:2]:
+            try:
+                found = subprocess.run(
+                    ["wsl.exe", "-d", name, "--", "python3", "-c", probe],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                    check=True,
+                    **_process_options(),
+                )
+                value = json.loads(found.stdout)
+                return value["prefix"], value["distro"]
+            except subprocess.TimeoutExpired:
+                failures.append(f"{name} did not respond within 30 seconds")
+                continue
+            except (OSError, ValueError, AssertionError, subprocess.SubprocessError):
+                continue
+    except (OSError, ValueError, subprocess.SubprocessError) as exc:
+        raise RuntimeError(
+            "WSL runtime discovery failed. Install/start WSL Ubuntu "
+            "and the pinned simulation runtime."
+        ) from exc
+    if failures:
+        raise RuntimeError(
+            "WSL runtime check timed out: "
+            + "; ".join(failures)
+            + ". Wait for WSL to start, then restart HEPLab."
+        )
+    raise RuntimeError(
+        "No PYTHIA8/DELPHES install found in WSL. Install the pinned runtime in "
+        "~/.cache/heplab/sim-runtime and restart HEPLab."
+    )
 
 
 def normalization(log: str, expected: int) -> dict:
@@ -55,7 +134,7 @@ def settings(*, events=100, seed=42, energy_gev=13000.0) -> str:
         raise ValueError("events must be an integer in [1, 100000]")
     if type(seed) is not int or not 1 <= seed <= 900_000_000:
         raise ValueError("PYTHIA seed must be in [1, 900000000]")
-    if not isinstance(energy_gev, (int, float)) or not math.isfinite(energy_gev):
+    if not isinstance(energy_gev, int | float) or not math.isfinite(energy_gev):
         raise ValueError("invalid beam energy")
     if not 1000 <= energy_gev <= 14000:
         raise ValueError("registered pp process supports 1000--14000 GeV")
@@ -87,33 +166,63 @@ def _linux(path: Path, distro: str) -> str:
         text=True,
         timeout=15,
         check=True,
+        **_process_options(),
     )
     return result.stdout.strip()
+
+
+def _wsl_file(distro: str, path: str) -> str:
+    # A cold WSL service can time out once even after discovery succeeds.
+    # These reads are idempotent: retry once, then surface the real failure.
+    for attempt in range(2):
+        try:
+            return subprocess.run(
+                ["wsl.exe", "-d", distro, "--", "cat", path],
+                capture_output=True,
+                text=True,
+                timeout=15,
+                check=True,
+                **_process_options(),
+            ).stdout
+        except subprocess.TimeoutExpired:
+            if attempt:
+                raise
+    raise AssertionError("unreachable")
 
 
 def runtime() -> dict:
     prefix = os.environ.get("HEPLAB_SIM_PREFIX")
     if not prefix:
+        prefix, distro = _discover_runtime()
+    else:
+        distro = os.environ.get("HEPLAB_SIM_WSL_DISTRO", "")
+    if any(importlib.util.find_spec(name) is None for name in ("numpy", "uproot", "awkward")):
         raise RuntimeError(
-            "PYTHIA8/DELPHES runtime unavailable; set HEPLAB_SIM_PREFIX (see runtime guide)"
+            "This build lacks ROOT readers (numpy/uproot/awkward). "
+            "Use a collision-enabled HEPLab build."
         )
-    distro = os.environ.get("HEPLAB_SIM_WSL_DISTRO", "")
     # Read the pinned install inventory through the same runtime used to execute.
     inventory = f"{prefix}/heplab-runtime.json"
     if distro:
-        proc = subprocess.run(
-            ["wsl.exe", "-d", distro, "--", "cat", inventory],
-            capture_output=True,
-            text=True,
-            timeout=15,
-            check=True,
-        )
-        record = json.loads(proc.stdout)
+        record = json.loads(_wsl_file(distro, inventory))
     else:
         record = json.loads(Path(inventory).read_text(encoding="utf8"))
     if record.get("versions") != VERSIONS or not record.get("explicit_lock_sha256"):
         raise RuntimeError("simulation runtime inventory is absent or incompatible")
     return {"prefix": prefix, "distro": distro, "inventory": record}
+
+
+def capabilities() -> dict:
+    try:
+        rt = runtime()
+        return {
+            "available": True,
+            "versions": rt["inventory"]["versions"],
+            "host": "WSL " + rt["distro"] if rt["distro"] else "Native runtime",
+            "prefix": rt["prefix"],
+        }
+    except (RuntimeError, OSError, ValueError, subprocess.SubprocessError) as exc:
+        return {"available": False, "reason": str(exc)}
 
 
 def inspect_root(path: Path, expected: int) -> dict:
@@ -213,13 +322,7 @@ def run_chain(
         if any(c in prefix for c in "{}\n\r"):
             raise ValueError("runtime prefix contains unsupported Tcl path characters")
         if distro:
-            native_card = subprocess.run(
-                ["wsl.exe", "-d", distro, "--", "cat", detector_card],
-                capture_output=True,
-                text=True,
-                timeout=15,
-                check=True,
-            ).stdout
+            native_card = _wsl_file(distro, detector_card)
         else:
             native_card = Path(detector_card).read_text(encoding="utf8")
         (stage / "response.tcl").write_text(
@@ -253,7 +356,12 @@ def run_chain(
         start = time.monotonic()
         with (stage / "generator.log").open("wb") as log:
             process = subprocess.Popen(
-                command, cwd=target.parent, stdout=log, stderr=subprocess.STDOUT, env=env
+                command,
+                cwd=target.parent,
+                stdout=log,
+                stderr=subprocess.STDOUT,
+                env=env,
+                **_process_options(),
             )
             try:
                 while process.poll() is None:
@@ -307,6 +415,7 @@ def run_chain(
             "validation": "unvalidated",
             "process": "pp_gammaZ_mumu_60_120_GeV",
             "beam_energy_total_gev": energy_gev,
+            "runtime_host": "WSL " + distro if distro else "Native runtime",
             "seed": seed,
             "pileup": False,
             "source_snapshot_sha256": source_snapshot(),

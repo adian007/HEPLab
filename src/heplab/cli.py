@@ -6,6 +6,7 @@ import argparse
 import json
 import subprocess
 import sys
+import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -71,6 +72,10 @@ def _read_events(args, lumi_mask=None):
             count = 0
             for index, event in enumerate(rows):
                 info = event["EventInfo"]
+                # Unflagged JSON records take the command's declared kind, so data
+                # is never silently relabelled as simulation (and skips certification).
+                if "is_data" not in info and info.get("kind") not in {"data", "simulation"}:
+                    info["is_data"] = not args.simulation
                 info.update(source_id=identity, source_entry=index)
                 if lumi_mask and info.get("is_data"):
                     info["certified"] = lumi_mask.accepts(info["run"], info["luminosity_block"])
@@ -159,7 +164,13 @@ def cmd_run(args: argparse.Namespace) -> int:
     from .analyses.dimuon.run import process
     from .io.artifacts import publish
     from .io.certification import LumiMask
-    from .io.provenance import ProvenanceStamp, config_hash, source_snapshot
+    from .io.provenance import (
+        ProvenanceStamp,
+        config_hash,
+        container_digest,
+        environment_lock_hash,
+        source_snapshot,
+    )
 
     analysis_dir = _analysis_dir(args.analysis)
     config_path = Path(args.config) if args.config else analysis_dir / "config.yaml"
@@ -184,11 +195,13 @@ def cmd_run(args: argparse.Namespace) -> int:
     mask = LumiMask(certification) if certification else None
     events, dataset_name, manifest_hash, ranges = _read_events(args, mask)
     result = process(events, config)
+    deterministic_hash = config_hash(result)
     stamp = ProvenanceStamp(
         schema_version=1,
         git_sha=ProvenanceStamp.current_git_sha(),
         config_sha256=config_hash(config),
         dataset_manifest_hash=manifest_hash,
+        container_digest=container_digest(),
         source_tree_sha256=source_snapshot(),
         source_ranges=tuple(ranges),
         certification_sha256=mask.sha256 if mask else "",
@@ -196,10 +209,30 @@ def cmd_run(args: argparse.Namespace) -> int:
         file_checksums=tuple(
             r.get("declared_checksum", {}).get("value", r.get("sha256", "")) for r in ranges
         ),
+        environment_lock_sha256=environment_lock_hash(),
+        git_dirty=ProvenanceStamp.current_git_dirty(),
+        result_sha256=deterministic_hash,
     )
     result["dataset"] = dataset_name
     result["provenance"] = stamp.to_dict()
     result["provenance_digest"] = stamp.digest()
+    result["result_sha256"] = deterministic_hash
+    result["reproduction"] = {
+        "schema": "heplab-reproduction-recipe/v1",
+        "analysis": args.analysis,
+        "config": config,
+        "dataset": None if args.input else args.dataset,
+        "input_path": str(Path(args.input).expanduser().resolve()) if args.input else None,
+        "input_sha256": manifest_hash if args.input else None,
+        "certification_path": str(Path(certification).expanduser().resolve()) if certification else None,
+        "certification_sha256": mask.sha256 if mask else None,
+        "format": args.format,
+        "max_events": args.max_events,
+        "simulation": args.simulation,
+        "no_cache": args.no_cache,
+        "trigger": args.trigger or [],
+        "measurement": args.measurement,
+    }
     result["created_at"] = datetime.now(UTC).isoformat()
     result["payload_content_sha256"] = config_hash(result)
     output = Path(
@@ -211,6 +244,60 @@ def cmd_run(args: argparse.Namespace) -> int:
         f"selected {result['histogram']['entries']} dimuon pairs"
     )
     print(f"Artifact: {output.resolve()}")
+    return 0
+
+
+def cmd_reproduce(args: argparse.Namespace) -> int:
+    from .io.provenance import environment_lock_hash, file_hash, source_snapshot
+
+    artifact_path = Path(args.artifact).expanduser().resolve()
+    artifact = json.loads(artifact_path.read_text(encoding="utf-8"))
+    if not isinstance(artifact, dict):
+        raise ValueError("artifact must contain a JSON object")
+    recipe = artifact.get("reproduction")
+    provenance = artifact.get("provenance", {})
+    if not isinstance(provenance, dict):
+        raise ValueError("artifact provenance is invalid")
+    if not isinstance(recipe, dict) or recipe.get("schema") != "heplab-reproduction-recipe/v1":
+        raise ValueError("artifact does not contain a supported reproduction recipe")
+    if recipe.get("analysis") != "dimuon" or not isinstance(recipe.get("config"), dict):
+        raise ValueError("artifact reproduction recipe has an unsupported analysis or config")
+    if provenance.get("environment_lock_sha256") != environment_lock_hash():
+        raise ValueError("dependency lock identity differs from the recorded environment")
+    if provenance.get("source_tree_sha256") != source_snapshot():
+        raise ValueError("source tree differs from the recorded run; check out its recorded revision")
+    if recipe.get("input_path"):
+        input_path = Path(recipe["input_path"])
+        if not input_path.is_file() or file_hash(input_path) != recipe.get("input_sha256"):
+            raise ValueError("recorded local input is missing or has changed")
+    cert_path = recipe.get("certification_path")
+    if cert_path and (not Path(cert_path).is_file() or file_hash(cert_path) != recipe["certification_sha256"]):
+        raise ValueError("recorded certification file is missing or has changed")
+    with tempfile.TemporaryDirectory(prefix="heplab-reproduce-") as temporary:
+        config_path = Path(temporary) / "analysis.json"
+        output_path = Path(temporary) / "result.json"
+        config_path.write_text(json.dumps(recipe["config"], sort_keys=True), encoding="utf-8")
+        run_args = argparse.Namespace(
+            analysis=recipe["analysis"],
+            dataset=recipe.get("dataset") or "Run2016G_DoubleMuon",
+            certification=cert_path,
+            trigger=recipe.get("trigger", []),
+            measurement=recipe.get("measurement", False),
+            input=recipe.get("input_path"),
+            config=str(config_path),
+            output=str(output_path),
+            max_events=recipe.get("max_events"),
+            simulation=recipe.get("simulation", False),
+            format=recipe.get("format", "nanoaod"),
+            no_cache=recipe.get("no_cache", False),
+        )
+        cmd_run(run_args)
+        reproduced = json.loads(output_path.read_text(encoding="utf-8"))
+    expected = provenance.get("result_sha256") or artifact.get("result_sha256")
+    actual = reproduced.get("result_sha256")
+    if actual != expected:
+        raise ValueError(f"reproduction mismatch: expected {expected}, got {actual}")
+    print(f"Reproduced {artifact_path.name}: {actual}")
     return 0
 
 
@@ -269,6 +356,69 @@ def cmd_fit(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_export_usd(args) -> int:
+    from .export.usd import export_event
+
+    payload = json.loads(Path(args.artifact).read_text(encoding="utf-8"))
+    output = args.output or Path(args.artifact).with_suffix(".usd")
+    print(json.dumps(export_event(payload, output), indent=2))
+    return 0
+
+
+def cmd_export_html(args) -> int:
+    from .export.web_page import export_html
+
+    output = args.output or Path(args.artifact).with_suffix(".html")
+    page = export_html(args.artifact, output, title=args.title, include_raw=args.include_raw)
+    print(f"Page: {page.resolve()}")
+    return 0
+
+
+def cmd_gallery(args) -> int:
+    from .export.web_page import build_gallery
+
+    print(f"Gallery: {build_gallery(args.directory, title=args.title).resolve()}")
+    return 0
+
+
+def cmd_learn(args) -> int:
+    from . import fit_peak, labs, load
+
+    if args.learn_command == "list":
+        for entry in labs.available():
+            print(
+                f"{entry['id']:12} {entry['title']} ({entry['duration_minutes']} min)"
+                f" - {entry['audience']}"
+            )
+        return 0
+    lab = labs.start(args.lab)
+    if args.learn_command == "show":
+        print(lab.title, lab.spec["summary"], "", sep="\n")
+        for index, step in enumerate(lab.steps, 1):
+            print(f"{index}. [{step['id']}] {step['title']}", f"   {step['task']}", sep="\n")
+            for key, text in step.get("choices", {}).items():
+                print(f"     {key}) {text}")
+        return 0
+    if args.learn_command == "practice-data":
+        events = labs.practice_events(args.events, seed=args.seed)
+        output = Path(args.output)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps({"events": events}), encoding="utf-8")
+        print(f"Wrote {len(events)} synthetic practice events (not CMS data) to {output.resolve()}")
+        print(f"Next: heplab run dimuon --simulation --input {output} --output artifacts/z.json")
+        return 0
+    # check: grade the histogram and fit steps from a published dimuon artifact.
+    result = load(args.artifact)
+    feedback = [lab.check("histogram", result)]
+    try:
+        feedback.append(lab.check("fit", fit_peak(result)))
+    except (ValueError, RuntimeError) as exc:
+        print(f"fit step skipped: {exc}")
+    for item in feedback:
+        print(item)
+    return 0 if all(item.passed for item in feedback) else 1
+
+
 def cmd_closure(args: argparse.Namespace) -> int:
     from .analyses.closure import compare
 
@@ -291,7 +441,9 @@ def cmd_serve(args: argparse.Namespace) -> int:
         import threading
         import webbrowser
 
-        threading.Timer(1.0, webbrowser.open, args=(f"http://127.0.0.1:{args.port}/workbench",)).start()
+        threading.Timer(
+            1.0, webbrowser.open, args=(f"http://127.0.0.1:{args.port}/workbench",)
+        ).start()
     uvicorn.run(create_app(args.artifacts), host="127.0.0.1", port=args.port)
     return 0
 
@@ -402,6 +554,9 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--format", choices=["nanoaod", "delphes"], default="nanoaod")
     run.add_argument("--no-cache", action="store_true")
     run.set_defaults(func=cmd_run)
+    reproduce = sub.add_parser("reproduce", help="rerun an artifact and verify its result hash")
+    reproduce.add_argument("artifact", help="HEPLab artifact with a reproduction recipe")
+    reproduce.set_defaults(func=cmd_reproduce)
     plot = sub.add_parser("plot", help="render a result artifact")
     plot.add_argument("artifact")
     plot.add_argument("--output")
@@ -448,6 +603,37 @@ def build_parser() -> argparse.ArgumentParser:
     closure.add_argument("sim")
     closure.add_argument("--output", default="artifacts/closure.json")
     closure.set_defaults(func=cmd_closure)
+    usd = sub.add_parser("export-usd", help="write a workbench event display as an OpenUSD stage")
+    usd.add_argument("artifact", help="workbench run/event JSON with 'tracks' and 'geometry'")
+    usd.add_argument("--output", help="target .usd path (default: artifact with .usd suffix)")
+    usd.set_defaults(func=cmd_export_usd)
+    page = sub.add_parser("export-html", help="write a result as a self-contained offline web page")
+    page.add_argument("artifact", help="published result artifact or workbench run JSON")
+    page.add_argument("--output", help="target .html path (default: artifact with .html suffix)")
+    page.add_argument("--title")
+    page.add_argument("--include-raw", action="store_true", help="embed per-candidate arrays")
+    page.set_defaults(func=cmd_export_html)
+    gallery = sub.add_parser("gallery", help="index exported pages in a directory")
+    gallery.add_argument("directory")
+    gallery.add_argument("--title", default="HEPLab gallery")
+    gallery.set_defaults(func=cmd_gallery)
+    learn = sub.add_parser("learn", help="guided physics labs with step checks")
+    learn_sub = learn.add_subparsers(dest="learn_command", required=True)
+    learn_sub.add_parser("list", help="installed labs")
+    for name, text in (
+        ("show", "print a lab's steps"),
+        ("practice-data", "write the offline practice sample"),
+        ("check", "grade the histogram and fit steps from an artifact"),
+    ):
+        command = learn_sub.add_parser(name, help=text)
+        command.add_argument("lab", nargs="?", default="z-boson")
+        if name == "practice-data":
+            command.add_argument("--output", default="artifacts/z-practice-events.json")
+            command.add_argument("--events", type=int, default=4000)
+            command.add_argument("--seed", type=int, default=2026)
+        if name == "check":
+            command.add_argument("--artifact", required=True)
+    learn.set_defaults(func=cmd_learn)
     serve = sub.add_parser("serve", help="start the API on localhost")
     serve.add_argument("--artifacts", default="artifacts")
     serve.add_argument("--port", type=int, default=8000)
@@ -465,6 +651,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Physics text (μ, σ, ≥) must not crash legacy Windows consoles.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(errors="replace")
     args = build_parser().parse_args(argv)
     try:
         return int(args.func(args) or 0)

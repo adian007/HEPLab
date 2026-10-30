@@ -114,15 +114,13 @@ Rust and native simulation runtimes before opening the GUI.
 See the [runtime installation and native acceptance guide](docs/engineering/sim-runtime.md),
 [material model domains](docs/engineering/material-response.md), and
 [GUI interaction design and source review](docs/engineering/gui-design.md).
+Event displays export as vendor-neutral OpenUSD stages
+(`heplab export-usd`, viewable in usdview/Blender on any GPU and RTX-renderable
+in Omniverse on NVIDIA machines) — see [USD event display export](docs/engineering/usd-export.md).
 
 ## Open-source website and application architecture
 
-The full-stack React/TypeScript application is in [`web/`](web/), with product,
-frontend/API, and future desktop architecture in [`docs/web/`](docs/web/README.md).
-It connects to the existing local FastAPI simulator service. Develop it with
-`pnpm --dir web dev` alongside `heplab gui --port 8765`; production assets are
-served by FastAPI after `pnpm --dir web build`. Public hosting and desktop
-packaging remain separate release work.
+The public project guide is built from `web/` with Astro and Starlight. Run it locally with `pnpm --dir web dev`; the Workbench is a separate local application available through the desktop app or `heplab gui`.
 The reference and Rust bench are educational; the native collision backend is
 smoke-tested and remains uncalibrated and independently unvalidated.
 

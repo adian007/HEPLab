@@ -2,7 +2,7 @@
 
 import io
 import json
-import re
+import os
 import shutil
 import subprocess
 import sys
@@ -83,11 +83,13 @@ def test_lab_replay_through_ipc_writes_inside_project_only(tmp_path):
         output="out/run.json",
         trigger_source="1",
     )
-    replies = exchange(tmp_path, replay, replay)
-    assert replies[1]["ok"], replies[1]
-    assert replies[1]["result"]["output"] == "out/run.json"
-    assert replies[1]["result"]["record"]["stages"]["efficiency"]["numerator"] == 1
-    assert replies[2]["error"]["code"] == "exists"
+    # Requests run concurrently: the duplicate is refused while (or after) the
+    # first writes, and replies may arrive in either order.
+    done, refused = sorted(exchange(tmp_path, replay, replay)[1:], key=lambda r: not r["ok"])
+    assert done["ok"], done
+    assert done["result"]["output"] == "out/run.json"
+    assert done["result"]["record"]["stages"]["efficiency"]["numerator"] == 1
+    assert refused["error"]["code"] == "exists"
 
 
 def test_simulator_job_lifecycle_through_worker(tmp_path):
@@ -145,12 +147,14 @@ def test_desktop_project_payloads_match_the_web_routes(tmp_path):
         assert client.get("/api/v1/project/evidence").json() == replies[2]["result"]
 
 
-def test_frontend_transport_maps_only_to_declared_operations():
-    source = (ROOT / "web/src/lib/desktop.ts").read_text(encoding="utf-8")
-    block = source.split("const OPERATIONS", 1)[1].split("}", 1)[0]
-    mapped = dict(re.findall(r"'(/api/[^']+)':\s*'([a-z.]+)'", block))
-    assert mapped and set(mapped.values()) <= set(worker.SPEC["operations"])
-    assert "'heplab_invoke'" in source
+def test_workbench_bundles_offline_guided_tour():
+    static = ROOT / "src/heplab/server/static"
+    assert (static / "vendor/introjs/intro.min.js").is_file()
+    assert (static / "vendor/introjs/introjs.min.css").is_file()
+    assert (static / "vendor/introjs/LICENSE.txt").is_file()
+    source = (static / "workbench.js").read_text(encoding="utf-8")
+    assert "startGuidedTour" in source
+    assert "window.introJs.tour()" in source
 
 
 def test_shell_configuration_matches_worker_and_stays_locked_down():
@@ -159,7 +163,11 @@ def test_shell_configuration_matches_worker_and_stays_locked_down():
     assert f'EXPECTED_WORKER_VERSION: &str = "{worker.__version__}"' in main_rs
     conf = json.loads((desktop / "tauri.conf.json").read_text(encoding="utf-8"))
     assert conf["version"].replace("-dev.", ".dev") == worker.__version__
-    assert conf["bundle"]["externalBin"] == ["binaries/heplab-worker"]
+    # One-dir worker shipped as a resource (no one-file temp unpacking).
+    assert "externalBin" not in conf["bundle"]
+    assert conf["bundle"]["resources"] == {"worker/": "worker/"}
+    assert '.join("worker")' in main_rs and "resource_dir()" in main_rs
+    assert '"--onedir"' in (ROOT / "desktop/build_worker.py").read_text(encoding="utf-8")
     assert (desktop / conf["build"]["frontendDist"]).resolve() == ROOT / "desktop/frontend"
     assert conf["build"]["beforeBuildCommand"] == "python prepare_frontend.py"
     csp = conf["app"]["security"]["csp"]
@@ -185,6 +193,7 @@ def test_worker_module_runs_as_subprocess_without_a_shell(tmp_path):
         encoding="utf-8",
         timeout=60,
         check=True,
+        env={**os.environ, "PYTHONPATH": str(ROOT / "src")},
     )
     hello, reply = (json.loads(line) for line in process.stdout.splitlines())
     assert hello["protocol"] == worker.PROTOCOL and reply["ok"] is True

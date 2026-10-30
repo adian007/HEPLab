@@ -1,0 +1,13 @@
+{
+  "pytest": "9.1.1",
+  "fastapi": "0.141.1",
+  "starlette": "1.6.0",
+  "httpx": "0.28.1",
+  "pydantic": "2.13.4",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "iminuit": "2.33.0",
+  "uproot": "5.7.7",
+  "awkward": "2.14.0",
+  "pyarrow": "25.0.1"
+}

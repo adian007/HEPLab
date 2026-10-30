@@ -1,0 +1,17 @@
+---
+title: Results gallery
+description: Browse synthetic example analyses and event displays, then inspect their offline result records.
+---
+
+import { Aside } from '@astrojs/starlight/components'
+import ResultGallery from '../../components/ResultGallery.astro'
+
+Browse a compact set of results created by the HEPLab analysis and workbench paths. Open a card to explore the interactive, self-contained export and its provenance.
+
+<Aside type="caution" title="Synthetic examples">
+  These public examples are deterministic teaching fixtures, not CMS measurements or validation evidence. HEPLab does not upload or publish your local runs.
+</Aside>
+
+<ResultGallery />
+
+To share your own work, export a result with `heplab export-html`, then publish the file where you choose. The exported page works offline.

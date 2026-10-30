@@ -1,0 +1,54 @@
+### Result
+{"status":"passed","solid_and_outline_modes":true,"cutaway_rotation":true,"opening_30_to_180":true,"webgl_error":0,"event_unchanged":true,"canvas2d_fallback":true}
+### Ran Playwright code
+```js
+await (async (page) => {
+  await page.getByRole('tab',{name:'Event display',exact:true}).click();
+  await page.getByRole('checkbox',{name:'Show Muon RPC chambers',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Core',exact:true}).click();
+  const rendering=page.getByRole('combobox',{name:'Rendering',exact:true});
+  if(await rendering.inputValue()!=='solid')throw Error('Solid surfaces not selected');
+  await page.getByRole('button',{name:'XY',exact:true}).click();
+  const cut=page.getByRole('checkbox',{name:'Cutaway',exact:true});
+  await cut.uncheck();
+  const closed=await page.locator('#detector-gl').screenshot();
+  await cut.check();
+  const opened=await page.locator('#detector-gl').screenshot();
+  if(closed.equals(opened))throw Error('Cutaway had no visible effect');
+  const angle=page.getByRole('slider',{name:'Cutaway rotation',exact:true});
+  await angle.focus();await angle.press('Home');
+  const rotated=await page.locator('#detector-gl').screenshot();
+  if(rotated.equals(opened))throw Error('Cutaway rotation had no effect');
+  const opening=page.getByRole('slider',{name:'Cutaway opening',exact:true});
+  await opening.focus();await opening.press('End');
+  const wide=await page.locator('#detector-gl').screenshot();
+  if(wide.equals(rotated))throw Error('Opening width had no effect');
+  await page.screenshot({path:'output/playwright/detector-solid-xy-cutaway.png'});
+  await page.getByRole('button',{name:'3D',exact:true}).click();
+  await rendering.selectOption('edges');
+  await page.screenshot({path:'output/playwright/detector-solid-core-edges.png'});
+  await rendering.selectOption('outlines');
+  const outlines=await page.locator('#detector-gl').screenshot();
+  await rendering.selectOption('solid');
+  const solid=await page.locator('#detector-gl').screenshot();
+  if(outlines.equals(solid))throw Error('Surface and outline modes are identical');
+  await page.getByRole('button',{name:'● Live',exact:true}).click();
+  await page.waitForFunction(()=>document.getElementById('dirty').textContent.includes('Live preview'));
+  await page.getByRole('button',{name:'● Live',exact:true}).click();
+  const before=await page.evaluate(()=>JSON.stringify(result));
+  await cut.uncheck();await cut.check();
+  if(await page.evaluate(()=>JSON.stringify(result))!==before)throw Error('Cutaway mutated event data');
+  const gpuError=await page.evaluate(()=>document.getElementById('detector-gl').getContext('webgl').getError());
+  if(gpuError!==0)throw Error('WebGL error '+gpuError);
+  await page.evaluate(()=>document.getElementById('detector-gl').getContext('webgl').getExtension('WEBGL_lose_context').loseContext());
+  await page.waitForTimeout(200);await page.getByRole('button',{name:'Fit',exact:true}).click();
+  const fallback=await page.locator('#detector').screenshot();
+  await cut.uncheck();
+  const fallbackClosed=await page.locator('#detector').screenshot();
+  if(fallback.equals(fallbackClosed))throw Error('Canvas2D cutaway had no effect');
+  await cut.check();
+  await page.screenshot({path:'output/playwright/detector-solid-fallback.png'});
+  return {status:'passed',solid_and_outline_modes:true,cutaway_rotation:true,opening_30_to_180:true,webgl_error:gpuError,event_unchanged:true,canvas2d_fallback:true};
+}
+)(page);
+```

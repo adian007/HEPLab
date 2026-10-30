@@ -1,0 +1,11 @@
+    Checking itoa v1.0.18
+    Checking serde_core v1.0.229
+    Checking windows_x86_64_msvc v0.52.6
+    Checking zmij v1.0.23
+    Checking memchr v2.8.3
+    Checking windows-targets v0.52.6
+    Checking windows-sys v0.59.0
+    Checking serde_json v1.0.154
+    Checking serde v1.0.229
+    Checking heplab-desktop-core v0.1.0-dev.0 (D:\HEPLab\desktop\core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.77s

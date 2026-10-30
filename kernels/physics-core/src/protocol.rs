@@ -56,6 +56,14 @@ enum Request {
         particles: Vec<response::Particle>,
         config: response::ResponseConfig,
     },
+    Trajectory {
+        state: TrackState,
+        surfaces: Vec<crate::trajectory::NamedSurface>,
+        exit_surfaces: Vec<crate::trajectory::NamedSurface>,
+        bz_tesla: f64,
+        max_path_m: f64,
+        step_m: f64,
+    },
 }
 
 fn execute(request: Request) -> crate::Result<Value> {
@@ -108,6 +116,21 @@ fn execute(request: Request) -> crate::Result<Value> {
             histogram.snapshot()?
         }
         Request::Simulate { particles, config } => response::simulate(&particles, &config)?,
+        Request::Trajectory {
+            state,
+            surfaces,
+            exit_surfaces,
+            bz_tesla,
+            max_path_m,
+            step_m,
+        } => crate::trajectory::trajectory(crate::trajectory::TrajectoryRequest {
+            state,
+            surfaces,
+            exit_surfaces,
+            bz_tesla,
+            max_path_m,
+            step_m,
+        })?,
     })
 }
 

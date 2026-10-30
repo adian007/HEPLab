@@ -32,6 +32,8 @@ def tracker_trajectory(state: TrackState, max_path: float, backend: str = "refer
         backend=backend,
     )
     crossings = []
+    # Build (and hash) the surface model once, not once per 5 mm segment.
+    surfaces = geometry()["surfaces"]
     for index in range(1, len(traced["points"])):
         a, b = traced["points"][index - 1 : index + 1]
         delta = [b[i] - a[i] for i in range(3)]
@@ -40,7 +42,7 @@ def tracker_trajectory(state: TrackState, max_path: float, backend: str = "refer
             continue
         direction = [v / chord for v in delta]
         segment = TrackState(tuple(a), FourVector(1, *direction), 0, 0)
-        for surface in geometry()["surfaces"]:
+        for surface in surfaces:
             for distance in surface_paths(segment, surface, 0, chord):
                 path = traced["path_m"][index - 1] + distance / chord * (
                     traced["path_m"][index] - traced["path_m"][index - 1]
@@ -218,6 +220,15 @@ def surface_paths(state: TrackState, surface: dict, bz: float, max_path: float) 
     return output
 
 
+def _surface_request(surface: dict) -> dict:
+    fields = (
+        ("radius_m", "half_length_m")
+        if surface["kind"] == "cylinder"
+        else ("z_m", "inner_radius_m", "outer_radius_m")
+    )
+    return {"id": surface["id"], "kind": surface["kind"], **{k: surface[k] for k in fields}}
+
+
 def trajectory(state: TrackState, *, bz=3.8, max_path=16.0, step=0.05, backend="reference") -> dict:
     """Helix inside ideal solenoid, straight outside; explicitly no return field."""
     if not math.isfinite(step) or not 0.005 <= step <= 0.2 or not 0 < max_path <= 20:
@@ -226,28 +237,47 @@ def trajectory(state: TrackState, *, bz=3.8, max_path=16.0, step=0.05, backend="
         raise ValueError("trajectory must start inside the modeled solenoid bore")
     detector = geometry()
 
-    def intersections(surface, limit):
-        if backend == "reference":
-            return surface_paths(state, surface, bz, limit)
-        if backend != "rust":
-            raise ValueError("trajectory backend must be reference or rust")
+    if backend == "rust":
+        # One composite call: sampling, field exit and crossings in the kernel,
+        # instead of separate per-surface intersection calls.
         from .engine import execute
 
-        fields = (
-            {"kind", "radius_m", "half_length_m"}
-            if surface["kind"] == "cylinder"
-            else {"kind", "z_m", "inner_radius_m", "outer_radius_m"}
-        )
-        return execute(
+        bore = detector["surfaces"][-1]
+        faces = [
             {
-                "op": "intersect",
+                "id": f"bore-end-{'m' if sign < 0 else 'p'}",
+                "kind": "disk",
+                "z_m": sign * 6.25,
+                "inner_radius_m": 0.0,
+                "outer_radius_m": 3.0,
+            }
+            for sign in (-1, 1)
+        ]
+        payload = execute(
+            {
+                "op": "trajectory",
                 "state": asdict(state),
-                "surface": {k: surface[k] for k in fields},
+                "surfaces": [_surface_request(s) for s in detector["surfaces"]],
+                "exit_surfaces": [_surface_request(s) for s in [bore, *faces]],
                 "bz_tesla": bz,
-                "max_path_m": limit,
+                "max_path_m": max_path,
+                "step_m": step,
             },
             backend="rust",
         )
+        return {
+            **payload,
+            "field_bz_tesla": bz,
+            "geometry_sha256": detector["sha256"],
+            "model": "ideal-solenoid-helix-v1",
+            "validation": "analytic_model_only",
+            "navigation_backend": backend,
+        }
+    if backend != "reference":
+        raise ValueError("trajectory backend must be reference or rust")
+
+    def intersections(surface, limit):
+        return surface_paths(state, surface, bz, limit)
 
     bore = detector["surfaces"][-1]
     # Add both bore end faces for field exit navigation.

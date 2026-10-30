@@ -6,10 +6,13 @@ name: Desktop
 on:
   push:
     branches: [main]
-    paths: ["desktop/**", "src/heplab/**", ".github/workflows/desktop.yml"]
+    paths: ["desktop/**", "src/heplab/**", "kernels/**", "pyproject.toml", "rust-toolchain.toml", ".github/workflows/desktop.yml"]
   pull_request:
-    paths: ["desktop/**", "src/heplab/**", ".github/workflows/desktop.yml"]
+    paths: ["desktop/**", "src/heplab/**", "kernels/**", "pyproject.toml", "rust-toolchain.toml", ".github/workflows/desktop.yml"]
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -48,6 +51,17 @@ jobs:
         with:
           python-version: "3.12"
       - run: rustup toolchain install 1.99.1 --profile minimal --component rustfmt,clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.triple }}
+          workspaces: |
+            kernels
+            desktop/core
+            desktop/src-tauri
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.1"
+          enable-cache: true
       - name: Confirm native architecture
         shell: bash
         run: |
@@ -57,16 +71,25 @@ jobs:
       - name: Freeze and smoke-test the packaged worker
         shell: bash
         run: |
-          python -m pip install pyinstaller pyyaml pydantic
-          python -m pip install --no-deps .
-          python desktop/build_worker.py
+          # Libraries come from uv.lock; build tools are pinned exactly, so a
+          # release bundle is rebuilt from the same inputs every time.
+          uv sync --locked --no-editable --no-dev --extra analysis --extra serve
+          # Later steps (IPC tests, Tauri's beforeBuildCommand) call plain `python`.
+          root=$PWD; bin=.venv/bin
+          [ "$RUNNER_OS" = "Windows" ] && root=$(pwd -W) && bin=.venv/Scripts
+          echo "$root/$bin" >> "$GITHUB_PATH"
+          echo "VIRTUAL_ENV=$root/.venv" >> "$GITHUB_ENV"
+          uv pip install "pyinstaller==6.22.3" "pyinstaller-hooks-contrib==2026.9" "maturin==1.16.0"
+          uv run --no-sync maturin build --release --locked --manifest-path kernels/Cargo.toml --out desktop/kernel-wheels
+          uv pip install --no-deps --find-links desktop/kernel-wheels heplab-kernels
+          uv run --no-sync python desktop/build_worker.py
       - name: IPC core tests against source and frozen workers
         shell: bash
         env:
           HEPLAB_TEST_PYTHON: python
         run: |
           suffix=""; [ "$RUNNER_OS" = "Windows" ] && suffix=".exe"
-          export HEPLAB_TEST_WORKER_BINARY="$PWD/desktop/src-tauri/binaries/heplab-worker-${{ matrix.triple }}$suffix"
+          export HEPLAB_TEST_WORKER_BINARY="$PWD/desktop/src-tauri/worker/heplab-worker$suffix"
           cargo fmt --manifest-path desktop/core/Cargo.toml --check
           cargo clippy --locked --manifest-path desktop/core/Cargo.toml --all-targets -- -D warnings
           cargo test --locked --manifest-path desktop/core/Cargo.toml
@@ -74,12 +97,12 @@ jobs:
         with:
           node-version: "24"
       - name: Assemble the simulator workbench frontend
-        run: python desktop/prepare_frontend.py
+        run: uv run --no-sync python desktop/prepare_frontend.py
       - name: Shell lint (needs the sidecar and frontend present)
         run: cargo clippy --locked --manifest-path desktop/src-tauri/Cargo.toml -- -D warnings
       - name: Build bundles
         working-directory: desktop
-        run: npx --yes @tauri-apps/cli@2 build --ci --target ${{ matrix.triple }} --bundles ${{ matrix.bundles }}
+        run: npx --yes @tauri-apps/cli@2.12.4 build --ci --target ${{ matrix.triple }} --bundles ${{ matrix.bundles }}
       - name: Record bundle hashes
         shell: bash
         run: |

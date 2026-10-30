@@ -1,6 +1,6 @@
 # 02 · Data supply, integrity and cache transactions
 
-Status: required target. Existing fetch reads remote NanoAOD and writes one cache object; it does not yet satisfy transactional chunking, certified-run selection, complete integrity verification or sample identity.
+Status: chunked NanoAOD reads use verified immutable cache entries and apply certification after reading raw source chunks. Source integrity now checks the declared checksum against CERN's HTTP `Digest` response when available, computes it from local bytes, and streams remote bytes if the endpoint does not provide a digest. General plan identity, correction payloads and full sample identity remain target work.
 
 ```mermaid
 flowchart TD
@@ -42,11 +42,11 @@ Required selection modes are `entry_count`, `explicit_ranges`, and `full`. Byte 
 source_id = H(algorithm, portal_checksum, declared_size, frozen_uri_identity)
 chunk_key = H(cache_contract_version, source_id, tree, start, stop,
               ordered_projected_branches, reader_build, schema_version,
-              certification_hash, calibration_hashes, normalization_policy,
+              calibration_hashes, normalization_policy,
               data_kind, detector_model_hash_if_simulated)
 ```
 
-Branch sets are canonicalized but row order is preserved. `is_data` is inferred from an authenticated manifest contract, never blindly overridden by a CLI flag. Adding certification or a different event range invalidates the cache. Partial samples may satisfy a request only when their descriptors prove complete coverage of the exact requested ranges.
+Branch sets are canonicalized but row order is preserved. `is_data` is inferred from an authenticated manifest contract, never blindly overridden by a CLI flag. Cache entries contain raw source rows; certification is applied after reading, so changing the certification mask does not invalidate or contaminate the raw chunk cache. A different source, event range, branch projection or schema still produces a different cache key. Partial samples may satisfy a request only when their descriptors prove complete coverage of the exact requested ranges.
 
 ## Read and verification algorithm
 
@@ -54,7 +54,7 @@ Branch sets are canonicalized but row order is preserved. `is_data` is inferred 
 2. Prefer a supported transport; only translate known CERN EOS paths to the official HTTPS mirror. Preserve file identity across mirrors.
 3. Request the dependency closure of the analysis: event IDs, selection branches, weights and triggers as needed. Reject missing required branches before decoding chunks. Unsupported optional collections have an explicit absence mask.
 4. Bound open handles, decompressed bytes and concurrent requests. Retry transient I/O a bounded number of times with recorded backoff; never retry invalid schemas as a network error.
-5. For a complete file download, stream Adler-32/SHA verification against the portal checksum before use. **A projected range read cannot verify the full-file Adler-32.** Label it `source_checksum_declared` and separately hash decoded/cached bytes. Do not claim full-file verification.
+5. Verify the whole-source Adler-32/SHA-256 against the manifest before reusing cached chunks. Prefer the endpoint's whole-file `Digest` response; compute local files directly, and stream remote bytes if no server digest is available. Compare the declared size as well. Persist a verification receipt separately from event chunks. Label successful ranges `source_checksum_verified` and retain the verification method; decoded cache payloads have their own SHA-256 hashes.
 6. Validate branch lengths and event IDs. Apply `good_run[run]` interval membership using an indexed interval search, inclusive lumi endpoints as specified by CMS certification.
 7. Stream each normalized chunk into a transaction; avoid building one dataset-wide Python list.
 
@@ -64,4 +64,4 @@ Each chunk has a unique staging directory and an exclusive writer lease. Write P
 
 Two workers cannot publish different payload hashes for one key. Identical publication is idempotent; conflicting publication is `CacheConflict`. Recover stale leases using an owner token and recorded expiration; never delete an active writer's staging area. Quota enforcement accounts for temporary plus committed bytes. Eviction removes only unreferenced completed entries, and never changes an archived run's source identities.
 
-Acceptance: fetch N then M events and prove M does not silently read the N cache; interrupt at every commit boundary; mutate a manifest checksum and observe cache invalidation; run offline using a complete committed range; assert certification endpoints and unknown runs; report a full-file checksum as unverified when only ranges were read. See [verification](14-verification.md).
+Acceptance: fetch N then M events and prove M does not silently read the N cache; interrupt at every commit boundary; mutate a manifest checksum and observe cache invalidation; prove certification changes reuse raw cached chunks; reject a source digest or size mismatch; run offline using a complete committed range; and assert certification endpoints and unknown runs. See [verification](14-verification.md).

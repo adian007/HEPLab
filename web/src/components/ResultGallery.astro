@@ -1,0 +1,67 @@
+---
+import demo from '../data/z-boson-demo.json';
+
+const counts = demo.histogram.counts;
+const edges = demo.histogram.edges;
+const max = Math.max(...counts, 1);
+const width = 640;
+const height = 160;
+const points = counts.map((count, index) => {
+  const x = 8 + (width - 16) * index / Math.max(1, counts.length - 1);
+  const y = height - 10 - (height - 20) * count / max;
+  return `${x.toFixed(1)},${y.toFixed(1)}`;
+}).join(' ');
+const peakIndex = counts.indexOf(max);
+const peak = (edges[peakIndex] + edges[peakIndex + 1]) / 2;
+---
+
+<section class="zgallery" aria-label="HEPLab public examples">
+  <div class="zgallery-toolbar" role="group" aria-label="Filter examples">
+    <span>Browse examples</span>
+    <button type="button" data-filter="all" aria-pressed="true">All</button>
+    <button type="button" data-filter="analysis" aria-pressed="false">Mass analyses</button>
+    <button type="button" data-filter="event" aria-pressed="false">Event displays</button>
+  </div>
+  <div class="zgallery-grid">
+    <a class="zgallery-card" data-kind="analysis" href="/examples/synthetic-z-dimuon.html">
+      <div class="zgallery-preview zgallery-spectrum">
+        <svg viewBox="0 0 640 160" role="img" aria-label={`Dimuon mass spectrum with a peak at ${peak.toFixed(1)} GeV`}>
+          <path class="zgallery-grid-line" d="M0 40H640 M0 80H640 M0 120H640" />
+          <polyline points={points} />
+        </svg>
+      </div>
+      <div class="zgallery-copy">
+        <div class="zgallery-kicker">Synthetic analysis · Dimuon</div>
+        <h2>Rediscover the Z peak</h2>
+        <p>4,000 deterministic teaching events · selected peak {peak.toFixed(1)} GeV</p>
+        <span class="zgallery-open">Open self-contained result ↗</span>
+      </div>
+    </a>
+    <a class="zgallery-card" data-kind="event" href="/examples/declared-muon-event.html">
+      <div class="zgallery-preview zgallery-event" aria-hidden="true">
+        <svg viewBox="0 0 640 160">
+          <circle cx="320" cy="80" r="34" />
+          <circle cx="320" cy="80" r="62" />
+          <path d="M320 80 C360 65 430 42 590 35" />
+          <path d="M320 80 C280 95 210 118 50 125" />
+        </svg>
+      </div>
+      <div class="zgallery-copy">
+        <div class="zgallery-kicker">Synthetic fixture · Event display</div>
+        <h2>Follow a declared muon pair</h2>
+        <p>One analytic workbench event · detector crossings and provenance</p>
+        <span class="zgallery-open">Open self-contained result ↗</span>
+      </div>
+    </a>
+  </div>
+  <p class="zgallery-note">These examples are synthetic teaching fixtures, not CMS measurements. Exported result pages are standalone and work offline.</p>
+</section>
+
+<script>
+  const gallery = document.querySelector('.zgallery');
+  gallery?.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach(button => button.addEventListener('click', () => {
+    const selected = button.dataset.filter;
+    gallery.querySelectorAll('[data-filter]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    gallery.querySelectorAll<HTMLAnchorElement>('.zgallery-card').forEach(card => { card.hidden = selected !== 'all' && card.dataset.kind !== selected; });
+  }));
+</script>

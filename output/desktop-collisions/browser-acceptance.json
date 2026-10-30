@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "events": 100,
+  "selected_events": 33,
+  "histograms": 4,
+  "cutflow_stages": 5,
+  "csv_rows": 100,
+  "selected_event_navigation": 3,
+  "console_errors": 0
+}

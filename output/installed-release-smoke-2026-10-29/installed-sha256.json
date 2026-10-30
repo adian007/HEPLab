@@ -1,0 +1,13 @@
+{
+  "bundle_marker_verified": "UNK -> NSS (NSIS), all other bytes identical",
+  "application": {
+    "path": "C:\\Users\\adian\\AppData\\Local\\HEPLab\\heplab-desktop.exe",
+    "bytes": 11667968,
+    "sha256": "55a191460883dab2828cfb8a9b06a6313907d56889223932be1cc0f239169a62"
+  },
+  "bundled_worker": {
+    "path": "C:\\Users\\adian\\AppData\\Local\\HEPLab\\heplab-worker.exe",
+    "bytes": 100040474,
+    "sha256": "e93c4b4b7942bad046cfa3c37dae1800a7b32ede6ddf5831a8f7500f3e44c904"
+  }
+}

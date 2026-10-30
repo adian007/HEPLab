@@ -1,0 +1,103 @@
+183 INFO: PyInstaller: 6.22.3, contrib hooks: 2026.9
+183 INFO: Python: 3.13.14
+213 INFO: Platform: Windows-11-10.0.26300-SP0
+213 INFO: Python environment: D:\HEPLab\.cache\desktop-package
+213 INFO: wrote C:\Users\adian\AppData\Local\Temp\tmp8fe5txti\heplab-worker.spec
+220 INFO: Removing temporary files and cleaning cache in C:\Users\adian\AppData\Local\pyinstaller
+1084 INFO: Module search paths (PYTHONPATH):
+['D:\\HEPLab',
+ 'C:\\Users\\adian\\AppData\\Local\\Programs\\Python\\Python313\\python313.zip',
+ 'C:\\Users\\adian\\AppData\\Local\\Programs\\Python\\Python313\\DLLs',
+ 'C:\\Users\\adian\\AppData\\Local\\Programs\\Python\\Python313\\Lib',
+ 'C:\\Users\\adian\\AppData\\Local\\Programs\\Python\\Python313',
+ 'D:\\HEPLab\\.cache\\desktop-package',
+ 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages',
+ 'C:\\Users\\adian\\AppData\\Local\\Temp\\tmp8fe5txti']
+1886 INFO: Appending 'binaries' from .spec
+1886 INFO: Appending 'datas' from .spec
+1889 INFO: checking Analysis
+1890 INFO: Building Analysis because Analysis-00.toc is non existent
+1890 INFO: Looking for Python shared library...
+1890 INFO: Using Python shared library: C:\Users\adian\AppData\Local\Programs\Python\Python313\python313.dll
+1890 INFO: Running Analysis Analysis-00.toc
+1890 INFO: Target bytecode optimization level: 0
+1890 INFO: Initializing module dependency graph...
+1894 INFO: Initializing module graph hook caches...
+1906 INFO: Analyzing modules for base_library.zip ...
+3304 INFO: Processing standard module hook 'hook-encodings.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks'
+4149 INFO: Processing standard module hook 'hook-math.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks'
+4338 INFO: Processing standard module hook 'hook-heapq.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks'
+5269 INFO: Processing standard module hook 'hook-pickle.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks'
+6412 INFO: Caching module dependency graph...
+6432 INFO: Analyzing C:\Users\adian\AppData\Local\Temp\tmp8fe5txti\heplab_worker_entry.py
+6449 INFO: Processing standard module hook 'hook-numpy.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks'
+6709 INFO: Processing pre-safe-import-module hook 'hook-typing_extensions.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+6711 INFO: SetuptoolsInfo: initializing cached setuptools info...
+7565 INFO: Processing standard module hook 'hook-multiprocessing.util.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks'
+7738 INFO: Processing standard module hook 'hook-xml.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks'
+8005 INFO: Processing standard module hook 'hook-sysconfig.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks'
+8012 INFO: Processing standard module hook 'hook-_ctypes.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks'
+8637 INFO: Processing standard module hook 'hook-platform.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks'
+8878 INFO: Processing standard module hook 'hook-webbrowser.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks'
+9915 INFO: Processing standard module hook 'hook-difflib.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks'
+10920 INFO: Processing pre-safe-import-module hook 'hook-packaging.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+14148 INFO: Processing standard module hook 'hook-fsspec.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+16081 INFO: Processing pre-safe-import-module hook 'hook-backports.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+16083 INFO: Setuptools: 'backports' appears to be a full setuptools-vendored copy - creating alias to 'setuptools._vendor.backports'!
+16094 INFO: Processing standard module hook 'hook-setuptools.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks'
+16120 INFO: Processing pre-safe-import-module hook 'hook-distutils.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+16177 INFO: Processing pre-safe-import-module hook 'hook-jaraco.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+16180 INFO: Setuptools: 'jaraco' appears to be a full setuptools-vendored copy - creating alias to 'setuptools._vendor.jaraco'!
+16201 INFO: Processing pre-safe-import-module hook 'hook-more_itertools.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+16203 INFO: Setuptools: 'more_itertools' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.more_itertools'!
+16552 INFO: Processing standard module hook 'hook-_osx_support.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks'
+16977 INFO: Processing standard module hook 'hook-setuptools._vendor.jaraco.text.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks'
+16980 INFO: Processing pre-safe-import-module hook 'hook-importlib_resources.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+17690 INFO: Processing pre-safe-import-module hook 'hook-tomli.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+17692 INFO: Setuptools: 'tomli' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.tomli'!
+18443 INFO: Processing pre-safe-import-module hook 'hook-wheel.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+18444 INFO: Setuptools: 'wheel' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.wheel'!
+18543 INFO: Processing pre-safe-import-module hook 'hook-tensorflow.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\pre_safe_import_module'
+19356 INFO: Processing pre-safe-import-module hook 'hook-importlib_metadata.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+19358 INFO: Setuptools: 'importlib_metadata' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.importlib_metadata'!
+19380 INFO: Processing standard module hook 'hook-setuptools._vendor.importlib_metadata.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks'
+19409 INFO: Processing pre-safe-import-module hook 'hook-zipp.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+19410 INFO: Setuptools: 'zipp' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.zipp'!
+21143 INFO: Processing standard module hook 'hook-pydantic.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+21921 INFO: Processing standard module hook 'hook-zoneinfo.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+22819 INFO: Processing module hooks (post-graph stage)...
+23167 WARNING: Hidden import "tzdata" not found!
+23485 INFO: Performing binary vs. data reclassification (86 entries)
+23973 INFO: Looking for ctypes DLLs
+24042 INFO: Analyzing run-time hooks ...
+24047 INFO: Including run-time hook 'pyi_rth_inspect.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+24050 INFO: Including run-time hook 'pyi_rth_pkgutil.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+24053 INFO: Including run-time hook 'pyi_rth_multiprocessing.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+24055 INFO: Including run-time hook 'pyi_rth_setuptools.py' from 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+24074 INFO: Creating base_library.zip...
+24092 INFO: Looking for dynamic libraries
+25108 INFO: Extra DLL search directories (AddDllDirectory): ['D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\awkward_cpp.libs', 'D:\\HEPLab\\.cache\\desktop-package\\Lib\\site-packages\\numpy.libs']
+25108 INFO: Extra DLL search directories (PATH): []
+25898 INFO: Warnings written to C:\Users\adian\AppData\Local\Temp\tmp8fe5txti\build\heplab-worker\warn-heplab-worker.txt
+25973 INFO: Graph cross-reference written to C:\Users\adian\AppData\Local\Temp\tmp8fe5txti\build\heplab-worker\xref-heplab-worker.html
+26011 INFO: checking PYZ
+26011 INFO: Building PYZ because PYZ-00.toc is non existent
+26011 INFO: Building PYZ (ZlibArchive) C:\Users\adian\AppData\Local\Temp\tmp8fe5txti\build\heplab-worker\PYZ-00.pyz
+27227 INFO: Building PYZ (ZlibArchive) C:\Users\adian\AppData\Local\Temp\tmp8fe5txti\build\heplab-worker\PYZ-00.pyz completed successfully.
+27256 INFO: checking PKG
+27256 INFO: Building PKG because PKG-00.toc is non existent
+27256 INFO: Building PKG (CArchive) heplab-worker.pkg
+37718 INFO: Building PKG (CArchive) heplab-worker.pkg completed successfully.
+37722 INFO: Bootloader D:\HEPLab\.cache\desktop-package\Lib\site-packages\PyInstaller\bootloader\Windows-64bit-intel\run.exe
+37722 INFO: checking EXE
+37722 INFO: Building EXE because EXE-00.toc is non existent
+37722 INFO: Building EXE from EXE-00.toc
+37722 INFO: Copying bootloader EXE to C:\Users\adian\AppData\Local\Temp\tmp8fe5txti\dist\heplab-worker.exe
+37781 INFO: Copying icon to EXE
+37826 INFO: Copying 0 resources to EXE
+37826 INFO: Embedding manifest in EXE
+37866 INFO: Appending PKG archive to EXE
+37927 INFO: Fixing EXE headers
+38704 INFO: Building EXE from EXE-00.toc completed successfully.
+38709 INFO: Build complete! The results are available in: C:\Users\adian\AppData\Local\Temp\tmp8fe5txti\dist
+{"sidecar": "desktop\\src-tauri\\binaries\\heplab-worker-x86_64-pc-windows-msvc.exe", "triple": "x86_64-pc-windows-msvc", "protocol": "heplab-desktop-ipc-v1", "worker_version": "0.1.0.dev0", "operations": ["calibration.report", "data.analyses", "data.analyze", "data.event", "data.get", "data.import_abort", "data.import_begin", "data.import_chunk", "data.import_finish", "data.library", "data.load", "data.rows", "datasets.list", "detector.display", "detector.geometry", "engine.capabilities", "jobs.cancel", "jobs.event", "jobs.get", "jobs.submit", "lab.profile", "lab.replay", "project.evidence", "project.overview", "runs.get", "runs.list", "workbench.preview", "workbench.session"]}

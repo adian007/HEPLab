@@ -26,9 +26,11 @@ dependencies = ["pyyaml>=6"]
 dev = ["pytest>=8", "jsonschema>=4.22", "ruff>=0.8", "mypy>=1.14", "types-PyYAML>=6", "build>=1.2", "hatchling>=1.25"]
 docs = ["mkdocs-material>=9.5"]
 analysis = ["numpy>=1.26", "scipy>=1.12", "awkward>=2.6", "uproot>=5.3", "pyarrow>=17", "vector>=1.4", "hist>=2.7", "mplhep>=0.3", "iminuit>=2.25", "matplotlib>=3.8"]
+notebook = ["ipython>=8", "ipywidgets>=8"]
 parallel = ["coffea>=2024.7", "dask>=2024.7"]
 fit = ["zfit>=0.24"]
 serve = ["fastapi>=0.111", "uvicorn>=0.30", "pydantic>=2.7"]
+usd = ["usd-core>=24.8"]            # OpenUSD export (heplab export-usd); CPU-only authoring
 gpu = ["jax[cuda12]>=0.4"]        # Tier-2 GPU fitting / toy-MC ensembles (ADR-0010)
 kernels = ["heplab-kernels"]
 sim = []                            # PYTHIA8/DELPHES live in the heplab-sim container
@@ -49,6 +51,10 @@ packages = ["src/heplab"]
 [tool.hatch.build.targets.wheel.force-include]
 "manifests/datasets" = "heplab/data/manifests"
 "manifests/certification" = "heplab/data/certification"
+"src/heplab/data/project-capabilities.json" = "heplab/data/project-capabilities.json"
+
+[tool.uv.sources]
+heplab-kernels = { path = "kernels" }
 
 [tool.ruff]
 line-length = 100

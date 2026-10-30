@@ -46,7 +46,24 @@
           "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/PixelEndcapPlus3D_V1.glb",
           "sha256": "05196dba73100553c9cef39b613ea657712e69c5fdfe4cf65f6a9c6f08c7fe26"
         }
-      ]
+      ],
+      "surfaces": {
+        "file": "pixel-surfaces.f32",
+        "vertices": 8640,
+        "bytes": 103680,
+        "sha256": "1b64e83101d5721938eb33ebd7f4a3b53ccec7c39b63319ef03c82a18b304a0f",
+        "native_triangles": 0,
+        "planar_outline_triangles": 2880,
+        "unfilled_loops": 0,
+        "scope": "Display faces only; source triangles or closed convex planar module outlines"
+      },
+      "surface_outlines": {
+        "file": "pixel-surface-outlines.f32",
+        "vertices": 0,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "scope": "Source outlines that could not be safely filled; retained in solid mode"
+      }
     },
     {
       "id": "strips",
@@ -91,7 +108,24 @@
           "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/SiStripTECPlus3D_V1.glb",
           "sha256": "00733aa0ad9ca44bd16bc6cebe85a39ce614a441eab7fa5f3ba4f22004583f4b"
         }
-      ]
+      ],
+      "surfaces": {
+        "file": "strips-surfaces.f32",
+        "vertices": 85740,
+        "bytes": 1028880,
+        "sha256": "2e19138511a10c102064de6599c4693f2c8b74bb5ed1d0d86d02fa1ef50ba6c3",
+        "native_triangles": 0,
+        "planar_outline_triangles": 28580,
+        "unfilled_loops": 4146,
+        "scope": "Display faces only; source triangles or closed convex planar module outlines"
+      },
+      "surface_outlines": {
+        "file": "strips-surface-outlines.f32",
+        "vertices": 33168,
+        "bytes": 398016,
+        "sha256": "188af596bd34855a18d6ff55f0bb7f4c01b821b500f847f83fc14ffe060ebdf9",
+        "scope": "Source outlines that could not be safely filled; retained in solid mode"
+      }
     },
     {
       "id": "ecal",
@@ -124,7 +158,24 @@
           "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/EcalEndcapPlus3D_V1.glb",
           "sha256": "824606b518d9503077902c75a7ee36244fe9c840c21d41a6e1d3b5d74f7fe42e"
         }
-      ]
+      ],
+      "surfaces": {
+        "file": "ecal-surfaces.f32",
+        "vertices": 34560,
+        "bytes": 414720,
+        "sha256": "1ca8ecbdebd26db19e401db13eafae046eac39de4c8ba50f4c926bdd434679db",
+        "native_triangles": 11520,
+        "planar_outline_triangles": 0,
+        "unfilled_loops": 161128,
+        "scope": "Display faces only; source triangles or closed convex planar module outlines"
+      },
+      "surface_outlines": {
+        "file": "ecal-surface-outlines.f32",
+        "vertices": 351552,
+        "bytes": 4218624,
+        "sha256": "78bc845a2cc1ab2dab3ff7516352fa122bed07655de99e6164c0d1a0742aad64",
+        "scope": "Source outlines that could not be safely filled; retained in solid mode"
+      }
     },
     {
       "id": "hcal",
@@ -169,7 +220,24 @@
           "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/HcalOuter3D_V1.glb",
           "sha256": "db1e3ef7128fc7b99e802dc85ba0c225c238195446d3c8fe710c15f8f4421e28"
         }
-      ]
+      ],
+      "surfaces": {
+        "file": "hcal-surfaces.f32",
+        "vertices": 326592,
+        "bytes": 3919104,
+        "sha256": "f7b3ab57057e96c0ff175516b40dddbd9c1bab7b53793741d423ad94e3cab56a",
+        "native_triangles": 108864,
+        "planar_outline_triangles": 0,
+        "unfilled_loops": 0,
+        "scope": "Display faces only; source triangles or closed convex planar module outlines"
+      },
+      "surface_outlines": {
+        "file": "hcal-surface-outlines.f32",
+        "vertices": 0,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "scope": "Source outlines that could not be safely filled; retained in solid mode"
+      }
     },
     {
       "id": "dt",
@@ -194,7 +262,24 @@
           "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/DTs3D_V1.glb",
           "sha256": "f27ea107092f29befcab16c10296a319edc21c6afdbbf909c87dbc190dcb0416"
         }
-      ]
+      ],
+      "surfaces": {
+        "file": "dt-surfaces.f32",
+        "vertices": 9000,
+        "bytes": 108000,
+        "sha256": "9231c30857d75fc0ecc4b7b483d0851e734dc15da29f62ab92d7e144cc2ba360",
+        "native_triangles": 3000,
+        "planar_outline_triangles": 0,
+        "unfilled_loops": 0,
+        "scope": "Display faces only; source triangles or closed convex planar module outlines"
+      },
+      "surface_outlines": {
+        "file": "dt-surface-outlines.f32",
+        "vertices": 0,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "scope": "Source outlines that could not be safely filled; retained in solid mode"
+      }
     },
     {
       "id": "csc",
@@ -219,7 +304,24 @@
           "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/CSC3D_V1.glb",
           "sha256": "dfbe7ce37f1117f2bea0bc15c85e6a84f0d88354a22970e2b6a220ab77abac25"
         }
-      ]
+      ],
+      "surfaces": {
+        "file": "csc-surfaces.f32",
+        "vertices": 22032,
+        "bytes": 264384,
+        "sha256": "f8238de6ccca0df7814686e3745dc51a2689dcf26a7e3a01fd42761e816cd5ea",
+        "native_triangles": 7344,
+        "planar_outline_triangles": 0,
+        "unfilled_loops": 0,
+        "scope": "Display faces only; source triangles or closed convex planar module outlines"
+      },
+      "surface_outlines": {
+        "file": "csc-surface-outlines.f32",
+        "vertices": 0,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "scope": "Source outlines that could not be safely filled; retained in solid mode"
+      }
     },
     {
       "id": "rpc",
@@ -252,7 +354,25 @@
           "url": "https://raw.githubusercontent.com/cms-outreach/ispy-webgl/42b7d687344877f25213ec7650fc58148e87af2e/geometry/gltf/RPCPlusEndcap3D_V1.glb",
           "sha256": "c71911a8da5297441566d62823d865d27a050995c138703c03432fdd80a57cbb"
         }
-      ]
+      ],
+      "surfaces": {
+        "file": "rpc-surfaces.f32",
+        "vertices": 98928,
+        "bytes": 1187136,
+        "sha256": "3147c42b05b8e3944e4796429683ea89b582d1d2a9f5c0ad5589e74d7600f108",
+        "native_triangles": 32976,
+        "planar_outline_triangles": 0,
+        "unfilled_loops": 0,
+        "scope": "Display faces only; source triangles or closed convex planar module outlines"
+      },
+      "surface_outlines": {
+        "file": "rpc-surface-outlines.f32",
+        "vertices": 0,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "scope": "Source outlines that could not be safely filled; retained in solid mode"
+      }
     }
-  ]
+  ],
+  "surface_scope": "Display-only surfaces; native GLB triangles and triangulated planar module outlines. No material thickness or transport geometry is inferred."
 }

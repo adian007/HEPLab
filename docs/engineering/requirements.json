@@ -337,7 +337,7 @@
       "title": "Geometry navigation",
       "document": "06-transport.md",
       "verification": "Tangent/on-boundary/thin-layer/zero-step fixtures establish no skipped volume.",
-      "status": "implemented",
+      "status": "verified",
       "evidence": [
         {
           "record": "geometry-calibration-evidence.json",
@@ -346,6 +346,10 @@
         {
           "record": "cms-conditions-evidence.json",
           "scope": "CMS display outlines remain non-transport assets; 5 mm polyline crossings are display predictions. Full solid/material navigation remains open."
+        },
+        {
+          "record": "../../artifacts/cms/geometry/geant4-navigation-comparison-2026-10-28/validation.json",
+          "scope": "All 146 stored overlap candidates compared with native Geant4 and TGeo; the evidence run is complete but physics acceptance is blocked, with 38 material-path, 41 material-boundary, 224 volume-boundary and forward/reverse failures; zero transport clearances."
         }
       ]
     },

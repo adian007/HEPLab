@@ -19,7 +19,7 @@ def invariant_mass(first: dict, second: dict) -> float:
 
 
 def _finite_number(value, name):
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+    if isinstance(value, bool) or not isinstance(value, int | float) or not math.isfinite(value):
         raise ValueError(f"{name} must be finite")
     return float(value)
 
@@ -203,7 +203,7 @@ def process(events, config: dict) -> dict:
             if any(
                 v is None
                 or isinstance(v, bool)
-                or not isinstance(v, (int, float))
+                or not isinstance(v, int | float)
                 or not math.isfinite(v)
                 for v in values
             ):
@@ -227,7 +227,7 @@ def process(events, config: dict) -> dict:
         if not candidates:
             continue
         passed("opposite_charge_pair")
-        candidates = [(mass, sumpt) for mass, sumpt in candidates if window[0] <= mass <= window[1]]
+        candidates = [(mass, sumpt) for mass, sumpt in candidates if window[0] <= mass < window[1]]
         if not candidates:
             continue
         if policy == "highest_sum_pt":
@@ -258,7 +258,7 @@ def process(events, config: dict) -> dict:
             "state": "unvalidated",
             "limitations": ["calibration and held-out physics acceptance required"],
         },
-        "data_kind": next(iter(kinds)) if len(kinds) == 1 else "mixed",
+        "data_kind": next(iter(kinds)) if len(kinds) == 1 else ("mixed" if kinds else "none"),
         "semantics": {"muon_iso": sorted(definition_ids), "units": "GeV"},
         "events_processed": cutflow["all"],
         "cutflow": cutflow,

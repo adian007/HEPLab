@@ -1,0 +1,55 @@
+PASS: Rust sample, unsaved preview, CMS analysis and first/last sidecar joins
+PASS: collision generation, selection, navigation and active cancellation
+{
+  "status": "passed",
+  "worker": "D:\\HEPLab\\desktop\\src-tauri\\binaries\\heplab-worker-x86_64-pc-windows-msvc.exe",
+  "project": "D:\\HEPLab\\output\\surface-update-2026-10-29\\Packaged Smoke Project",
+  "engine": {
+    "reference": true,
+    "rust_extension": true,
+    "rust_error": null,
+    "rust_executable_configured": false,
+    "fidelity": "T0-analytic-thin-slab-and-educational-response",
+    "calibrated_detector": false,
+    "material_transport": "bounded_thin_slab",
+    "digitization": "deposit_threshold_noise_saturation",
+    "geometry_navigation": "finite_cylinders_and_annular_disks",
+    "field_models": [
+      "ideal_bore",
+      "cms_tracker_oae_3_8t"
+    ],
+    "full_cms_material_map": false
+  },
+  "preview_unsaved": true,
+  "rust_run": {
+    "id": "01484b9fc3f7da5011bcb099",
+    "events": 4,
+    "event_navigation": true
+  },
+  "cms": {
+    "analysis_id": "05153cb8518b9fbdd911a8e4",
+    "data_selected": 10863,
+    "mc_selected": 11430,
+    "first_last_navigation": true,
+    "sidecars_joined": true,
+    "certification_sha256": "e63961f7d175746c3d1ba985d293de0a822d041094c7991c41cffa661d982e28"
+  },
+  "simulation": {
+    "available": true,
+    "versions": {
+      "pythia8": "8.312",
+      "delphes": "3.5.1",
+      "root_base": "6.40.04"
+    },
+    "host": "WSL Ubuntu",
+    "prefix": "/home/adian/.cache/heplab/sim-runtime"
+  },
+  "collisions": {
+    "id": "49ce0aba3385e8b529e1ef80",
+    "events": 20,
+    "selected": 4,
+    "selected_event_navigation": true
+  },
+  "active_generation_cancelled": true,
+  "restart_reopened": true
+}

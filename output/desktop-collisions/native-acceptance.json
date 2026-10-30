@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "run_id": "57fadbbb3c33f08faa3fe802",
+  "native_generate_button": true,
+  "events": 100,
+  "selected_events": 33,
+  "reconstructed_muons": 113,
+  "output_directory": "C:\\Users\\adian\\AppData\\Roaming\\org.heplab.desktop\\projects\\default\\artifacts\\57fadbbb3c33f08faa3fe802-simulation",
+  "observed_wsl_inventory_timeout_once": true,
+  "selected_event_navigation": 3,
+  "native_csv_export_rows": 100
+}

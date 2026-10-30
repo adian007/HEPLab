@@ -1,0 +1,33 @@
+{
+  "driver": "drivers/time_sim_chain.py",
+  "entry_point": "heplab.sim.pipeline.run_chain",
+  "events": 100,
+  "seed": 42,
+  "wall_s": 7.030983300001026,
+  "summary_from_run_json": {
+    "events": 100,
+    "sumw": 100.0,
+    "sumw2": 100.0,
+    "positive_sumw": 100.0,
+    "negative_sumw": 0.0,
+    "max_truth_four_momentum_residual_gev": 0.0002760188654065132,
+    "truth_conservation_tolerance": "max(0.002 GeV, 2e-5 * beam total energy)",
+    "truth_graph": "native Particle mother/daughter indices preserved in ROOT",
+    "normalization": "generator log retained; cross section not independently validated",
+    "trials": 401,
+    "selected": 100,
+    "accepted": 100,
+    "cross_section_pb": 1341.0,
+    "cross_section_error_pb": 78.97,
+    "cross_section_source": "PYTHIA stat() sum row, rounded printed precision",
+    "cross_section_convention": "registered mass window and forced muon decay included; no extra decay factor",
+    "independent_validation": "pending"
+  },
+  "engine_seam_calls_on_path": 0,
+  "environment": {
+    "python": "3.13.14",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "host": "Adian",
+    "sim_runtime": "WSL Ubuntu prefix ~/.cache/heplab/sim-runtime (PYTHIA 8.312, DELPHES 3.5.1, ROOT 6.40.04)"
+  }
+}

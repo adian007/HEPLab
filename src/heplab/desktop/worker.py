@@ -13,11 +13,12 @@ import argparse
 import json
 import math
 import re
-import subprocess
 import sys
+import threading
+import traceback
 from collections.abc import Callable
 from pathlib import Path, PurePosixPath
-from typing import IO
+from typing import IO, Any
 
 from .. import __version__
 
@@ -110,6 +111,8 @@ def validate(message: object, root: Path) -> tuple[int, str, dict]:
 
 
 def operations(root: Path, closers: list | None = None) -> dict[str, Callable[..., object]]:
+    from ..server.data_workspace import operation_handlers
+
     artifacts = root / "artifacts"
 
     def calibration_report():
@@ -180,8 +183,13 @@ def operations(root: Path, closers: list | None = None) -> dict[str, Callable[..
 
     # The simulator job engine is the same one the web workbench uses.
     engine: dict = {}
+    engine_lock = threading.Lock()
 
     def jobs():
+        with engine_lock:
+            return start_jobs()
+
+    def start_jobs():
         if "jobs" not in engine:
             from ..server.workbench import Jobs
 
@@ -193,12 +201,9 @@ def operations(root: Path, closers: list | None = None) -> dict[str, Callable[..
 
     def workbench_session():
         from ..physics.engine import capabilities
-        from ..sim.pipeline import runtime
+        from ..sim.pipeline import capabilities as simulation_capabilities
 
-        try:
-            simulation = {"available": True, "versions": runtime()["inventory"]["versions"]}
-        except (RuntimeError, OSError, ValueError, subprocess.SubprocessError) as exc:
-            simulation = {"available": False, "reason": str(exc)}
+        simulation = simulation_capabilities()
         # The workbench enables Run only once it holds a session token. Over
         # desktop IPC the channel itself is the authority, so this is a fixed
         # marker that is never checked or sent anywhere.
@@ -233,8 +238,26 @@ def operations(root: Path, closers: list | None = None) -> dict[str, Callable[..
 
         return wrapped
 
+    def runs_list():
+        from ..server.workbench import run_summaries
+
+        return run_summaries(artifacts)
+
+    def workbench_preview(request: dict):
+        from pydantic import ValidationError
+
+        from ..server.workbench import preview
+
+        try:
+            return preview(request)
+        except (ValidationError, ValueError) as exc:
+            raise RequestError("invalid_arguments", str(exc)) from exc
+
     def job_cancel(job_id: str):
-        jobs().cancel(job_id)
+        try:
+            jobs().cancel(job_id)
+        except ValueError as exc:
+            raise RequestError("conflict", str(exc)) from exc
         return {"id": job_id, "cancellation_requested": True}
 
     def job_event(job_id: str, index: int):
@@ -244,10 +267,13 @@ def operations(root: Path, closers: list | None = None) -> dict[str, Callable[..
             raise RequestError("not_found", "unknown event") from exc
 
     return {
+        **operation_handlers(root, closers),
         "workbench.session": workbench_session,
         "detector.display": detector_display,
         "jobs.submit": job_submit,
+        "workbench.preview": workbench_preview,
         "jobs.get": known(lambda job_id: jobs().get(job_id)),
+        "jobs.list": lambda: jobs().list(),
         "jobs.cancel": known(job_cancel),
         "jobs.event": known(job_event),
         "project.overview": project_overview,
@@ -256,17 +282,29 @@ def operations(root: Path, closers: list | None = None) -> dict[str, Callable[..
         "calibration.report": calibration_report,
         "detector.geometry": detector_geometry,
         "datasets.list": datasets_list,
-        "runs.list": lambda: [
-            {"id": p.stem, "artifact": p.name} for p in sorted(artifacts.glob("*.json"))
-        ],
+        "runs.list": runs_list,
         "runs.get": run_get,
         "lab.profile": lab_profile,
         "lab.replay": lab_replay,
     }
 
 
+def finite(value: Any) -> Any:
+    """Replace NaN and infinities with null so one bad number does not void a result."""
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    if isinstance(value, dict):
+        return {key: finite(item) for key, item in value.items()}
+    if isinstance(value, list | tuple):
+        return [finite(item) for item in value]
+    return value
+
+
 def respond(stream: IO[str], value: dict) -> None:
-    line = json.dumps(value, allow_nan=False, separators=(",", ":"))
+    try:
+        line = json.dumps(value, allow_nan=False, separators=(",", ":"))
+    except ValueError:
+        line = json.dumps(finite(value), allow_nan=False, separators=(",", ":"))
     if len(line.encode()) > SPEC["max_response_bytes"]:
         line = json.dumps(
             {
@@ -279,52 +317,98 @@ def respond(stream: IO[str], value: dict) -> None:
     stream.flush()
 
 
+def failure(identity: int | None, exc: BaseException) -> dict:
+    if isinstance(exc, RequestError):
+        return {"id": identity, "ok": False, "error": {"code": exc.code, "message": str(exc)}}
+    # Any handler failure is reported per request; it must never take down the
+    # worker, which owns every running simulation job.
+    if not isinstance(exc, ValueError | LookupError | OSError | RuntimeError | TypeError):
+        traceback.print_exception(exc, file=sys.stderr)
+    return {
+        "id": identity,
+        "ok": False,
+        "error": {"code": "operation_failed", "message": f"{type(exc).__name__}: {exc}"},
+    }
+
+
 def serve(root: Path, stdin: IO[str], stdout: IO[str]) -> int:
+    """Read requests in order; run them on a small pool and reply by id as each finishes.
+
+    A slow operation (a replay, a large analysis) therefore never blocks quick
+    ones such as job polls. Framing and validation errors are answered inline.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
     closers: list = []
     handlers = operations(root, closers)
     if set(handlers) != set(SPEC["operations"]):
         raise AssertionError("worker handlers disagree with operations.json")
-    respond(stdout, hello())
-    limit = SPEC["max_request_bytes"]
-    while True:
-        line = stdin.readline(limit + 1)
-        if not line:
-            # The shell closed the channel: cancel running simulations, then exit.
-            for close in closers:
-                close()
-            return 0
-        identity = None
+    writing = threading.Lock()
+
+    def send(value: dict) -> None:
+        with writing:
+            respond(stdout, value)
+
+    # Outputs are claimed here, in request order, and released when the
+    # operation ends, so two concurrent requests can never both create one.
+    claims: set[Path] = set()
+    claiming = threading.Lock()
+    creates = {
+        op: [name for name, rule in spec["args"].items() if rule.get("access") == "create"]
+        for op, spec in SPEC["operations"].items()
+    }
+
+    def claim(op: str, args: dict) -> list[Path]:
+        targets = [args[name] for name in creates[op] if name in args]
+        with claiming:
+            if any(target in claims for target in targets):
+                raise RequestError("exists", "output is already being written")
+            claims.update(targets)
+        return targets
+
+    def execute(identity: int, op: str, args: dict, targets: list[Path]) -> None:
         try:
-            if len(line.encode()) > limit or not line.endswith("\n"):
-                # Drain the rest of an oversized line so the stream stays framed.
-                while line and not line.endswith("\n"):
-                    line = stdin.readline(limit + 1)
-                raise RequestError("too_large", "request exceeds IPC budget")
+            reply = {"id": identity, "ok": True, "result": handlers[op](**args)}
+        except Exception as exc:
+            reply = failure(identity, exc)
+        finally:
+            with claiming:
+                claims.difference_update(targets)
+        send(reply)
+
+    pool = ThreadPoolExecutor(
+        max_workers=SPEC["max_concurrent_requests"], thread_name_prefix="heplab-ipc"
+    )
+    send(hello())
+    limit = SPEC["max_request_bytes"]
+    try:
+        while True:
+            line = stdin.readline(limit + 1)
+            if not line:
+                # The shell closed the channel: cancel running simulations, let
+                # in-flight requests answer, then exit.
+                for close in closers:
+                    close()
+                return 0
+            identity = None
             try:
-                message = json.loads(line)
-            except json.JSONDecodeError as exc:
-                raise RequestError("malformed", "request is not JSON") from exc
-            if isinstance(message, dict) and isinstance(message.get("id"), int):
-                identity = message["id"]
-            identity, op, args = validate(message, root)
-            respond(stdout, {"id": identity, "ok": True, "result": handlers[op](**args)})
-        except RequestError as exc:
-            respond(
-                stdout,
-                {"id": identity, "ok": False, "error": {"code": exc.code, "message": str(exc)}},
-            )
-        except (ValueError, LookupError, OSError, RuntimeError, TypeError) as exc:
-            respond(
-                stdout,
-                {
-                    "id": identity,
-                    "ok": False,
-                    "error": {
-                        "code": "operation_failed",
-                        "message": f"{type(exc).__name__}: {exc}",
-                    },
-                },
-            )
+                if len(line.encode()) > limit or not line.endswith("\n"):
+                    # Drain the rest of an oversized line so the stream stays framed.
+                    while line and not line.endswith("\n"):
+                        line = stdin.readline(limit + 1)
+                    raise RequestError("too_large", "request exceeds IPC budget")
+                try:
+                    message = json.loads(line)
+                except json.JSONDecodeError as exc:
+                    raise RequestError("malformed", "request is not JSON") from exc
+                if isinstance(message, dict) and isinstance(message.get("id"), int):
+                    identity = message["id"]
+                identity, op, args = validate(message, root)
+                pool.submit(execute, identity, op, args, claim(op, args))
+            except Exception as exc:
+                send(failure(identity, exc))
+    finally:
+        pool.shutdown(wait=True)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -337,6 +421,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     sys.stdout.reconfigure(encoding="utf-8", newline="\n")  # type: ignore[union-attr]
     sys.stdin.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
+    sys.stderr.reconfigure(encoding="utf-8", errors="backslashreplace")  # type: ignore[union-attr]
     return serve(root, sys.stdin, sys.stdout)
 
 

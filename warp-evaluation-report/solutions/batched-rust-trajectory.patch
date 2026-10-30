@@ -1,0 +1,592 @@
+--- a/kernels/physics-core/src/lib.rs
++++ b/kernels/physics-core/src/lib.rs
+@@ -8,6 +8,7 @@
+ pub mod protocol;
+ pub mod random;
+ pub mod response;
++pub mod trajectory;
+ 
+ use serde::{Deserialize, Serialize};
+ use std::f64::consts::PI;
+--- a/kernels/physics-core/src/protocol.rs
++++ b/kernels/physics-core/src/protocol.rs
+@@ -56,6 +56,14 @@
+         particles: Vec<response::Particle>,
+         config: response::ResponseConfig,
+     },
++    Trajectory {
++        state: TrackState,
++        surfaces: Vec<crate::trajectory::NamedSurface>,
++        exit_surfaces: Vec<crate::trajectory::NamedSurface>,
++        bz_tesla: f64,
++        max_path_m: f64,
++        step_m: f64,
++    },
+ }
+ 
+ fn execute(request: Request) -> crate::Result<Value> {
+@@ -108,6 +116,21 @@
+             histogram.snapshot()?
+         }
+         Request::Simulate { particles, config } => response::simulate(&particles, &config)?,
++        Request::Trajectory {
++            state,
++            surfaces,
++            exit_surfaces,
++            bz_tesla,
++            max_path_m,
++            step_m,
++        } => crate::trajectory::trajectory(crate::trajectory::TrajectoryRequest {
++            state,
++            surfaces,
++            exit_surfaces,
++            bz_tesla,
++            max_path_m,
++            step_m,
++        })?,
+     })
+ }
+ 
+--- a/kernels/physics-core/src/trajectory.rs
++++ b/kernels/physics-core/src/trajectory.rs
+@@ -0,0 +1,231 @@
++//! Composite uniform-field trajectory with guide-surface crossings in one call.
++//!
++//! Semantics mirror `heplab.physics.detector.trajectory`: vacuum motion in an
++//! ideal axial bore with straight-line continuation past the field exit, a
++//! uniform sample grid, and crossings of caller-declared surfaces. Surfaces
++//! travel with the request so the Python detector model stays the single
++//! source of geometry truth.
++use crate::geometry::Surface;
++use crate::{finite, propagate_uniform_bz, require, Result, TrackState};
++use serde::Deserialize;
++use serde_json::{json, Value};
++
++#[derive(Debug, Deserialize)]
++pub struct NamedSurface {
++    pub id: String,
++    #[serde(flatten)]
++    pub surface: Surface,
++}
++
++#[derive(Debug, Deserialize)]
++pub struct TrajectoryRequest {
++    pub state: TrackState,
++    pub surfaces: Vec<NamedSurface>,
++    pub exit_surfaces: Vec<NamedSurface>,
++    pub bz_tesla: f64,
++    pub max_path_m: f64,
++    pub step_m: f64,
++}
++
++pub fn trajectory(request: TrajectoryRequest) -> Result<Value> {
++    let TrajectoryRequest {
++        state,
++        surfaces,
++        exit_surfaces,
++        bz_tesla,
++        max_path_m,
++        step_m,
++    } = request;
++    finite(&[bz_tesla, max_path_m, step_m])?;
++    require(
++        0.0 < max_path_m && max_path_m <= 20.0,
++        "trajectory sampling/path budget invalid",
++    )?;
++    require(
++        (0.005..=0.2).contains(&step_m),
++        "trajectory sampling/path budget invalid",
++    )?;
++    let [x, y, z] = state.position;
++    require(
++        x.hypot(y) < 3.0 && z.abs() < 6.25,
++        "trajectory must start inside the modeled solenoid bore",
++    )?;
++    // Propagate validates the full state (vacuum, on-shell momentum).
++    propagate_uniform_bz(state, 0.0, bz_tesla)?;
++
++    let mut exits: Vec<f64> = Vec::new();
++    for named in &exit_surfaces {
++        exits.extend(crate::geometry::intersect(
++            state,
++            &named.surface,
++            bz_tesla,
++            max_path_m,
++        )?);
++    }
++    let exit_path = exits
++        .iter()
++        .copied()
++        .min_by(f64::total_cmp)
++        .unwrap_or(max_path_m);
++    let boundary = propagate_uniform_bz(state, exit_path, bz_tesla)?;
++
++    let at = |path: f64| -> Result<TrackState> {
++        if path <= exit_path {
++            propagate_uniform_bz(state, path, bz_tesla)
++        } else {
++            propagate_uniform_bz(boundary, path - exit_path, 0.0)
++        }
++    };
++
++    let mut crossings: Vec<(String, f64, [f64; 3], f64)> = Vec::new();
++    for named in &surfaces {
++        for path in crate::geometry::intersect(state, &named.surface, bz_tesla, exit_path)? {
++            let moved = at(path)?;
++            crossings.push((named.id.clone(), path, moved.position, moved.time_ns));
++        }
++    }
++    crossings.sort_by(|a, b| a.1.total_cmp(&b.1));
++
++    let mut paths: Vec<f64> = vec![0.0, max_path_m, exit_path];
++    let count = (max_path_m / step_m).ceil() as i64 + 1;
++    for i in 0..count {
++        paths.push((i as f64 * step_m).min(max_path_m));
++    }
++    for (_, path, _, _) in &crossings {
++        paths.push(*path);
++    }
++    // Python builds a set (exact-equality dedup) then sorts ascending.
++    paths.sort_by(f64::total_cmp);
++    paths.dedup_by(|a, b| a == b);
++
++    let mut points: Vec<[f64; 3]> = Vec::with_capacity(paths.len());
++    for path in &paths {
++        points.push(at(*path)?.position);
++    }
++    let crossings: Vec<Value> = crossings
++        .iter()
++        .map(|(surface_id, path_m, position_m, time_ns)| {
++            json!({
++                "surface_id": surface_id,
++                "path_m": path_m,
++                "position_m": position_m,
++                "time_ns": time_ns,
++                "kind": "predicted_surface_crossing",
++            })
++        })
++        .collect();
++    Ok(json!({
++        "points": points,
++        "path_m": paths,
++        "crossings": crossings,
++        "field_exit_path_m": if exits.is_empty() { Value::Null } else { json!(exit_path) },
++        "termination": if exits.is_empty() {
++            "path_budget_inside_field"
++        } else {
++            "path_budget_after_field_exit"
++        },
++    }))
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use crate::FourVector;
++
++    fn state(px: f64, py: f64, pz: f64, charge: f64) -> TrackState {
++        TrackState {
++            position: [0.0; 3],
++            momentum: FourVector::new((px * px + py * py + pz * pz + 0.01116).sqrt(), px, py, pz)
++                .unwrap(),
++            charge,
++            time_ns: 0.0,
++        }
++    }
++
++    fn surfaces() -> Vec<NamedSurface> {
++        serde_json::from_value(json!([
++            {"id": "BPIX1", "kind": "cylinder", "radius_m": 0.044, "half_length_m": 0.265},
++            {"id": "strip-envelope", "kind": "cylinder", "radius_m": 1.10, "half_length_m": 2.80},
++        ]))
++        .unwrap()
++    }
++
++    fn exit_surfaces() -> Vec<NamedSurface> {
++        serde_json::from_value(json!([
++            {"id": "solenoid-bore", "kind": "cylinder", "radius_m": 3.0, "half_length_m": 6.25},
++            {"id": "bore-end-m", "kind": "disk", "z_m": -6.25, "inner_radius_m": 0.0, "outer_radius_m": 3.0},
++            {"id": "bore-end-p", "kind": "disk", "z_m": 6.25, "inner_radius_m": 0.0, "outer_radius_m": 3.0},
++        ]))
++        .unwrap()
++    }
++
++    #[test]
++    fn samples_reach_budget_and_crossings_carry_ids() -> Result<()> {
++        let request = TrajectoryRequest {
++            state: state(10.0, 0.0, 1.0, 1.0),
++            surfaces: surfaces(),
++            exit_surfaces: exit_surfaces(),
++            bz_tesla: 3.8,
++            max_path_m: 16.0,
++            step_m: 0.05,
++        };
++        let value = trajectory(request)?;
++        let paths = value["path_m"].as_array().unwrap();
++        assert_eq!(paths.last().unwrap().as_f64().unwrap(), 16.0);
++        // Sample grid is monotone and starts at zero.
++        let values: Vec<f64> = paths.iter().map(|v| v.as_f64().unwrap()).collect();
++        assert_eq!(values[0], 0.0);
++        assert!(values.windows(2).all(|w| w[0] < w[1]));
++        // A 10 GeV/c track must cross the strip envelope inside the bore.
++        let crossings = value["crossings"].as_array().unwrap();
++        assert!(crossings
++            .iter()
++            .any(|c| c["surface_id"] == "strip-envelope"));
++        assert_eq!(value["termination"], "path_budget_after_field_exit");
++        Ok(())
++    }
++
++    #[test]
++    fn straight_through_exit_reports_field_exit() -> Result<()> {
++        let request = TrajectoryRequest {
++            state: state(0.0, 0.0, 20.0, 1.0),
++            surfaces: surfaces(),
++            exit_surfaces: exit_surfaces(),
++            bz_tesla: 3.8,
++            max_path_m: 16.0,
++            step_m: 0.05,
++        };
++        let value = trajectory(request)?;
++        assert_eq!(value["termination"], "path_budget_after_field_exit");
++        let exit = value["field_exit_path_m"].as_f64().unwrap();
++        assert!((exit - 6.25).abs() < 1e-12);
++        Ok(())
++    }
++
++    #[test]
++    fn domain_rejects_outside_bore_and_bad_step() {
++        let request = TrajectoryRequest {
++            state: TrackState {
++                position: [3.5, 0.0, 0.0],
++                momentum: FourVector::new(10.0, 10.0, 0.0, 0.0).unwrap(),
++                charge: 1.0,
++                time_ns: 0.0,
++            },
++            surfaces: surfaces(),
++            exit_surfaces: exit_surfaces(),
++            bz_tesla: 3.8,
++            max_path_m: 16.0,
++            step_m: 0.05,
++        };
++        assert!(trajectory(request).is_err());
++        let request = TrajectoryRequest {
++            state: state(10.0, 0.0, 1.0, 1.0),
++            surfaces: surfaces(),
++            exit_surfaces: exit_surfaces(),
++            bz_tesla: 3.8,
++            max_path_m: 16.0,
++            step_m: 0.4,
++        };
++        assert!(trajectory(request).is_err());
++    }
++}
+--- a/src/heplab/physics/detector.py
++++ b/src/heplab/physics/detector.py
+@@ -220,6 +220,13 @@
+     return output
+ 
+ 
++def _surface_request(surface: dict) -> dict:
++    fields = (
++        ("radius_m", "half_length_m") if surface["kind"] == "cylinder" else ("z_m", "inner_radius_m", "outer_radius_m")
++    )
++    return {"id": surface["id"], "kind": surface["kind"], **{k: surface[k] for k in fields}}
++
++
+ def trajectory(state: TrackState, *, bz=3.8, max_path=16.0, step=0.05, backend="reference") -> dict:
+     """Helix inside ideal solenoid, straight outside; explicitly no return field."""
+     if not math.isfinite(step) or not 0.005 <= step <= 0.2 or not 0 < max_path <= 20:
+@@ -228,28 +235,47 @@
+         raise ValueError("trajectory must start inside the modeled solenoid bore")
+     detector = geometry()
+ 
+-    def intersections(surface, limit):
+-        if backend == "reference":
+-            return surface_paths(state, surface, bz, limit)
+-        if backend != "rust":
+-            raise ValueError("trajectory backend must be reference or rust")
++    if backend == "rust":
++        # One composite call: sampling, field exit and crossings in the kernel,
++        # instead of ~330 per-op JSON round trips per track.
+         from .engine import execute
+ 
+-        fields = (
+-            {"kind", "radius_m", "half_length_m"}
+-            if surface["kind"] == "cylinder"
+-            else {"kind", "z_m", "inner_radius_m", "outer_radius_m"}
+-        )
+-        return execute(
++        bore = detector["surfaces"][-1]
++        faces = [
+             {
+-                "op": "intersect",
++                "id": f"bore-end-{'m' if sign < 0 else 'p'}",
++                "kind": "disk",
++                "z_m": sign * 6.25,
++                "inner_radius_m": 0.0,
++                "outer_radius_m": 3.0,
++            }
++            for sign in (-1, 1)
++        ]
++        payload = execute(
++            {
++                "op": "trajectory",
+                 "state": asdict(state),
+-                "surface": {k: surface[k] for k in fields},
++                "surfaces": [_surface_request(s) for s in detector["surfaces"]],
++                "exit_surfaces": [_surface_request(s) for s in [bore, *faces]],
+                 "bz_tesla": bz,
+-                "max_path_m": limit,
++                "max_path_m": max_path,
++                "step_m": step,
+             },
+             backend="rust",
+         )
++        return {
++            **payload,
++            "field_bz_tesla": bz,
++            "geometry_sha256": detector["sha256"],
++            "model": "ideal-solenoid-helix-v1",
++            "validation": "analytic_model_only",
++            "navigation_backend": backend,
++        }
++    if backend != "reference":
++        raise ValueError("trajectory backend must be reference or rust")
++
++    def intersections(surface, limit):
++        return surface_paths(state, surface, bz, limit)
+ 
+     bore = detector["surfaces"][-1]
+     # Add both bore end faces for field exit navigation.
+--- a/src/heplab/physics/engine.py
++++ b/src/heplab/physics/engine.py
+@@ -73,6 +73,54 @@
+     return asdict(state)
+ 
+ 
++def trajectory_reference(request: dict) -> dict:
++    """Pure-Python composite trajectory; the oracle for the Rust kernel op."""
++    from .detector import surface_paths
++
++    state = _state(request["state"])
++    bz, max_path, step = request["bz_tesla"], request["max_path_m"], request["step_m"]
++    exits = [p for s in request["exit_surfaces"] for p in surface_paths(state, s, bz, max_path)]
++    exit_path = min(exits, default=max_path)
++    boundary = propagate_uniform_bz(state, exit_path, bz)
++
++    def at(path):
++        return (
++            propagate_uniform_bz(state, path, bz)
++            if path <= exit_path
++            else propagate_uniform_bz(boundary, path - exit_path, 0.0)
++        )
++
++    crossings = []
++    for surface in request["surfaces"]:
++        for path in surface_paths(state, surface, bz, exit_path):
++            moved = at(path)
++            crossings.append(
++                {
++                    "surface_id": surface["id"],
++                    "path_m": path,
++                    "position_m": list(moved.position),
++                    "time_ns": moved.time_ns,
++                    "kind": "predicted_surface_crossing",
++                }
++            )
++    paths = sorted(
++        {
++            0.0,
++            max_path,
++            exit_path,
++            *(min(i * step, max_path) for i in range(math.ceil(max_path / step) + 1)),
++            *(crossing["path_m"] for crossing in crossings),
++        }
++    )
++    return {
++        "points": [list(at(s).position) for s in paths],
++        "path_m": paths,
++        "crossings": sorted(crossings, key=lambda c: c["path_m"]),
++        "field_exit_path_m": exit_path if exits else None,
++        "termination": "path_budget_after_field_exit" if exits else "path_budget_inside_field",
++    }
++
++
+ def _reference(request):
+     op = request["op"]
+     if op == "cms_tracker_field":
+@@ -83,6 +131,8 @@
+         from .cms_field import trace_tracker
+ 
+         return trace_tracker(_state(request["state"]), request["path_length_m"], request["step_m"])
++    if op == "trajectory":
++        return trajectory_reference(request)
+     if op == "intersect":
+         from .detector import surface_paths
+ 
+@@ -194,6 +244,7 @@
+         "digitize": {"op", "deposit_gev", "config", "address"},
+         "cms_tracker_field": {"op", "position_m"},
+         "trace_cms_tracker": {"op", "state", "path_length_m", "step_m"},
++        "trajectory": {"op", "state", "surfaces", "exit_surfaces", "bz_tesla", "max_path_m", "step_m"},
+         "mass": {"op", "first", "second"},
+         "boost": {"op", "vector", "beta"},
+         "propagate": {"op", "state", "path_length_m", "bz_tesla"},
+@@ -231,6 +282,40 @@
+         ]
+         if any(type(v) not in (int, float) or not math.isfinite(v) for v in numbers):
+             raise ValueError("tracker fields require finite numbers, not booleans")
++    if request["op"] == "trajectory":
++        state = request["state"]
++        if (
++            not isinstance(state, dict)
++            or set(state) != {"position", "momentum", "charge", "time_ns"}
++            or not isinstance(state["momentum"], dict)
++            or set(state["momentum"]) != {"energy", "px", "py", "pz"}
++            or not isinstance(state["position"], (list, tuple))
++            or len(state["position"]) != 3
++        ):
++            raise ValueError("missing or unknown trajectory state fields")
++        if (
++            not isinstance(request["surfaces"], list)
++            or not request["surfaces"]
++            or not isinstance(request["exit_surfaces"], list)
++            or not request["exit_surfaces"]
++        ):
++            raise ValueError("trajectory requires nonempty surface lists")
++        numbers = [
++            request["bz_tesla"],
++            request["max_path_m"],
++            request["step_m"],
++            state["charge"],
++            state["time_ns"],
++            *state["position"],
++            *state["momentum"].values(),
++        ]
++        if any(type(v) not in (int, float) or not math.isfinite(v) for v in numbers):
++            raise ValueError("trajectory fields require finite numbers, not booleans")
++        if not 0.005 <= request["step_m"] <= 0.2 or not 0 < request["max_path_m"] <= 20:
++            raise ValueError("trajectory sampling/path budget invalid")
++        x, y, z = state["position"]
++        if math.hypot(x, y) >= 3.0 or abs(z) >= 6.25:
++            raise ValueError("trajectory must start inside the modeled solenoid bore")
+     if request["op"] == "intersect":
+         surface = request["surface"]
+         surface_fields = {
+--- a/tests/test_trajectory_parity.py
++++ b/tests/test_trajectory_parity.py
+@@ -0,0 +1,113 @@
++"""Composite trajectory op: the Rust kernel must match the Python oracle.
++
++Cross-language floats go through the project's established verifier tolerance
++(rel_tol=2e-11, abs_tol=2e-10 — tools/verify_rust_engine.py); paths and
++positions matched bitwise in development, time_ns differs by ~1 ULP from
++CPython-vs-glibc hypot in the momentum magnitude.
++"""
++
++import math
++
++import pytest
++
++from heplab.physics.detector import geometry
++from heplab.physics.engine import execute
++
++pytest.importorskip("heplab_kernels", reason="parity requires the built kernels wheel")
++
++REL_TOL, ABS_TOL = 2e-11, 2e-10
++
++
++def _close(a, b):
++    if isinstance(a, dict) and isinstance(b, dict):
++        return set(a) == set(b) and all(_close(a[k], b[k]) for k in a)
++    if isinstance(a, list) and isinstance(b, list):
++        return len(a) == len(b) and all(_close(x, y) for x, y in zip(a, b, strict=True))
++    if isinstance(a, bool) or isinstance(b, bool):
++        return a is b
++    if isinstance(a, (int, float)) and isinstance(b, (int, float)):
++        return math.isclose(a, b, rel_tol=REL_TOL, abs_tol=ABS_TOL)
++    return a == b
++
++
++def _trim(surface):
++    fields = (
++        ("radius_m", "half_length_m")
++        if surface["kind"] == "cylinder"
++        else ("z_m", "inner_radius_m", "outer_radius_m")
++    )
++    return {"id": surface["id"], "kind": surface["kind"], **{k: surface[k] for k in fields}}
++
++
++def _request(state_dict, max_path=16.0, step=0.05):
++    detector = geometry()
++    bore = detector["surfaces"][-1]
++    faces = [
++        {
++            "id": f"bore-end-{'m' if sign < 0 else 'p'}",
++            "kind": "disk",
++            "z_m": sign * 6.25,
++            "inner_radius_m": 0.0,
++            "outer_radius_m": 3.0,
++        }
++        for sign in (-1, 1)
++    ]
++    return {
++        "op": "trajectory",
++        "state": state_dict,
++        "surfaces": [_trim(s) for s in detector["surfaces"]],
++        "exit_surfaces": [_trim(s) for s in [bore, *faces]],
++        "bz_tesla": 3.8,
++        "max_path_m": max_path,
++        "step_m": step,
++    }
++
++
++def _state(px, py, pz, charge=1.0, position=(0.0, 0.0, 0.0)):
++    energy = math.sqrt(px * px + py * py + pz * pz + 0.10565839**2)
++    return {
++        "position": list(position),
++        "momentum": {"energy": energy, "px": px, "py": py, "pz": pz},
++        "charge": charge,
++        "time_ns": 0.0,
++    }
++
++
++STATES = [
++    _state(10.0, 0.0, 1.0, 1.0),
++    _state(10.0, 0.0, 1.0, -1.0),
++    _state(2.0, 0.5, 4.0, 1.0),
++    _state(0.5, -0.5, 0.2, 1.0),
++    _state(0.0, 0.0, 12.0, 1.0),
++    _state(45.0, 2.0, 8.0, -1.0),
++    _state(6.0, 0.0, 0.0, 1.0, position=(1.5, 0.5, 0.4)),
++]
++
++
++def test_trajectory_rust_matches_reference_exactly():
++    for state in STATES:
++        request = _request(state)
++        reference = execute(request, backend="reference")
++        native = execute(request, backend="rust")
++        assert _close(reference, native)
++
++
++def test_trajectory_short_budget_parity():
++    for state in STATES[:3]:
++        request = _request(state, max_path=1.0, step=0.05)
++        assert _close(execute(request, backend="reference"), execute(request, backend="rust"))
++
++
++def test_trajectory_matches_detector_wrapper():
++    from heplab.physics.detector import trajectory
++    from heplab.physics.reference import FourVector, TrackState
++
++    for state in STATES[:3]:
++        track = TrackState(
++            tuple(state["position"]), FourVector(**state["momentum"]), state["charge"], 0.0
++        )
++        wrapped = trajectory(track, max_path=16.0, step=0.05, backend="reference")
++        oracle = execute(_request(state), backend="reference")
++        assert wrapped["points"] == oracle["points"]
++        assert wrapped["path_m"] == oracle["path_m"]
++        assert wrapped["crossings"] == oracle["crossings"]

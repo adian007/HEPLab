@@ -1,0 +1,33 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src\lib.rs (desktop\core\target\debug\deps\heplab_desktop_core-6172056ebdc86b9f.exe)
+
+running 5 tests
+test supervisor::tests::bounded_reader_drains_long_lines_and_keeps_framing ... ok
+test protocol::tests::table_loads_and_names_protocol ... ok
+test protocol::tests::accepts_declared_operations ... ok
+test protocol::tests::rejects_unknown_malformed_and_unauthorized ... ok
+test protocol::tests::request_budget_is_enforced ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\supervisor.rs (desktop\core\target\debug\deps\supervisor-32dc3674822b94d0.exe)
+
+running 9 tests
+test missing_worker_executable_is_unavailable_not_a_panic ... ok
+test good_worker_answers_and_validation_happens_before_launch ... ok
+test handshake_rejects_wrong_version_and_protocol ... ok
+test crash_is_reported_with_stderr_and_next_call_restarts ... ok
+test cancellation_kills_a_hung_request_promptly ... ok
+test oversized_and_mismatched_replies_are_rejected ... ok
+test real_python_worker_round_trip ... ok
+test frozen_sidecar_round_trip_when_provided ... ok
+test cancellation_kills_grandchildren_too ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.63s
+
+   Doc-tests heplab_desktop_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

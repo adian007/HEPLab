@@ -6,24 +6,39 @@
 
 use heplab_desktop_core::{CancelToken, IpcError, Supervisor, WorkerCommand};
 use serde_json::Value;
+use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use tauri::Manager;
 
 /// PEP 440 spelling of the worker package version this shell was built with.
 const EXPECTED_WORKER_VERSION: &str = "0.1.0.dev0";
 
+/// The supervisor multiplexes calls itself, so there is no shell-wide lock: a
+/// slow operation never queues the UI's job polls behind it.
 struct Shell {
-    worker: Arc<Mutex<Supervisor>>,
-    cancel: CancelToken,
+    worker: Arc<Supervisor>,
+    in_flight: Arc<Mutex<HashMap<u64, CancelToken>>>,
+    next_call: AtomicU64,
 }
 
-/// Tauri installs `externalBin` sidecars next to the main executable.
-fn packaged_worker() -> Result<WorkerCommand, String> {
-    let exe = std::env::current_exe().map_err(|e| e.to_string())?;
-    let dir = exe.parent().ok_or("executable has no directory")?;
+impl Shell {
+    /// Abandon every waiting call. The worker and its simulation jobs keep running.
+    fn cancel_all(&self) {
+        let calls = self.in_flight.lock().unwrap_or_else(|p| p.into_inner());
+        for token in calls.values() {
+            token.cancel();
+        }
+    }
+}
+
+/// The one-dir frozen worker ships as the `worker/` bundle resource.
+fn packaged_worker(resources: &std::path::Path) -> Result<WorkerCommand, String> {
     Ok(WorkerCommand {
-        program: dir.join(format!("heplab-worker{}", std::env::consts::EXE_SUFFIX)),
+        program: resources
+            .join("worker")
+            .join(format!("heplab-worker{}", std::env::consts::EXE_SUFFIX)),
         prefix_args: vec![],
         project_root: PathBuf::new(),
         env: vec![],
@@ -31,7 +46,7 @@ fn packaged_worker() -> Result<WorkerCommand, String> {
 }
 
 /// Debug builds only: `HEPLAB_DEV_PYTHON` runs the worker from the source tree.
-fn worker_command() -> Result<WorkerCommand, String> {
+fn worker_command(resources: &std::path::Path) -> Result<WorkerCommand, String> {
     #[cfg(debug_assertions)]
     if let Some(python) = std::env::var_os("HEPLAB_DEV_PYTHON") {
         return Ok(WorkerCommand {
@@ -41,7 +56,7 @@ fn worker_command() -> Result<WorkerCommand, String> {
             env: vec![],
         });
     }
-    packaged_worker()
+    packaged_worker(resources)
 }
 
 #[tauri::command]
@@ -51,35 +66,45 @@ async fn heplab_invoke(
     args: Value,
 ) -> Result<Value, IpcError> {
     let worker = Arc::clone(&state.worker);
-    let cancel = state.cancel.clone();
-    tauri::async_runtime::spawn_blocking(move || {
-        let mut worker = worker
-            .lock()
-            .map_err(|_| IpcError::new("worker_unavailable", "worker lock poisoned"))?;
-        worker.call(&op, &args, &cancel)
-    })
-    .await
-    .map_err(|e| IpcError::new("worker_unavailable", e.to_string()))?
+    let in_flight = Arc::clone(&state.in_flight);
+    let call = state.next_call.fetch_add(1, Ordering::SeqCst);
+    let cancel = CancelToken::default();
+    in_flight
+        .lock()
+        .unwrap_or_else(|p| p.into_inner())
+        .insert(call, cancel.clone());
+    let outcome = tauri::async_runtime::spawn_blocking(move || worker.call(&op, &args, &cancel))
+        .await
+        .map_err(|e| IpcError::new("worker_unavailable", e.to_string()));
+    in_flight
+        .lock()
+        .unwrap_or_else(|p| p.into_inner())
+        .remove(&call);
+    outcome?
 }
 
 #[tauri::command]
 fn heplab_cancel(state: tauri::State<'_, Shell>) {
-    state.cancel.cancel();
+    state.cancel_all();
 }
 
 fn main() {
     let app = tauri::Builder::default()
         .setup(|app| {
+            // Apply the same bundled mark to the native title bar and taskbar.
+            // Bundle metadata alone may not update the live window icon.
+            let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/128x128.png"))?;
+            app.get_webview_window("main")
+                .expect("main window is configured")
+                .set_icon(icon)?;
             let root = app.path().app_data_dir()?.join("projects").join("default");
             std::fs::create_dir_all(root.join("artifacts"))?;
-            let mut command = worker_command()?;
+            let mut command = worker_command(&app.path().resource_dir()?)?;
             command.project_root = root;
             app.manage(Shell {
-                worker: Arc::new(Mutex::new(Supervisor::new(
-                    command,
-                    EXPECTED_WORKER_VERSION,
-                ))),
-                cancel: CancelToken::default(),
+                worker: Arc::new(Supervisor::new(command, EXPECTED_WORKER_VERSION)),
+                in_flight: Arc::default(),
+                next_call: AtomicU64::new(0),
             });
             Ok(())
         })
@@ -89,25 +114,10 @@ fn main() {
     app.run(|handle, event| {
         if let tauri::RunEvent::Exit = event {
             if let Some(shell) = handle.try_state::<Shell>() {
-                // Stop any in-flight call, then wait briefly for the lock. Exit
-                // must never hang on a busy worker: if the lock stays held, the
-                // kill-on-close job ends the worker tree when this process exits.
-                shell.cancel.cancel();
-                let deadline = std::time::Instant::now() + std::time::Duration::from_secs(3);
-                loop {
-                    match shell.worker.try_lock() {
-                        Ok(mut worker) => break worker.shutdown(),
-                        Err(std::sync::TryLockError::Poisoned(poisoned)) => {
-                            break poisoned.into_inner().shutdown()
-                        }
-                        Err(std::sync::TryLockError::WouldBlock)
-                            if std::time::Instant::now() < deadline =>
-                        {
-                            std::thread::sleep(std::time::Duration::from_millis(20))
-                        }
-                        Err(std::sync::TryLockError::WouldBlock) => break,
-                    }
-                }
+                // Release waiting calls, then stop the worker tree. Queued and
+                // running simulation jobs are durable and resume at next launch.
+                shell.cancel_all();
+                shell.worker.shutdown();
             }
         }
     });

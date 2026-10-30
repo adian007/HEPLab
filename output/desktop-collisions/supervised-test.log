@@ -1,0 +1,7 @@
+   Compiling heplab-desktop-core v0.1.0-dev.0 (D:\HEPLab\desktop\core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.71s
+     Running `desktop\core\target\debug\examples\collision_acceptance.exe D:/HEPLab/desktop/src-tauri/binaries/heplab-worker-x86_64-pc-windows-msvc.exe "D:/HEPLab/output/desktop-collisions/Supervised Project"`
+"running" null
+"running" "Generating PYTHIA8 / DELPHES collisions"
+"completed" "Analyzing reconstructed events"
+{"restart_reopened":true,"run_id":"699149e63fa758adb9f429c0","selected_event":3,"selected_events":33,"status":"passed","summary":{"accepted":100,"cross_section_convention":"registered mass window and forced muon decay included; no extra decay factor","cross_section_error_pb":78.97,"cross_section_pb":1341.0,"cross_section_source":"PYTHIA stat() sum row, rounded printed precision","events":100,"independent_validation":"pending","max_truth_four_momentum_residual_gev":0.0002760188654065132,"negative_sumw":0.0,"normalization":"generator log retained; cross section not independently validated","positive_sumw":100.0,"selected":100,"sumw":100.0,"sumw2":100.0,"trials":401,"truth_conservation_tolerance":"max(0.002 GeV, 2e-5 * beam total energy)","truth_graph":"native Particle mother/daughter indices preserved in ROOT"},"supervised_process_tree":true}

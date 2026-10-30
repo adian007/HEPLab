@@ -1,0 +1,26 @@
+{
+  "tour_titles": [
+    "Choose a model\nExit tour\nSelect the available reference bench. Other engines appear only when their required runtime is installed.\nBack\nNext",
+    "Choose a model\nExit tour\nSelect the available reference bench. Other engines appear only when their required runtime is installed.\nBack\nNext",
+    "Run a new job\nExit tour\nRun submits this configuration as a new local job. It does not validate the physics model. Stop requests cancellation.\nBack\nNext",
+    "Inspect the event\nExit tour\nChange projection and visibility to explore the event. Camera and display controls do not change simulation data.\nBack\nNext",
+    "Read the result\nExit tour\nSelect a particle to inspect its recorded properties. The tables and run log provide alternatives to the canvas.\nBack\nNext",
+    "Check scope and evidence\nExit tour\nReview capability status and validation scope before interpreting an output. This reference bench is educational and unvalidated.\nBack\nFinish"
+  ],
+  "tour_finished": true,
+  "cms_field_readonly": "",
+  "cms_selection": "Event 0 / Muon / 0\nPDG ID\n13\nCharge\n-1 e\nInput |p|\n45 GeV/c\nMaterial deposit\n0.550793 MeV\nScattering \u03b8\u2080\n25.8353 \u03bcrad\nAnalog signal\n55.2699 ADC\nDigitized channel\n55 ADC\nSaturation\nNo\nEnergy residual\n1.9687e-15 GeV\nOutgoing energy\n44.99957325 GeV\nPredicted crossings\n4\nMaterial reference\npdg-si-muon-loglinear-split-v1\nValidation\nAnalytic trajectory; scoped reference calibration only",
+  "seed_invalid": {
+    "valid": false,
+    "message": "Value must be greater than or equal to 1."
+  },
+  "minimum_layout": {
+    "viewport": 1100,
+    "pageWidth": 1100
+  },
+  "persistence": {
+    "before": 2,
+    "reloaded_runs": 0
+  },
+  "injected_residual_capabilities": "Capability / check\tState\tScope\nPython reference\tAvailable\tAnalytic bench and response\nRust engine\tUnavailable\tInstall binding or configure executable\nPYTHIA8 / DELPHES\tUnavailable\tPYTHIA8/DELPHES runtime unavailable; set HEPLAB_SIM_PREFIX (see runtime guide)\nSelected model\tThin-slab bench\tVacuum helix, continuous loss, Gaussian scattering\nInput validation\tIn range\tServer revalidates all submitted values\nMaterial domain\tRestricted approximation\tHeavy singly charged particles; thin steps only\nDetector calibration\tPending\tMeasured Z target available; selected MC and correction payload pending\nCMS tracker field\tReference passed\tOAE 3.8 T; r<1.15 m, |z|<2.8 m; no full-map transport\nCMS display layers\tSHA256 verified\t7 outline layers; no material properties\nGeometry navigation\tSurface intersections\tFinite cylinders/disks; original CMS pixel dimensions; envelope model\nSilicon ionization reference\treference_calibrated\tPDG fit with held-out table points\nMuon response reference\treference_calibrated\tIndependent native generator shards; not measured CMS calibration\nEvent energy ledger\tPassed\t5.000e-1 GeV residual"
+}

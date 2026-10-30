@@ -11,8 +11,8 @@ it is not a model of the user's detector.
 | Part | Module | Behaviour |
 |---|---|---|
 | Device profile | `heplab.lab.profile` | Each quantity is `unknown`, `reported`, `documented` or `measured`. Only documented/measured values with a source can drive computation; `require()` raises otherwise. `identified` status requires device type, serial, active dimensions and a channel map. Control requires identification, a named operator and approved limits. |
-| Intake profile | [`manifests/lab/cms-muon-box-intake.json`](../../manifests/lab/cms-muon-box-intake.json) | The user's equipment: `unidentified`, enclosure height 1–1.5 m as *reported* (not the active area), everything else unknown, control not permitted. |
-| Contract | [`contracts/lab-device-profile.schema.json`](../../contracts/lab-device-profile.schema.json) | JSON Schema; semantic rules live in the loader. The example is a synthetic two-channel fixture. |
+| Intake profile | `manifests/lab/cms-muon-box-intake.json` | The user's equipment: `unidentified`, enclosure height 1–1.5 m as *reported* (not the active area), everything else unknown, control not permitted. |
+| Contract | `contracts/lab-device-profile.schema.json` | JSON Schema; semantic rules live in the loader. The example is a synthetic two-channel fixture. |
 | Decoding | `heplab.lab.daq` | Hashes the raw file before and after; counts records read, decoded, invalid kinds, unmapped channels, truncated bytes, overflow records, reported drops and clock resets. Every record is decoded or counted as a named loss. |
 | Clock | `heplab.lab.daq.unwrap_clock` | Needs an established clock (tick, counter width). One rollover per counter decrease; the maximum unambiguous gap is reported. Clock resets start new epochs that never merge. |
 | Live time | `heplab.lab.daq.live_time` | Span minus declared dead time per epoch. Unmatched dead markers make it an upper bound; overflow is flagged as data lost while live. |

@@ -1,0 +1,10 @@
+[
+  {
+    "Path": "D:\\HEPLab\\desktop\\src-tauri\\target\\x86_64-pc-windows-msvc\\release\\heplab-desktop.exe",
+    "Hash": "A72D134F75CD6922C2C22A313D530F5C14B68D6AF520B35FDEC9358AF0EABF59"
+  },
+  {
+    "Path": "D:\\HEPLab\\desktop\\src-tauri\\target\\x86_64-pc-windows-msvc\\release\\bundle\\nsis\\HEPLab_0.1.0-dev.0_x64-setup.exe",
+    "Hash": "9FAACB36A95E3B8328244ADD247493B2E9AA360E792D1243474F9F73CF47E47F"
+  }
+]

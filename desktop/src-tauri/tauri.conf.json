@@ -11,7 +11,7 @@
     "withGlobalTauri": false,
     "windows": [
       {
-        "title": "HEPLab Simulator",
+        "title": "HEPLab Workbench",
         "width": 1440,
         "height": 900,
         "minWidth": 1100,
@@ -26,7 +26,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "externalBin": ["binaries/heplab-worker"],
+    "resources": {"worker/": "worker/"},
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

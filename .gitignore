@@ -24,6 +24,7 @@ htmlcov/
 data/
 !src/heplab/data/
 src/heplab/data/*
+!src/heplab/data/project-capabilities.json
 !src/heplab/data/reference/
 !src/heplab/data/reference/**
 !src/heplab/data/cms-display/
@@ -32,11 +33,21 @@ src/heplab/data/*
 *.root
 !tests/golden/*.root
 
-# Rust (kernels/, Tier 1)
-kernels/target/
+# Rust (kernels/, Tier 1; desktop shell)
+**/target/
 Cargo.lock
 !kernels/physics-core/Cargo.lock
 !kernels/Cargo.lock
+!desktop/core/Cargo.lock
+!desktop/src-tauri/Cargo.lock
+
+# Desktop build intermediates
+desktop/kernel-wheels/
+desktop/src-tauri/binaries/
+desktop/src-tauri/worker/
+
+# Scratch files
+tmp_*
 
 # Environment / IDE
 .env

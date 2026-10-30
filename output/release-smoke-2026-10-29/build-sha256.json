@@ -1,0 +1,27 @@
+{
+  "kernels_wheel": {
+    "path": "D:\\HEPLab\\desktop\\kernel-wheels\\heplab_kernels-0.1.0-cp312-abi3-win_amd64.whl",
+    "bytes": 294923,
+    "sha256": "01404667dd707b6b8603fb5d01754965db944cbcc10b532687725dc29eaee497"
+  },
+  "frozen_worker": {
+    "path": "D:\\HEPLab\\desktop\\src-tauri\\binaries\\heplab-worker-x86_64-pc-windows-msvc.exe",
+    "bytes": 100040474,
+    "sha256": "e93c4b4b7942bad046cfa3c37dae1800a7b32ede6ddf5831a8f7500f3e44c904"
+  },
+  "application": {
+    "path": "D:\\HEPLab\\desktop\\src-tauri\\target\\x86_64-pc-windows-msvc\\release\\heplab-desktop.exe",
+    "bytes": 11667968,
+    "sha256": "52059d04af468692600e70e35668023a316a1b66c8735cdf3d155b1a37248dd3"
+  },
+  "bundled_worker": {
+    "path": "D:\\HEPLab\\desktop\\src-tauri\\target\\x86_64-pc-windows-msvc\\release\\heplab-worker.exe",
+    "bytes": 100040474,
+    "sha256": "e93c4b4b7942bad046cfa3c37dae1800a7b32ede6ddf5831a8f7500f3e44c904"
+  },
+  "installer": {
+    "path": "D:\\HEPLab\\desktop\\src-tauri\\target\\x86_64-pc-windows-msvc\\release\\bundle\\nsis\\HEPLab_0.1.0-dev.0_x64-setup.exe",
+    "bytes": 103743783,
+    "sha256": "5c79417e9649f00678946c96f62108e2d6c084f3793c04a056d7b7d8b0d203cb"
+  }
+}

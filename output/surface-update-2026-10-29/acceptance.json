@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "installed_application_sha256": "9d6872fcce6057fea5262176007433c4ca81593ab140995e9effd38b15ef053e",
+  "installed_worker_sha256": "c8f5eb706cee3424a68a5468206db3f76f281a88fd652048f762eb1be06fd882",
+  "python_tests": 207,
+  "python_skipped": 1,
+  "javascript_tests": 15,
+  "ipc_tests": 14,
+  "browser_cutaway_and_fallback": "passed",
+  "frozen_surface_assets_verified": 14,
+  "installed_manifest_and_rust_binding": "passed",
+  "installer_exit_code": 0,
+  "source_native_triangles": 163704,
+  "planar_outline_triangles": 31460
+}

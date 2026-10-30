@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "library": [
+    "CMS Run2016G \u00b7 recorded data",
+    "CMS UL2016 Drell\u2013Yan \u00b7 full simulation"
+  ],
+  "baseline": {
+    "data": 10863,
+    "mc": 11430
+  },
+  "tight": {
+    "data": 6678,
+    "mc": 6981
+  },
+  "root_reads": 2,
+  "exported_data_rows": 10863,
+  "elapsed_seconds": 3.66,
+  "analysis_id": "6f64501cdfc79f712996d884"
+}

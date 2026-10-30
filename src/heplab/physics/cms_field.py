@@ -23,7 +23,7 @@ SOURCE = (
 
 def tracker_field(position) -> list[float]:
     if (
-        not isinstance(position, (list, tuple))
+        not isinstance(position, list | tuple)
         or len(position) != 3
         or any(type(x) not in (float, int) or not math.isfinite(x) for x in position)
     ):

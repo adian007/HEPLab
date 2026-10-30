@@ -11,6 +11,6 @@ publish = false
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["image-png"] }
 serde_json = "1"
 heplab-desktop-core = { path = "../core" }

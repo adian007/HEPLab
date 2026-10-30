@@ -26,14 +26,24 @@ def main() -> int:
     (OUT / "ui").mkdir(parents=True)
     (OUT / "cms-display").mkdir()
     shutil.copy2(STATIC / "index.html", OUT / "index.html")
-    for name in ("workbench.js", "workbench.css"):
+    for name in (
+        "workbench.js",
+        "event-display-gl.js",
+        "detector-cutaway.js",
+        "data-workspace.js",
+        "workbench.css",
+        "heplab-detector.png",
+    ):
         shutil.copy2(STATIC / name, OUT / "ui" / name)
+    for name in ("intro.min.js", "introjs.min.css"):
+        shutil.copy2(STATIC / "vendor" / "introjs" / name, OUT / "ui" / name)
     manifest = json.loads((DISPLAY / "manifest.json").read_text(encoding="utf-8"))
     for layer in manifest["layers"]:
-        data = (DISPLAY / layer["file"]).read_bytes()
-        if hashlib.sha256(data).hexdigest() != layer["sha256"]:
-            raise SystemExit(f"display layer {layer['file']} failed integrity check")
-        (OUT / "cms-display" / layer["file"]).write_bytes(data)
+        for asset in [layer, *[layer[k] for k in ("surfaces", "surface_outlines") if k in layer]]:
+            data = (DISPLAY / asset["file"]).read_bytes()
+            if len(data) != asset["bytes"] or hashlib.sha256(data).hexdigest() != asset["sha256"]:
+                raise SystemExit(f"display layer {asset['file']} failed integrity check")
+            (OUT / "cms-display" / asset["file"]).write_bytes(data)
     shutil.copy2(DISPLAY / "LICENSE.ispy-webgl", OUT / "cms-display" / "LICENSE.ispy-webgl")
     files = sorted(p.relative_to(OUT).as_posix() for p in OUT.rglob("*") if p.is_file())
     print(json.dumps({"frontend": str(OUT.relative_to(ROOT)), "files": len(files)}))

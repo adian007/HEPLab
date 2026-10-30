@@ -34,6 +34,21 @@ if mode == "grandchild":
         ]
     )
 print(json.dumps(hello), flush=True)
+if mode == "slow":
+    # Concurrent like the real worker: runs.list is slow, everything else instant.
+    import threading
+
+    lock = threading.Lock()
+
+    def answer(request):
+        if request["op"] == "runs.list":
+            time.sleep(1.5)
+        with lock:
+            print(json.dumps({"id": request["id"], "ok": True, "result": request["op"]}), flush=True)
+
+    for line in sys.stdin:
+        threading.Thread(target=answer, args=(json.loads(line),), daemon=True).start()
+    sys.exit(0)
 for line in sys.stdin:
     request = json.loads(line)
     if mode == "crash":

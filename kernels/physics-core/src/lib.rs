@@ -8,6 +8,7 @@ pub mod material;
 pub mod protocol;
 pub mod random;
 pub mod response;
+pub mod trajectory;
 
 use serde::{Deserialize, Serialize};
 use std::f64::consts::PI;

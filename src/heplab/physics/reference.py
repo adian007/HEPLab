@@ -275,12 +275,13 @@ class WeightedHistogram:
     def fill(self, value: float, weight: float = 1.0) -> None:
         _finite(value, weight, weight * weight)
         index = bisect_right(self.edges, value)
-        # Preflight on copies makes a rejected overflow leave the histogram intact.
-        sumw, cw = self._sumw.copy(), self._comp_w.copy()
-        sumw2, cw2 = self._sumw2.copy(), self._comp_w2.copy()
-        self._neumaier(sumw, cw, index, weight)
-        self._neumaier(sumw2, cw2, index, weight * weight)
-        self._sumw, self._comp_w, self._sumw2, self._comp_w2 = sumw, cw, sumw2, cw2
+        # Preflight on one-bin copies makes a rejected overflow leave the histogram intact.
+        sumw, cw = [self._sumw[index]], [self._comp_w[index]]
+        sumw2, cw2 = [self._sumw2[index]], [self._comp_w2[index]]
+        self._neumaier(sumw, cw, 0, weight)
+        self._neumaier(sumw2, cw2, 0, weight * weight)
+        self._sumw[index], self._comp_w[index] = sumw[0], cw[0]
+        self._sumw2[index], self._comp_w2[index] = sumw2[0], cw2[0]
         self._entries[index] += 1
 
     def snapshot(self) -> dict:

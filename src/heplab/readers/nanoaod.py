@@ -160,6 +160,8 @@ def read(
             raise ValueError(f"missing required branches: {sorted(missing)}")
         requested = set(branches or BRANCHES) | set(REQUIRED)
         requested.update(name for name in available if name.startswith("HLT_"))
+        if is_data and "genWeight" in available:
+            raise ValueError("source carries genWeight (simulation); read it with --simulation")
         if not is_data:
             if "genWeight" not in available:
                 raise ValueError("simulation source has no genWeight")

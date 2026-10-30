@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import re
-import subprocess
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -21,11 +20,17 @@ def create_app(artifact_dir: str | Path = "artifacts"):
     from .workbench import Jobs, RunConfig
 
     jobs = Jobs(root)
+    from .data_workspace import operation_handlers
+
+    data_closers: list = []
+    data_handlers = operation_handlers(root.parent, data_closers)
 
     @asynccontextmanager
     async def lifespan(_app):
         yield
         jobs.close()
+        for close in data_closers:
+            close()
 
     app = FastAPI(title="HEPLab simulator", version="0.1.0", lifespan=lifespan)
     app.state.jobs = jobs
@@ -49,44 +54,47 @@ def create_app(artifact_dir: str | Path = "artifacts"):
                 return JSONResponse({"detail": "session token required"}, status_code=403)
             body = bytearray()
             async for chunk in request.stream():
-                if len(body) + len(chunk) > 16_384:
+                budget = 65_536 if request.url.path.startswith("/api/v1/data/") else 16_384
+                if len(body) + len(chunk) > budget:
                     return JSONResponse({"detail": "request budget exceeded"}, status_code=413)
                 body.extend(chunk)
             # Starlette's cached request replays this bounded body downstream.
             request._body = bytes(body)
-        return await call_next(request)
+        response = await call_next(request)
+        # The workbench holds a live session token; never let another site frame it.
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers.setdefault("Content-Security-Policy", "frame-ancestors 'none'")
+        return response
 
     from fastapi import Body, Header
     from pydantic import ValidationError
     from starlette.responses import FileResponse
 
-    frontend_roots = (
-        Path(__file__).resolve().parents[3] / "web" / "dist",
-        Path(__file__).resolve().parents[2] / "web" / "dist",
-        Path.cwd() / "web" / "dist",
-    )
-    web_dist = next((path.resolve() for path in frontend_roots if (path / "index.html").is_file()), frontend_roots[0].resolve())
-
-    def frontend_file(name: str) -> Path:
-        candidate = (web_dist / name).resolve()
-        if candidate.parent != web_dist.resolve() and web_dist.resolve() not in candidate.parents:
-            raise HTTPException(status_code=404, detail="unknown frontend asset")
-        if not candidate.is_file():
-            raise HTTPException(status_code=404, detail="frontend bundle is not built")
-        return candidate
-
     job_body = Body(...)
     job_key = Header(default=None, alias="Idempotency-Key")
+
+    @app.get("/api/v1/data/library")
+    def data_library():
+        return data_handlers["data.library"]()
+
+    @app.post("/api/v1/data/{operation}")
+    def data_operation(operation: str, body: dict = job_body):
+        from ..desktop.worker import RequestError, validate
+
+        try:
+            _, name, args = validate(
+                {"id": 0, "op": "data." + operation, "args": body}, root.parent
+            )
+            return data_handlers[name](**args)
+        except (ValueError, KeyError, TypeError, OSError, RequestError) as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     @app.get("/api/v1/session")
     def session():
         from ..physics.engine import capabilities
-        from ..sim.pipeline import runtime
+        from ..sim.pipeline import capabilities as simulation_capabilities
 
-        try:
-            simulation = {"available": True, "versions": runtime()["inventory"]["versions"]}
-        except (RuntimeError, OSError, ValueError, subprocess.SubprocessError) as exc:
-            simulation = {"available": False, "reason": str(exc)}
+        simulation = simulation_capabilities()
 
         return JSONResponse(
             {"token": jobs.token, "engine": capabilities(), "simulation": simulation},
@@ -125,7 +133,7 @@ def create_app(artifact_dir: str | Path = "artifacts"):
 
         try:
             path = display_asset(layer_id)
-        except ValueError as exc:
+        except (ValueError, FileNotFoundError) as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         return FileResponse(path, media_type="application/octet-stream")
 
@@ -159,6 +167,17 @@ def create_app(artifact_dir: str | Path = "artifacts"):
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         return {"id": identity, "status": jobs.get(identity)["status"]}
 
+    @app.post("/api/v1/preview")
+    def preview_event(body: dict = job_body):
+        from .workbench import preview
+
+        try:
+            return preview(body)
+        except ValidationError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
     @app.get("/api/v1/jobs/{identity}")
     def get_job(identity: str):
         try:
@@ -166,25 +185,29 @@ def create_app(artifact_dir: str | Path = "artifacts"):
         except KeyError as exc:
             raise HTTPException(status_code=404, detail="unknown job") from exc
 
+    @app.get("/api/v1/jobs")
+    def list_jobs():
+        return jobs.list()
+
     @app.post("/api/v1/jobs/{identity}/cancel")
     def cancel_job(identity: str):
         try:
             jobs.cancel(identity)
         except KeyError as exc:
             raise HTTPException(status_code=404, detail="unknown job") from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
         return {"id": identity, "cancellation_requested": True}
 
     @app.get("/api/v1/jobs/{identity}/events/{index}")
     def job_event(identity: str, index: int):
         try:
             return jobs.event(identity, index)
-        except (KeyError, ValueError, StopIteration) as exc:
+        except (KeyError, ValueError, StopIteration, OSError) as exc:
             raise HTTPException(status_code=404, detail="unknown event") from exc
 
     @app.get("/")
     def workbench():
-        if (web_dist / "index.html").is_file():
-            return FileResponse(frontend_file("index.html"), headers={"Cache-Control": "no-store"})
         return FileResponse(
             Path(__file__).parent / "static" / "index.html", headers={"Cache-Control": "no-store"}
         )
@@ -196,16 +219,18 @@ def create_app(artifact_dir: str | Path = "artifacts"):
             headers={"Cache-Control": "no-store"},
         )
 
-    @app.get("/assets/{asset:path}")
-    def frontend_asset(asset: str):
-        return FileResponse(
-            frontend_file("assets/" + asset),
-            headers={"Cache-Control": "public, max-age=31536000, immutable"},
-        )
-
     @app.get("/ui/{asset}")
     def ui_asset(asset: str):
-        if asset not in {"workbench.css", "workbench.js"}:
+        if asset not in {
+            "workbench.css",
+            "workbench.js",
+            "event-display-gl.js",
+            "detector-cutaway.js",
+            "data-workspace.js",
+            "intro.min.js",
+            "introjs.min.css",
+            "heplab-detector.png",
+        }:
             raise HTTPException(status_code=404, detail="unknown UI asset")
         return FileResponse(
             Path(__file__).parent / "static" / asset, headers={"Cache-Control": "no-store"}
@@ -225,12 +250,17 @@ def create_app(artifact_dir: str | Path = "artifacts"):
 
     @app.get("/api/v1/runs")
     def runs():
-        return [{"id": path.stem, "artifact": path.name} for path in sorted(root.glob("*.json"))]
+        from .workbench import run_summaries
+
+        return run_summaries(root)
 
     @app.get("/api/v1/runs/{run_id}")
     def run(run_id: str):
         path = artifact_path(run_id)
-        return json.loads(path.read_text(encoding="utf-8"))
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail="artifact is unreadable") from exc
 
     @app.get("/api/v1/runs/{run_id}/artifacts")
     def artifacts(run_id: str):
@@ -246,9 +276,13 @@ def create_app(artifact_dir: str | Path = "artifacts"):
             rows: list[dict] = []
             limit = max(0, min(n, 100))
             for marker in sorted(cache_root().glob("*/commit.json")):
-                descriptor = json.loads(marker.read_text(encoding="utf8"))
-                if descriptor.get("source", {}).get("dataset") == manifest.get("name", dataset):
-                    rows.extend(open_cached(marker.parent.name)[: limit - len(rows)])
+                try:
+                    descriptor = json.loads(marker.read_text(encoding="utf8"))
+                    source = descriptor.get("source", {})
+                    if source.get("dataset") == manifest.get("name", dataset):
+                        rows.extend(open_cached(marker.parent.name)[: limit - len(rows)])
+                except (OSError, ValueError, AttributeError):
+                    continue  # foreign or damaged cache entries are not this dataset's events
                 if len(rows) >= limit:
                     break
             if not rows and limit:

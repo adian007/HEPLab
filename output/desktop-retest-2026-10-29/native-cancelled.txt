@@ -1,0 +1,205 @@
+HEPLab Workbench
+Local particle simulation
+Drell–Yan collisions
+0.1 · Development
+Save setup…
+Load setup…
+↶ Undo
+↷ Redo
+Simulation
+￼
+Engine
+￼
+▶ Run
+■ Stop
+Guided tour
+Parameters modified · showing previous result
+Export result…
+Collision runtime connected: WSL Ubuntu · PYTHIA8 8.312 → DELPHES 3.5.1 / CMS. Generator and detector validation remain pending.
+Model browser
+▾ ◇ Simulation
+↳ Source / run settings
+↳ Magnetic field
+↳ Thin material slab
+↳ Channel electronics
+▸ Guide surfaces
+CMS display layers
+Show Pixel modules (original)
+Pixel modules (original)
+Show Silicon strip modules
+Silicon strip modules
+Show ECAL outlines (barrel reduced)
+ECAL outlines (barrel reduced)
+Show HCAL / HF / HO outlines
+HCAL / HF / HO outlines
+Show Muon drift tubes
+Muon drift tubes
+Show Muon CSC chambers
+Muon CSC chambers
+Show Muon RPC chambers
+Muon RPC chambers
+▾ Event objects
+2
+μ+ [0]
+μ− [1]
+Saved runs
+Refresh
+1000 pp events · seed 43 · cancelled
+100 pp events · seed 43 · completed
+100 pp events · seed 42 · completed
+45 GeV · seed 42 · rust · completed
+1878e5b4 · completed
+2d4790a5 · completed
+37892fd1 · completed
+3c4fe21a · completed
+55e304e4 · completed
+57fadbbb · completed
+6a879967 · completed
+93946624 · completed
+ac2e8b74 · completed
+dfac5813 · completed
+Coordinate system
+Right-handed · metres
+Backend state
+Local service connected
+Model validity
+Unvalidated
+Open capability report
+Resize model browser
+Event analysis
+3D · orbit / orthographic
+Event 0
+Run analysis
+Event display
+RUN OBSERVABLES
+Drell–Yan collision analysis
+Export event table…Run next seed
+WSL Ubuntu · pp at 13.0 TeV · seed 43 · raw signed generator weights; error bars sqrt(event-level sumw2); no luminosity scaling. Muon pT/η and missing pT use all events; mass uses one OS isolated pair before the mass cut.
+Generated events
+100
+Reconstructed muons
+113
+Selected events
+30 / 100
+Generator σ / pb
+1338.0 ± 80.8
+Compare with
+￼
+Raw signed weights on common axes; comparison omitted from a plot if its bin edges differ.
+Transverse momentum
+GeV/c · Σw
+￼
+● DELPHES reconstructed
+● Comparison
+Dimuon invariant mass
+GeV/c² · Σw
+￼
+● DELPHES reconstructed
+● Comparison
+Pseudorapidity
+η · Σw
+￼
+● DELPHES reconstructed
+● Comparison
+Missing transverse momentum / GeV
+￼
+● DELPHES reconstructed
+● Comparison
+Event selection
+Muon pT ≥ 20 GeV/c, |η| < 2.4, DELPHES isolation ≤ 0.15; opposite charge; 60 ≤ mμμ < 120 GeV/c². Highest scalar-pT pair selected before mass cut. No measured CMS ID or detector calibration claim.
+Cut
+Events
+Σw
+Stat. σ (Σw²)½
+Generated events
+100
+100.0000
+10.0000
+Two kinematic muons
+34
+34.0000
+5.8310
+Opposite-charge pair
+34
+34.0000
+5.8310
+Isolated pair
+30
+30.0000
+5.4772
+Mass window
+30
+30.0000
+5.4772
+Generated ROOT data, cards and log: C:\Users\adian\AppData\Roaming\org.heplab.desktop\projects\default\artifacts\8ea06116d9e8fae0c8a80670-simulation. Export result saves the full analysis JSON; Export event table saves every generated event and its selection status.
+Analysis population
+This run
+Comparison
+Selected events
+30
+33
+Generated Σw
+100
+100
+Selected Σw
+30
+33
+Resize properties
+Properties
+μ+ / 0
+Parameters
+Selection
+Source / run
+Random seed
+43
+Event budget
+1000
+Beams
+pp · √s = 13 TeV
+Process
+γ*/Z → μμ
+Hard mass
+60–120 GeV
+Tune / PDF
+Monash / internal set 13
+Detector
+DELPHES CMS card
+Pileup
+None
+Reconstructed dimuon selection
+Muon pT ≥ GeV/c
+20
+Muon |η| <
+2.4
+Isolation ≤
+0.15
+Mass lower GeV/c²
+60
+Mass upper GeV/c²
+120
+One opposite-charge pair per event, ranked by scalar pT sum before the mass cut. DELPHES card isolation; no measured CMS ID claim. Rerun to apply changed cuts.
+Model status: unvalidated. Numeric verification does not establish detector calibration.
+Particles 2
+Run log
+Surface crossings
+Reference validation
+Capabilities / checks
+CANCELLED
+Ready. No simulation has been run.
+2:18:33 AM  Local service connected. Capability report is available.
+2:18:33 AM  CMS iSpy outlines loaded and SHA256 verified. Transport conditions remain separate.
+2:19:18 AM  Submitted eff23414f8fe0659c0501cab: pythia, seed 42.
+2:19:32 AM  Completed eff23414f8fe0659c0501cab. pythia; validation: unvalidated.
+2:19:32 AM  Accepted 100 events. Generator estimate 1341 ± 78.97 pb (not independently validated).
+2:25:42 AM  Submitted 8ea06116d9e8fae0c8a80670: pythia, seed 43.
+2:25:54 AM  Completed 8ea06116d9e8fae0c8a80670. pythia; validation: unvalidated.
+2:25:54 AM  Accepted 100 events. Generator estimate 1338 ± 80.75 pb (not independently validated).
+2:30:02 AM  Submitted 97746fdb4999605f3615517a: pythia, seed 43.
+2:30:30 AM  Cancellation requested; waiting for the worker to stop.
+2:30:30 AM  cancelled: simulation cancelled
+Generating PYTHIA8 / DELPHES collisions
+Events: 100
+Event deposit: not read
+Channels: —
+Energy residual: 3.18e-4 GeV (run max)
+Physics validation: pending

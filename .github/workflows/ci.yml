@@ -7,6 +7,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   lint-and-type:
     runs-on: ubuntu-latest
@@ -21,15 +24,29 @@ jobs:
       - run: mypy src
 
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install pytest pyyaml jsonschema
-      - run: pip install -e . --no-deps
-      - run: pytest -q
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.1"
+      - run: uv sync --locked --extra dev --extra serve --extra analysis
+      - run: uv build --wheel --out-dir dist
+      - run: uv run --no-sync python tools/verify_wheel.py dist/heplab-0.1.0.dev0-py3-none-any.whl
+      - name: Install the built wheel into the locked test environment
+        shell: bash
+        run: >-
+          uv run --no-sync python -c "import glob,subprocess,sys;
+          wheel=glob.glob('dist/*.whl')[0];
+          subprocess.check_call(['uv','pip','install','--python',sys.executable,'--no-deps','--reinstall',wheel])"
+      - run: uv run --no-sync python -m pytest -q
 
   documentation:
     runs-on: ubuntu-latest
@@ -41,12 +58,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - run: pip install "mkdocs-material==9.8.0" "jsonschema>=4.22"
-      - run: python tools/check_handbook.py
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.1"
+          enable-cache: true
+      - run: uv sync --locked --extra docs --extra dev
+      - run: uv run --no-sync python tools/check_handbook.py
       - run: npm install --prefix .cache/handbook-tools --ignore-scripts --no-audit --no-fund mermaid@12.2.0 jsdom@26.1.0
       - run: node tools/check_mermaid.mjs
       - run: node --check src/heplab/server/static/workbench.js
-      - run: python -m mkdocs build --strict --site-dir .cache/handbook-site
+      - run: node --check src/heplab/server/static/event-display-gl.js
+      - run: node --check src/heplab/server/static/detector-cutaway.js
+      - run: node --check src/heplab/server/static/data-workspace.js
+      - run: node --test tools/test_event_display.cjs
+      - run: uv run --no-sync python -m mkdocs build --strict --site-dir .cache/handbook-site
 
   scientific-regressions:
     runs-on: ubuntu-latest
@@ -55,10 +80,22 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -e '.[analysis,serve,dev]'
-      - run: pytest -q
-      - run: python -m build --wheel --outdir .cache/wheels
-      - run: python tools/verify_wheel.py .cache/wheels/heplab-0.1.0.dev0-py3-none-any.whl
+      - run: rustup toolchain install 1.99.1 --profile minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: kernels
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.1"
+          enable-cache: true
+      - run: uv sync --locked --extra analysis --extra serve --extra dev
+      - run: uvx --from "maturin==1.16.0" maturin build --release --locked --manifest-path kernels/Cargo.toml --out .cache/kernel-wheels
+      - run: uv pip install --no-deps --find-links .cache/kernel-wheels heplab-kernels
+      - run: uv run --no-sync python -m pytest -q
+        env:
+          HEPLAB_REQUIRE_KERNELS: "1"
+      - run: uv build --wheel --out-dir .cache/wheels
+      - run: uv run --no-sync python tools/verify_wheel.py .cache/wheels/heplab-0.1.0.dev0-py3-none-any.whl
 
   rust-physics:
     runs-on: ubuntu-latest
@@ -70,6 +107,14 @@ jobs:
         with:
           python-version: "3.12"
       - run: rustup toolchain install 1.99.1 --profile minimal --component rustfmt,clippy
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            .cache/cargo-target
+          key: rust-physics-${{ runner.os }}-${{ hashFiles('kernels/**/Cargo.lock', 'rust-toolchain.toml') }}
+          restore-keys: rust-physics-${{ runner.os }}-
       - run: cargo fmt --manifest-path kernels/physics-core/Cargo.toml --check
       - run: cargo fmt --manifest-path kernels/Cargo.toml --check
       - run: cargo test --locked --manifest-path kernels/physics-core/Cargo.toml

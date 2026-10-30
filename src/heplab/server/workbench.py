@@ -6,20 +6,25 @@ import json
 import math
 import re
 import secrets
+import shutil
+import tempfile
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Self
+from typing import Any, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .. import __version__
 from ..io.artifacts import publish
 from ..io.provenance import config_hash
 from ..physics.calibration import muon_response_parameters
 from ..physics.detector import geometry, silicon_stopping_power, tracker_trajectory, trajectory
 from ..physics.engine import execute
-from ..physics.reference import FourVector, TrackState
+from ..physics.reference import FourVector, TrackState, addressed_uniform
 
 
 def muon_display(muons, event=0):
@@ -67,9 +72,19 @@ class RunConfig(BaseModel):
     threshold_adc: float = Field(default=5.0, ge=0, le=100)
     response_model: str = Field(default="ideal", pattern="^(ideal|delphes_reference)$")
     field_model: str = Field(default="ideal_bore", pattern="^(ideal_bore|cms_tracker)$")
+    source_model: str = Field(
+        default="transverse_pair", pattern="^(transverse_pair|angular_sample)$"
+    )
+    muon_pt_min_gev: float = Field(default=20.0, ge=0, le=500)
+    muon_abs_eta_max: float = Field(default=2.4, gt=0, le=2.4)
+    muon_iso_max: float = Field(default=0.15, ge=0, le=10)
+    mass_min_gev: float = Field(default=60.0, ge=0, le=1000)
+    mass_max_gev: float = Field(default=120.0, gt=0, le=1000)
 
     @model_validator(mode="after")
     def compatible_backend(self) -> Self:
+        if self.mass_min_gev >= self.mass_max_gev:
+            raise ValueError("dimuon mass window must have increasing bounds")
         if self.field_model == "cms_tracker" and (self.mode != "analytic" or self.bz_tesla != 3.8):
             raise ValueError("CMS tracker field requires analytic bench and fixed nominal B=3.8 T")
         if (self.mode == "pythia") != (self.backend == "delphes"):
@@ -82,18 +97,51 @@ class RunConfig(BaseModel):
             raise ValueError(
                 "reference response is a separate bench branch requiring momentum >=5 GeV"
             )
+        if self.mode == "analytic" and self.source_model == "angular_sample":
+            if self.events > 200:
+                raise ValueError("angular samples are limited to 200 events per run")
+            if self.response_model == "delphes_reference" and self.momentum_gev < 5 * math.cosh(
+                2.4
+            ):
+                raise ValueError("angular response samples need |p| >=27.8 GeV to keep pT >=5 GeV")
         return self
 
 
-def bench(config: RunConfig, cancel: threading.Event) -> dict:
-    """Two declared back-to-back muons, not a collision event generator."""
+def bench(
+    config: RunConfig,
+    cancel: threading.Event,
+    event: int = 0,
+    direction: tuple[float, float, float] | None = None,
+) -> dict:
+    """Two declared back-to-back muons, not a collision event generator.
+
+    ``direction`` overrides the source direction (live preview aiming only).
+    """
     tracks = []
+    if direction is None and config.source_model == "angular_sample":
+        address: dict[str, Any] = dict(
+            master_seed=config.seed,
+            event_key=f"bench-{event}",
+            object_id=0,
+            counter=0,
+            correlation_group="nominal",
+            model_id="angular-pair-v1",
+        )
+        cosine = (2 * addressed_uniform(**address, stage_id="cos_theta") - 1) * math.tanh(2.4)
+        phi = 2 * math.pi * addressed_uniform(**address, stage_id="phi")
+        sine = math.sqrt(1 - cosine * cosine)
+        direction = (sine * math.cos(phi), sine * math.sin(phi), cosine)
+    elif direction is None:
+        direction = (1.0, 0.0, 0.0)
     for identity, charge in enumerate((-1, 1)):
         if cancel.is_set():
             raise RuntimeError("run cancelled")
         p = config.momentum_gev
         state = TrackState(
-            (0, 0, 0), FourVector(math.hypot(p, 0.10565839), charge * p, 0, 0), charge, 0
+            (0, 0, 0),
+            FourVector(math.hypot(p, 0.10565839), *(charge * p * x for x in direction)),
+            charge,
+            0,
         )
         before = (
             tracker_trajectory(state, 1.0, config.backend)
@@ -118,7 +166,7 @@ def bench(config: RunConfig, cancel: threading.Event) -> dict:
         )
         address = {
             "master_seed": config.seed,
-            "event_key": "bench-0",
+            "event_key": f"bench-{event}",
             "object_id": identity,
             "stage_id": "material",
             "counter": 0,
@@ -189,14 +237,15 @@ def bench(config: RunConfig, cancel: threading.Event) -> dict:
         )
         reference_response = None
         if config.response_model == "delphes_reference":
-            parameters = muon_response_parameters(p, 0.0)
+            pt = math.hypot(state.momentum.px, state.momentum.py)
+            parameters = muon_response_parameters(pt, math.asinh(state.momentum.pz / pt))
             sampled = execute(
                 {
                     "op": "simulate",
                     "particles": [{"object_id": identity, "state": asdict(state)}],
                     "config": {
                         "seed": config.seed,
-                        "event_key": "bench-0",
+                        "event_key": f"bench-{event}",
                         "efficiency": parameters["efficiency"],
                         "relative_pt_resolution": parameters["relative_pt_resolution"],
                         "momentum_scale": parameters["momentum_scale"],
@@ -230,9 +279,13 @@ def bench(config: RunConfig, cancel: threading.Event) -> dict:
         "mode": "analytic",
         "backend": config.backend,
         "validation": "educational_unvalidated",
-        "event": 0,
+        "event": event,
         "events": 1,
-        "source": "declared back-to-back muon test fixture",
+        "source": (
+            "isotropic back-to-back muon directions within |eta|<2.4; fixed momentum; no collisions"
+            if config.source_model == "angular_sample"
+            else "declared back-to-back muon test fixture"
+        ),
         "geometry": geometry(config.field_model),
         "display": (
             (
@@ -250,15 +303,210 @@ def bench(config: RunConfig, cancel: threading.Event) -> dict:
     }
 
 
+class PreviewRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False)
+    config: RunConfig
+    event: int = Field(default=0, ge=0, le=199)
+    eta: float | None = Field(default=None, ge=-2.4, le=2.4)
+    phi: float | None = Field(default=None, ge=-math.pi, le=math.pi)
+
+    @model_validator(mode="after")
+    def bench_only(self) -> Self:
+        if self.config.mode != "analytic":
+            raise ValueError("live preview supports the analytic bench only")
+        if (self.eta is None) != (self.phi is None):
+            raise ValueError("aiming the source needs both eta and phi")
+        return self
+
+
+def preview(request: dict) -> dict:
+    """One bench event computed on demand for the live display; never persisted.
+
+    Same physics path as a submitted run. The result carries ``preview: true``
+    and no run identity, so it cannot be mistaken for a saved artifact.
+    """
+    value = PreviewRequest.model_validate(request)
+    direction = None
+    if value.eta is not None and value.phi is not None:
+        theta = 2 * math.atan(math.exp(-value.eta))
+        direction = (
+            math.sin(theta) * math.cos(value.phi),
+            math.sin(theta) * math.sin(value.phi),
+            math.cos(theta),
+        )
+    event = bench(value.config, threading.Event(), value.event, direction=direction)
+    event.update(preview=True, events=1, config=value.config.model_dump())
+    if direction is not None:
+        event["source"] = (
+            f"live aimed back-to-back muon pair at eta={value.eta:+.3f}, "
+            f"phi={value.phi:+.3f} rad; preview only, not saved"
+        )
+    return event
+
+
+def analyze_events(events: list[dict]) -> dict:
+    """Compact unweighted observables; trajectories are stored separately per event."""
+    samples, pairs = [], []
+    for event in events:
+        response_vectors = []
+        truth_vectors = []
+        for track in event["tracks"]:
+            p = FourVector(**track["truth"]["momentum"])
+            truth_vectors.append(p)
+            pt = math.hypot(p.px, p.py)
+            response = track["reference_response"]
+            objects = response["sample"]["objects"] if response else []
+            measured = FourVector(**objects[0]["state"]["momentum"]) if objects else None
+            if measured:
+                response_vectors.append(measured)
+            samples.append(
+                {
+                    "event": event["event"],
+                    "object_id": track["object_id"],
+                    "pt_gev": pt,
+                    "eta": math.asinh(p.pz / pt),
+                    "deposit_mev": track["material"]["deposit_gev"] * 1000,
+                    "adc": track["digit"]["adc"],
+                    "digit_accepted": track["digit"]["accepted"],
+                    "response_pt_gev": math.hypot(measured.px, measured.py) if measured else None,
+                    "response_status": "accepted"
+                    if measured
+                    else "lost"
+                    if response
+                    else "not_requested",
+                    "energy_residual_gev": track["material"]["energy_residual_gev"],
+                }
+            )
+        pairs.append(
+            {
+                "event": event["event"],
+                "truth_mass_gev": (truth_vectors[0] + truth_vectors[1]).physical_mass,
+                "response_mass_gev": (response_vectors[0] + response_vectors[1]).physical_mass
+                if len(response_vectors) == 2
+                else None,
+            }
+        )
+    return {
+        "scope": "unweighted declared muon sample; not collision data or CMS calibration",
+        "events": len(events),
+        "particles": len(samples),
+        "samples": samples,
+        "pairs": pairs,
+    }
+
+
+def run_summaries(root: Path, limit: int = 200) -> list[dict]:
+    """Saved runs, newest first, with the fields the run list labels need.
+
+    Unreadable or foreign JSON keeps its id/artifact entry; opening it reports why.
+    """
+    paths = sorted(
+        (p for p in root.glob("*.json") if p.is_file() and not p.is_symlink()),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )[:limit]
+    rows = []
+    for path in paths:
+        row: dict[str, Any] = {"id": path.stem, "artifact": path.name}
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            value = None
+        if isinstance(value, dict):
+            artifact = value.get("artifact")
+            if not isinstance(artifact, dict):
+                artifact = {}
+            row.update(
+                mode=value.get("mode"),
+                created_utc=artifact.get("created_utc"),
+                format=artifact.get("format"),
+            )
+            if isinstance(value.get("config"), dict):
+                row["config"] = value["config"]
+        rows.append(row)
+    return rows
+
+
 class Jobs:
+    """Durable FIFO simulator queue: one run executes at a time, others wait.
+
+    Records survive process restarts (see ``jobstore``). On start-up, runs left
+    queued or running by a dead process are reclaimed and requeued; a run that
+    was interrupted mid-execution twice is failed rather than retried forever.
+    """
+
+    MAX_PENDING = 16
+    MAX_ATTEMPTS = 2
+    RETAIN = 500
+    RETAIN_SECONDS = 30 * 24 * 60 * 60
+    PROGRESS_INTERVAL_S = 0.25
+
     def __init__(self, root: Path):
+        from .jobstore import JobStore
+
         self.root = root
         self.token = secrets.token_urlsafe(32)
         self.pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="heplab-simulator")
-        self.lock = threading.Lock()
-        self.jobs: dict[str, dict] = {}
+        self.lock = threading.RLock()
+        self.store = JobStore(root, secrets.token_hex(8))
         self.cancels: dict[str, threading.Event] = {}
-        self.keys: dict[str, tuple[str, str]] = {}
+        self.live: dict[str, dict[str, Any]] = {}
+        self.flushed: dict[str, float] = {}
+        self.closing = False
+        self._recover()
+        self._prune()
+
+    def _prune(self) -> None:
+        """Apply database retention and remove only artifacts owned by evicted jobs."""
+        with self.lock:
+            removed = self.store.prune(
+                self.RETAIN, older_than=time.time() - self.RETAIN_SECONDS
+            )
+            root = self.root.resolve()
+            for identity in removed:
+                if not re.fullmatch(r"[a-f0-9]{24}", identity):
+                    continue
+                for path in (
+                    self.root / f"{identity}.json",
+                    self.root / f"{identity}-events",
+                    self.root / f"{identity}-simulation",
+                ):
+                    if path.is_symlink() or path.resolve().parent != root:
+                        continue
+                    if path.is_dir():
+                        shutil.rmtree(path)
+                    elif path.is_file():
+                        path.unlink()
+                for path in self.root.glob(f".interrupted-{identity}-simulation-*"):
+                    if path.is_symlink() or path.resolve().parent != root:
+                        continue
+                    if path.is_dir():
+                        shutil.rmtree(path)
+
+    def _recover(self) -> None:
+        with self.lock:
+            for row in self.store.active():
+                owner = row["owner"]
+                if self.store.owner_alive(owner):
+                    continue  # another live engine is running it
+                crashed = row["status"] == "running"
+                if crashed and row["attempts"] + 1 >= self.MAX_ATTEMPTS:
+                    if self.store.claim(row["id"], owner, crashed=True):
+                        self.store.update(
+                            row["id"],
+                            status="failed",
+                            error="interrupted by worker restarts; resubmit to retry",
+                        )
+                    continue
+                try:
+                    config = RunConfig.model_validate(row["config"])
+                except ValueError as exc:
+                    if self.store.claim(row["id"], owner, crashed=crashed):
+                        self.store.update(row["id"], status="failed", error=str(exc)[:2000])
+                    continue
+                if self.store.claim(row["id"], owner, crashed=crashed):
+                    self.cancels[row["id"]] = threading.Event()
+                    self.pool.submit(self._run, row["id"], config)
 
     def submit(self, config: RunConfig, idempotency_key: str | None = None) -> str:
         fingerprint = config_hash(config.model_dump())
@@ -266,34 +514,109 @@ class Jobs:
             if idempotency_key is not None:
                 if not re.fullmatch(r"[A-Za-z0-9_.-]{1,128}", idempotency_key):
                     raise ValueError("invalid idempotency key")
-                if idempotency_key in self.keys:
-                    prior_hash, prior_id = self.keys[idempotency_key]
-                    if prior_hash != fingerprint:
+                prior = self.store.by_key(idempotency_key)
+                if prior is not None:
+                    if prior["fingerprint"] != fingerprint:
                         raise ValueError("idempotency key already belongs to different parameters")
-                    return prior_id
-            if len(self.jobs) >= 64:
-                raise ValueError("session job budget exhausted; restart the local server")
-            if any(j["status"] in {"queued", "running"} for j in self.jobs.values()):
-                raise ValueError("a simulation is already active")
+                    return prior["id"]
+            pending = sum(1 for row in self.store.active() if row["owner"] == self.store.owner)
+            if pending >= self.MAX_PENDING:
+                raise ValueError("job queue is full; wait for queued runs to finish")
             identity = secrets.token_hex(12)
-            self.jobs[identity] = {
-                "id": identity,
-                "status": "queued",
-                "config": config.model_dump(),
-            }
+            self.store.insert(identity, config.model_dump(), fingerprint, idempotency_key)
             self.cancels[identity] = threading.Event()
-            if idempotency_key is not None:
-                self.keys[idempotency_key] = (fingerprint, identity)
+            self._prune()
         self.pool.submit(self._run, identity, config)
         return identity
 
+    def _view(self, row: dict) -> dict:
+        job: dict[str, Any] = {"id": row["id"], "status": row["status"], "config": row["config"]}
+        for name in ("phase", "progress", "error"):
+            if row.get(name) is not None:
+                job[name] = row[name]
+        if row["attempts"]:
+            job["attempt"] = row["attempts"] + 1
+        job.update(self.live.get(row["id"], {}))
+        return job
+
     def get(self, identity):
         with self.lock:
-            return json.loads(json.dumps(self.jobs[identity]))
+            row = self.store.get(identity) if isinstance(identity, str) else None
+            job = self._view(row) if row is not None else None
+        if job is not None and job["status"] != "completed":
+            return job
+        # Completed results live in the published artifact (also covers runs that
+        # predate the job store).
+        if not re.fullmatch(r"[a-f0-9]{24}", identity):
+            raise KeyError(identity)
+        path = self.root / f"{identity}.json"
+        if path.is_symlink() or not path.is_file():
+            if job is not None:
+                return {**job, "status": "failed", "error": "result artifact is missing"}
+            raise KeyError(identity)
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise KeyError(identity) from exc
+        if (
+            not isinstance(value, dict)
+            or value.get("mode") not in {"analytic", "pythia"}
+            or "config" not in value
+        ):
+            raise KeyError(identity)
+        return {
+            **(job or {}),
+            "id": identity,
+            "status": "completed",
+            "config": value["config"],
+            "result": value,
+        }
+
+    def list(self, limit: int = 50) -> list[dict]:
+        """Recent jobs without results, newest first, so a reloaded UI can reattach."""
+        with self.lock:
+            return [self._view(row) for row in self.store.recent(limit)]
 
     def cancel(self, identity):
         with self.lock:
-            self.cancels[identity].set()
+            row = self.store.get(identity) if isinstance(identity, str) else None
+            if row is None:
+                self.get(identity)  # finished legacy runs: a no-op, or KeyError if unknown
+                return
+            if row["status"] not in {"queued", "running"}:
+                return
+            if identity in self.cancels:
+                self.cancels[identity].set()
+                if row["status"] == "queued":
+                    self.store.update(identity, status="cancelled")
+                return
+            if self.store.owner_alive(row["owner"]):
+                raise ValueError("run belongs to another HEPLab process")
+            if self.store.claim(identity, row["owner"], crashed=False):
+                self.store.update(identity, status="cancelled")
+
+    def _phase(self, identity: str, phase: str) -> None:
+        with self.lock:
+            self.live.setdefault(identity, {})["phase"] = phase
+            self.store.update(identity, phase=phase)
+
+    def _progress(self, identity: str, completed: int, total: int) -> None:
+        progress = {"completed": completed, "total": total}
+        now = time.monotonic()
+        with self.lock:
+            self.live.setdefault(identity, {})["progress"] = progress
+            if completed == total or now - self.flushed.get(identity, 0.0) >= (
+                self.PROGRESS_INTERVAL_S
+            ):
+                self.flushed[identity] = now
+                self.store.update(identity, progress=progress)
+
+    def _finish(self, identity: str, **fields: Any) -> None:
+        with self.lock:
+            self.store.update(identity, **fields)
+            self.live.pop(identity, None)
+            self.flushed.pop(identity, None)
+            self.cancels.pop(identity, None)
 
     def event(self, identity, index):
         job = self.get(identity)
@@ -301,9 +624,18 @@ class Jobs:
             raise ValueError("event unavailable")
         result = job["result"]
         if result["mode"] == "analytic":
-            if index != 0:
-                raise ValueError("bench has one event")
-            return result
+            if not 0 <= index < result.get("events", 1):
+                raise ValueError("event outside bench range")
+            if index == 0:
+                return result
+            path = self.root / f"{identity}-events" / f"{index}.json"
+            if path.parent.is_symlink() or path.is_symlink() or not path.is_file():
+                raise ValueError("stored event unavailable")
+            return {
+                **result,
+                **json.loads(path.read_text(encoding="utf-8")),
+                "events": result["events"],
+            }
         if index >= result["summary"]["events"]:
             raise ValueError("event outside generated range")
         from ..readers.delphes import read
@@ -313,44 +645,126 @@ class Jobs:
                 self.root / (identity + "-simulation") / "events.root",
                 entry_start=index,
                 entry_stop=index + 1,
+                include_truth=False,
             )
         )
-        return {**result, **muon_display(native["Muon"], index)}
+        info = next(
+            (
+                row
+                for row in result.get("analysis", {}).get("event_rows", [])
+                if row["event"] == index
+            ),
+            None,
+        )
+        return {**result, **muon_display(native["Muon"], index), "event_info": info}
 
     def _run(self, identity, config):
+        cancel = self.cancels.get(identity) or threading.Event()
         with self.lock:
-            self.jobs[identity]["status"] = "running"
-        cancel = self.cancels[identity]
+            row = self.store.get(identity)
+            if row is None or row["status"] != "queued" or self.closing:
+                # Cancelled while queued, or left queued for the next start-up.
+                self.cancels.pop(identity, None)
+                return
+            if cancel.is_set():
+                self._finish(identity, status="cancelled")
+                return
+            self.store.update(identity, status="running")
         try:
             if config.mode == "pythia":
+                from ..analyses.collision import analyze
+                from ..readers.delphes import read
                 from ..sim.pipeline import run_chain
 
-                destination = run_chain(
-                    output=self.root / (identity + "-simulation"),
-                    events=config.events,
-                    seed=config.seed,
-                    cancel=cancel,
-                )
+                self._phase(identity, "Generating PYTHIA8 / DELPHES collisions")
+                output = self.root / (identity + "-simulation")
+                if (output / "run.json").is_file():
+                    destination = output  # committed before an interrupted analysis; reuse it
+                else:
+                    if output.exists():
+                        output.rename(
+                            output.with_name(f".interrupted-{output.name}-{time.time_ns()}")
+                        )
+                    destination = run_chain(
+                        output=output,
+                        events=config.events,
+                        seed=config.seed,
+                        cancel=cancel,
+                    )
                 result = json.loads((destination / "run.json").read_text(encoding="utf8"))
                 result["mode"] = "pythia"
+
+                def progress(completed):
+                    self._phase(identity, "Analyzing reconstructed events")
+                    self._progress(identity, completed, config.events)
+
+                result["analysis"] = analyze(
+                    read(destination / "events.root", include_truth=False),
+                    config,
+                    progress=progress,
+                )
+                result["output_directory"] = str(destination)
                 preview = json.loads((destination / "preview.json").read_text(encoding="utf8"))
                 result.update(muon_display(preview["muons"], preview["event"]))
+                result["event_info"] = result["analysis"]["event_rows"][0]
             else:
-                result = bench(config, cancel)
+                count = config.events if config.source_model == "angular_sample" else 1
+                analysis: dict[str, Any] = {
+                    "events": count,
+                    "particles": count * 2,
+                    "samples": [],
+                    "pairs": [],
+                    "scope": (
+                        "unweighted declared muon sample; not collision data or CMS calibration"
+                    ),
+                }
+                with tempfile.TemporaryDirectory(prefix=".bench-", dir=self.root) as temporary:
+                    directory = Path(temporary) / "events"
+                    directory.mkdir()
+                    for index in range(count):
+                        event = bench(config, cancel, index)
+                        observables = analyze_events([event])
+                        analysis["samples"].extend(observables["samples"])
+                        analysis["pairs"].extend(observables["pairs"])
+                        if index == 0:
+                            result = event
+                        if count > 1:
+                            publish(directory / f"{index}.json", event)
+                        self._progress(identity, index + 1, count)
+                    if cancel.is_set():
+                        raise RuntimeError("run cancelled")
+                    if count > 1:
+                        directory.replace(self.root / f"{identity}-events")
+                result.update(events=count, analysis=analysis)
+            result["config"] = config.model_dump()
+            result["artifact"] = {
+                "format": "heplab-workbench-result-v2",
+                "run_id": identity,
+                "heplab_version": __version__,
+                "created_utc": datetime.now(UTC).isoformat(),
+                "config_sha256": config_hash(config.model_dump()),
+            }
             with self.lock:
                 if cancel.is_set() and config.mode != "pythia":
-                    self.jobs[identity]["status"] = "cancelled"
+                    self._finish(identity, status="queued" if self.closing else "cancelled")
                 else:
                     publish(self.root / f"{identity}.json", result)
-                    self.jobs[identity].update(status="completed", result=result)
+                    self._finish(identity, status="completed")
         except Exception as exc:
             with self.lock:
-                self.jobs[identity].update(
-                    status="cancelled" if cancel.is_set() else "failed", error=str(exc)[:2000]
-                )
+                if self.closing:
+                    # Shutdown, not the user, stopped it: leave it for the next start-up.
+                    self._finish(identity, status="queued")
+                elif cancel.is_set():
+                    self._finish(identity, status="cancelled", error=str(exc)[:2000])
+                else:
+                    self._finish(identity, status="failed", error=str(exc)[:2000])
 
     def close(self):
         with self.lock:
+            self.closing = True
             for cancel in self.cancels.values():
                 cancel.set()
         self.pool.shutdown(wait=True, cancel_futures=True)
+        with self.lock:
+            self.store.close()

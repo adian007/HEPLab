@@ -56,7 +56,7 @@ def fetch(relative: str) -> Path:
     return path
 
 
-def outlines(data: bytes) -> np.ndarray:
+def outlines(data: bytes, mode: int = 1) -> np.ndarray:
     magic, version, length = struct.unpack_from("<III", data)
     if (magic, version, length) != (0x46546C67, 2, len(data)):
         raise ValueError("invalid GLB container")
@@ -92,8 +92,8 @@ def outlines(data: bytes) -> np.ndarray:
         world = parent @ local
         if "mesh" in node:
             for primitive in doc["meshes"][node["mesh"]]["primitives"]:
-                if primitive.get("mode", 4) != 1:
-                    continue  # retain explicit outlines; do not invent triangle edges
+                if primitive.get("mode", 4) != mode:
+                    continue
                 if "indices" in primitive:
                     raise ValueError("indexed outlines require an explicit converter")
                 accessor = doc["accessors"][primitive["attributes"]["POSITION"]]
@@ -103,8 +103,8 @@ def outlines(data: bytes) -> np.ndarray:
                 if view.get("buffer", 0) != 0 or "sparse" in accessor:
                     raise ValueError("unsupported buffer")
                 count = accessor["count"]
-                if not 0 < count <= 2_000_000 or count % 2:
-                    raise ValueError("invalid line vertex count")
+                if not 0 < count <= 2_000_000 or count % (2 if mode == 1 else 3):
+                    raise ValueError("invalid primitive vertex count")
                 start = view.get("byteOffset", 0) + accessor.get("byteOffset", 0)
                 stride = view.get("byteStride", 12)
                 end = start + (count - 1) * stride + 12
@@ -123,6 +123,8 @@ def outlines(data: bytes) -> np.ndarray:
     for index in doc["scenes"][doc.get("scene", 0)]["nodes"]:
         visit(index, np.eye(4), set())
     if not pieces:
+        if mode == 4:
+            return np.empty((0, 3), dtype="<f4")
         raise ValueError("source has no explicit outlines")
     return np.concatenate(pieces).astype("<f4")
 
