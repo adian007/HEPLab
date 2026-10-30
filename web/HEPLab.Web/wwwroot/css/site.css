@@ -120,6 +120,10 @@ h1, h2, h3 { font-weight: 500; }
 .preview-track-legend i { width: 12px; height: 2px; background: currentColor; }
 .preview-track-legend .field-legend { color: var(--blue); }
 .preview-track-legend .field-legend i { width: auto; height: auto; background: none; font-style: normal; font-size: .95rem; }
+.preview-track-legend .material-legend { color: var(--muted); }
+.preview-track-legend .material-legend i { width: 7px; height: 7px; border: 1.5px solid var(--amber); border-radius: 50%; background: transparent; }
+.preview-track-legend .field-scope-legend { color: var(--subtle); font-family: var(--font-body); }
+.preview-track-legend .field-scope-legend i { height: 0; border-top: 1.5px dashed var(--subtle); background: transparent; }
 .preview-scope { margin-left: auto; color: var(--subtle); font-family: var(--font-body); }
 .preview-metrics { display: grid; grid-template-columns: 1.3fr .8fr 1.1fr; border-block: 1px solid var(--line); }
 .preview-metrics > div { padding: .8rem 1rem; }
@@ -291,7 +295,18 @@ h1, h2, h3 { font-weight: 500; }
   .hero { gap: 2rem; padding-top: 2rem; }
   .hero h1 { font-size: 3.2rem; }
   .hero-actions { flex-direction: column; align-items: stretch; }
-  .preview-metrics > div { padding: .75rem .6rem; }
+  .preview-metrics { grid-template-columns: 1fr 1fr; }
+  .preview-metrics > div { padding: .65rem .6rem; }
+  .preview-metrics > div + div { border-left: 0; }
+  .preview-metrics > div:nth-child(even) { border-left: 1px solid var(--line); }
+  .preview-metrics > div:last-child { grid-column: 1 / -1; border-top: 1px solid var(--line); }
+  .preview-metrics strong.model-label { font-size: .78rem; }
+  .detector-view { min-height: 18rem; }
+  .detector-canvas { height: 19rem; }
+  .detector-hint { max-width: 7rem; text-align: right; line-height: 1.25; }
+  .preview-track-legend { gap: .45rem .75rem; padding-inline: .75rem; font-size: .58rem; }
+  .preview-scope { width: 100%; margin-left: 0; }
+  .experiment-preview figcaption { align-items: flex-start; }
   .digest { display: none; }
   .capability-strip { flex-wrap: wrap; gap: 1rem; }
   .capability-strip > span { width: calc(50% - 1rem); }

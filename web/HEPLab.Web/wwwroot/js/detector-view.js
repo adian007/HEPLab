@@ -192,6 +192,7 @@
     const style = getComputedStyle(document.documentElement);
     colors = {
       ink: style.getPropertyValue('--ink').trim(),
+      surface: style.getPropertyValue('--surface').trim(),
       subtle: style.getPropertyValue('--subtle').trim(),
       line: style.getPropertyValue('--line').trim(),
       accent: style.getPropertyValue('--accent').trim(),

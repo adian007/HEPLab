@@ -12,8 +12,11 @@ The interface is composed from `Pages/Shared/` Razor partials and a C#
 `LabIconTagHelper`. Bootstrap 5.3.8 supplies the grid, controls, and mobile drawer.
 The lab and gallery are allowlisted Razor embeds, rather than HTML strings inside
 the Markdown service. Authored raw HTML stays disabled. `ExperimentPreviewService`
-reads the versioned synthetic event fixture and projects its coordinates into SVG
-on the server. It preserves the original event index and result digest.
+reads the versioned synthetic fixture's settings, geometry identity, event index,
+and result digest. The home-page Canvas 2D renderer fetches that same fixture and
+projects its stored 3D trajectories and surface coordinates interactively; it
+runs no simulation. Solid path segments lie inside the ideal uniform-field bore;
+dashed segments lie outside it, where this model sets the field to zero.
 
 ```text
 Markdown pages ── SiteContentService / Markdig ── Razor Pages ── ASP.NET Core host

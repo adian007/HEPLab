@@ -33,7 +33,8 @@ dotnet publish web/HEPLab.Web/HEPLab.Web.csproj --configuration Release
 - `HEPLab.Web/Program.cs`: service registration, static assets, pages, and search endpoint.
 - `HEPLab.Web/Pages/`: home, documentation route, and shared Razor layout.
 - `HEPLab.Web/Services/SiteContentService.cs`: content loading, Markdown rendering, curated navigation, and search data.
-- `HEPLab.Web/Services/ExperimentPreviewService.cs`: projects the fixed synthetic fixture into SVG without running a simulation.
+- `HEPLab.Web/Services/ExperimentPreviewService.cs`: reads the fixed fixture's declared settings and result provenance.
+- `HEPLab.Web/wwwroot/js/detector-view.js`: renders fixture coordinates and declared cylindrical/disk surfaces as an interactive 3D perspective scene; it runs no simulation.
 - `HEPLab.Web/Content/Docs/`: page source with YAML front matter.
 - `HEPLab.Web/wwwroot/`: branding, styles, JavaScript, and offline examples.
 - `docs/`: maintainer notes for design, writing, and review.

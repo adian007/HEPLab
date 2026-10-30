@@ -111,6 +111,7 @@ def check(base: str, asset_sources: dict[str, str]) -> tuple[int, int]:
         "/css/activities.css",
         "/js/theme-init.js",
         "/js/site.js",
+        "/js/detector-view.js",
         "/js/zlab.js",
         "/js/gallery.js",
         "/vendor/bootstrap/5.3.8/bootstrap.min.css",
@@ -154,24 +155,51 @@ def check(base: str, asset_sources: dict[str, str]) -> tuple[int, int]:
 
 
 def check_preview(html: str) -> None:
-    """Verify C# SVG projection against fixture coordinates, rather than its own output."""
+    """Check figure scope and independent physics conventions against the fixed fixture."""
     fixture = json.loads(
         (SITE / "wwwroot/examples/analytic-muon-pair-result-v1.json").read_text(encoding="utf-8")
     )
-    paths = re.findall(r'class="event-track" d="([^"]+)"', html)
-    if len(paths) != len(fixture["tracks"]) or "SYNTHETIC FIXTURE" not in html:
-        raise AssertionError("home preview must label and render every synthetic fixture track")
-    for path, track in zip(paths, fixture["tracks"], strict=True):
-        expected = []
-        for x, y, _ in track["points"]:
-            if math.hypot(x, y) > 3.7:
-                break
-            expected.extend((300 + x * 64, 228 - y * 64))
-        observed = [float(value) for value in re.findall(r"-?\d+(?:\.\d+)?", path)]
-        if len(observed) != len(expected) or any(
-            abs(a - b) > 0.000501 for a, b in zip(observed, expected, strict=True)
+    requirements = (
+        'data-fixture-url="/examples/analytic-muon-pair-result-v1.json"',
+        "data-detector-view",
+        'role="img"',
+        "SYNTHETIC FIXTURE",
+        "B = +z",
+        "1 mm Si slab at s = 1 m",
+        "Dashed: outside field region",
+        "3 m bore boundary",
+        fixture["geometry"]["id"],
+    )
+    missing = [token for token in requirements if token not in html]
+    if missing:
+        raise AssertionError(
+            f"home 3D event figure is missing its declared scope, units, or provenance: {missing}"
+        )
+    tracks = fixture["tracks"]
+    if len(tracks) != 2 or {track["charge"] for track in tracks} != {-1, 1}:
+        raise AssertionError("the declared fixture must contain one muon of each charge")
+    bz = fixture["geometry"]["field"]["nominal_bz_t"]
+    pt = fixture["config"]["momentum_gev"]
+    if not math.isclose(bz, 3.8) or not math.isclose(pt, 5.0):
+        raise AssertionError("home figure settings no longer match its declared fixture")
+    for track in tracks:
+        trajectory = track["trajectory"]
+        if len(trajectory["points"]) != len(trajectory["path_m"]):
+            raise AssertionError("fixture path positions and path lengths must stay paired")
+        if trajectory["field_exit_path_m"] <= 0 or not track["material"].get("state", {}).get(
+            "position"
         ):
-            raise AssertionError("SVG preview does not project the versioned fixture coordinates")
+            raise AssertionError("fixture must declare the field exit and material-slab location")
+        truth_px = track["truth"]["momentum"]["px"]
+        first_y = next(y for _, y, _ in trajectory["points"][1:] if abs(y) > 1e-10)
+        expected_y_sign = -track["charge"] * math.copysign(1, truth_px * bz)
+        if math.copysign(1, first_y) != expected_y_sign:
+            raise AssertionError("muon initial bending direction disagrees with q(v × B)")
+        expected_radius = pt / (0.299792458 * abs(track["charge"] * bz))
+        if not math.isclose(expected_radius, 4.39, abs_tol=0.02):
+            raise AssertionError(
+                "fixture settings give an unexpected ideal transverse curvature scale"
+            )
     if fixture["artifact"]["result_sha256"][:10] not in html:
         raise AssertionError("home preview lacks its actual fixture result digest")
     manifest = json.loads((SITE / "wwwroot/vendor/ui-assets.json").read_text(encoding="utf-8"))

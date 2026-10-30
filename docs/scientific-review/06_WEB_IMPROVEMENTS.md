@@ -40,8 +40,11 @@ IDs, page headings, font delivery, vendor hashes, and fixture projection are che
 
 The site now uses locally vendored Bootstrap 5.3.8, IBM Plex typography, shared C#
 Tag Helpers and Razor components, and a redesigned home/guide/lab/gallery interface.
-The home SVG projects the existing synthetic fixture coordinates and preserves its
-event index and actual result digest. Dark/light themes, keyboard search, copy
+The home 3D perspective view renders the existing synthetic fixture's stored 3D
+coordinates and declared surfaces. It identifies μ−/μ+, q, axes in metres, the
+uniform +z field, the 3 m zero-field boundary, the 1 mm silicon material sample,
+the event index, geometry identifier, and actual result digest. Solid and dashed
+segments distinguish the field and zero-field regions. Dark/light themes, keyboard search, copy
 controls, responsive tables, and Bootstrap mobile navigation have local browser
 coverage. Gallery thumbnails remain labeled schematic, and evidence categories
 and the failed CMS gate remain explicit.

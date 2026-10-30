@@ -7,8 +7,11 @@ search index endpoint, guided lab, and result gallery. Static assets and the
 offline examples are under `HEPLab.Web/wwwroot`.
 
 The shared UI uses Bootstrap 5.3.8, locally hosted IBM Plex Sans/Mono fonts, C#
-Tag Helpers, and reusable Razor partials. The home event preview projects the
-versioned synthetic muon fixture in C#; it does not generate or measure a new event.
+Tag Helpers, and reusable Razor partials. The home event preview renders the
+versioned synthetic muon fixture in an interactive perspective view. It shows
+fixture 3D coordinates, declared detector surfaces, the +z field direction,
+and the zero-field continuation outside the ideal 3 m bore. It runs no new
+simulation and does not imply measured CMS data.
 The lab and gallery are Razor components embedded in the authored guide. Asset
 versions, licenses, and file hashes are recorded under `wwwroot/vendor/`.
 
@@ -40,8 +43,8 @@ host. This is no longer a static-only site.
 
 CI runs `tools/check_site_runtime.py` against both the Release build and publish
 output in Production. The check requests all 19 indexed pages, checks internal
-links and anchors, verifies unique IDs and one page heading, compares the SVG
-preview against the original fixture, and verifies asset MIME types and exact
+links and anchors, verifies unique IDs and one page heading, checks the preview's
+field and curvature conventions against the fixture record, and verifies asset MIME types and exact
 source bytes with identity and gzip requests. It follows fingerprinted asset
 names through the .NET manifest and checks the fonts and vendor hashes.
 To reproduce it locally:
@@ -55,7 +58,8 @@ python tools/check_site_runtime.py --app web/HEPLab.Web/bin/Release/net10.0/publ
 
 - `HEPLab.Web/Pages/`: Razor Pages and the shared layout.
 - `HEPLab.Web/Services/SiteContentService.cs`: Markdown loading, routing, navigation, and search data.
-- `HEPLab.Web/Services/ExperimentPreviewService.cs`: fixture-backed C# event projection.
+- `HEPLab.Web/Services/ExperimentPreviewService.cs`: reads fixed-fixture settings and provenance for the home event view.
+- `HEPLab.Web/wwwroot/js/detector-view.js`: renders 3D fixture coordinates and declared surface envelopes with an interactive Canvas 2D camera; it runs no simulation.
 - `HEPLab.Web/Pages/Shared/`: shared layout, navigation, preview, lab, and gallery partials.
 - `HEPLab.Web/TagHelpers/`: reusable C# interface icons.
 - `HEPLab.Web/Content/Docs/`: Markdown and MDX guide content.
