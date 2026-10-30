@@ -62,3 +62,4 @@ web/dist/
 web/tsconfig.tsbuildinfo
 web/HEPLab.Web/bin/
 web/HEPLab.Web/obj/
+/output/
