@@ -1,13 +1,17 @@
 # HEPLab
 
-**Start with the [engineering handbook](docs/engineering/README.md):** the complete
-target architecture, physics algorithms, contracts, traceable requirements, validation
-strategy, diagrams and an explicit implementation/defect inventory. The existing
-code is an early prototype; the handbook marks planned capabilities separately.
+**Start with the [engineering handbook](docs/engineering/README.md):** the target
+architecture, physics algorithms, contracts, traceable requirements, verification
+strategy and remaining implementation work.
 
-**Reproducible LHC analysis and simulation on [CERN Open Data](https://opendata.cern.ch) — one tool for real data and your own Monte Carlo.**
+**An educational high-energy physics simulator and analysis workbench for [CERN Open Data](https://opendata.cern.ch).**
 
 > Status: **early implementation** · v0.1.0.dev0 · Apache-2.0 · [Project sketch](docs/PROJECT.md) · [Architecture](docs/ARCHITECTURE.md) · [ADRs](docs/adr/README.md)
+
+HEPLab has specific checked submodels; the complete simulator is not globally
+validated. The analytic pair is a declared teaching fixture, PYTHIA8/DELPHES is a
+separate fast-simulation chain, CMS software-reference comparisons are not measured
+calibration, and recorded CMS data regressions have their own gates and limitations.
 
 ```mermaid
 flowchart TD
@@ -83,8 +87,10 @@ exact source ranges in cache v2, preserves signed weights and writes immutable
 artifacts. The canonical manifest and compatibility alias ship in the wheel.
 The checked Rust numerical core and PyO3 binding compile in Linux/WSL and match
 the reference on 507 cases each. See the [implementation report](docs/engineering/implementation.md)
-and [native engine guide](kernels/README.md). Detector calibration, a built
-PYTHIA8/DELPHES image, CMS AOD and a browser dashboard remain release work.
+and [native engine guide](kernels/README.md). The supported PYTHIA8/DELPHES chain
+runs in Linux/WSL but is not full CMS transport or experimental calibration. The
+current low-mass CMS reference regression uses mass-independent candidate selection;
+its frozen aggregate gate fails at Υ(2S), and its held-out events come from one file.
 
 Documentation checks: `python tools/check_handbook.py`.
 Numerical reference checks: `python -m pytest tests/test_physics_reference.py -q`.
@@ -103,6 +109,29 @@ P0 Foundations (this skeleton) → P1 Data Foundation → P2 First Analyses → 
 
 Apache-2.0 — see [LICENSE](LICENSE). CERN Open Data is consumed per-record terms (predominantly CC0/public domain), always cited via DOI.
 
+## Which HEPLab app should I open?
+
+HEPLab has one physics workbench with two launch surfaces, plus a separate
+project guide. The desktop shell packages the workbench; it does not implement a
+second simulator.
+
+| If you want to… | Open / run | What it is |
+| --- | --- | --- |
+| Run and inspect physics events | `heplab gui --open-browser` | The Python workbench. Its UI source is `src/heplab/server/static`; the local server and simulations live under `src/heplab`. |
+| Use the installed desktop app | Launch **HEPLab Workbench** | Tauri shell in `desktop/src-tauri`, which prepares a copy of the same UI from `src/heplab/server/static`. |
+| Read the project guide and evidence | `dotnet run --project web/HEPLab.Web` | The ASP.NET Core guide. Its embedded event view uses a fixed teaching fixture and does not run workbench simulations. |
+| Build the engineering handbook | `mkdocs build --strict` | The handbook is authored under `docs/engineering`; `site/` is generated output. |
+| Inspect the earlier project-site version | `legacy/web-vite/README.md` | Archived React + Vite source, preserved for reference and separate from both active apps. |
+
+The former React + Vite project site is preserved under `legacy/web-vite` for
+reference. The active project guide is `web/HEPLab.Web`; it is separate from the
+Python/Tauri workbench. Existing `web/.astro`, `web/dist`, and `web/node_modules`
+directories are generated leftovers, not the source of either active app.
+The workbench and Python worker identify as `0.1.0.dev0`; Tauri uses the
+cross-platform SemVer `0.1.0+dev.0`, with a numeric `0.1.0.0` Windows MSI
+version. Desktop CI artifacts remain marked as
+development builds and are not published releases.
+
 ## Simulator workspace
 
 Install `pip install -e '.[analysis,serve]'`, then run `heplab gui --open-browser`.
@@ -114,17 +143,15 @@ Rust and native simulation runtimes before opening the GUI.
 See the [runtime installation and native acceptance guide](docs/engineering/sim-runtime.md),
 [material model domains](docs/engineering/material-response.md), and
 [GUI interaction design and source review](docs/engineering/gui-design.md).
+Event displays export as vendor-neutral OpenUSD stages
+(`heplab export-usd`, viewable in usdview/Blender on any GPU and RTX-renderable
+in Omniverse on NVIDIA machines) — see [USD event display export](docs/engineering/usd-export.md).
 
 ## Open-source website and application architecture
 
-The full-stack React/TypeScript application is in [`web/`](web/), with product,
-frontend/API, and future desktop architecture in [`docs/web/`](docs/web/README.md).
-It connects to the existing local FastAPI simulator service. Develop it with
-`pnpm --dir web dev` alongside `heplab gui --port 8765`; production assets are
-served by FastAPI after `pnpm --dir web build`. Public hosting and desktop
-packaging remain separate release work.
-The reference and Rust bench are educational; the native collision backend is
-smoke-tested and remains uncalibrated and independently unvalidated.
+The public project guide is an ASP.NET Core Razor Pages app targeting .NET 10. Run it locally with `dotnet run --project web/HEPLab.Web`; the Workbench is a separate local application available through the desktop app or `heplab gui`.
+The reference and Rust bench are educational; the native collision backend is a
+pinned generator/card workflow, not a validated cross-section or CMS detector model.
 
 The latest [geometry and calibration increment](docs/engineering/geometry-calibration.md)
 adds sourced original-CMS pixel surfaces, ideal-solenoid trajectories and crossing

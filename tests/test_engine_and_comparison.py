@@ -2,10 +2,26 @@
 
 import copy
 import json
+import sys
+import types
 
 import pytest
 
 from heplab.physics.engine import execute
+
+
+def test_incompatible_native_extension_is_reported_as_unavailable(monkeypatch):
+    from heplab.physics import engine
+
+    monkeypatch.setitem(sys.modules, "heplab_kernels", types.ModuleType("heplab_kernels"))
+    engine._rust_binding.cache_clear()
+    try:
+        assert engine._rust_binding() == (
+            False,
+            "Native Rust binding is incompatible: run_json is missing",
+        )
+    finally:
+        engine._rust_binding.cache_clear()
 
 
 def test_RESPONSE_003_reference_response_is_order_invariant_and_positive():

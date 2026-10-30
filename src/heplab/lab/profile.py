@@ -58,7 +58,7 @@ def _quantity(name: str, raw: dict) -> Quantity:
     value, unit = raw["value"], raw.get("unit")
     numbers = value if isinstance(value, list) else [value]
     if unit in LENGTH_CM or unit in TIME_NS:
-        if not all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in numbers):
+        if not all(isinstance(v, int | float) and not isinstance(v, bool) for v in numbers):
             raise ProfileError(f"{name}: dimensional value must be numeric")
         if isinstance(value, list) and (len(value) != 2 or value[0] > value[1]):
             raise ProfileError(f"{name}: a range must be [low, high]")
@@ -133,7 +133,7 @@ def parse_profile(raw: dict) -> DeviceProfile:
         if clock_raw.get("state") not in USABLE_STATES or not clock_raw.get("source"):
             raise ProfileError("clock must be unknown, or documented/measured with a source")
         tick, bits = clock_raw.get("tick_ns"), clock_raw.get("counter_bits")
-        if not isinstance(tick, (int, float)) or tick <= 0:
+        if not isinstance(tick, int | float) or tick <= 0:
             raise ProfileError("clock.tick_ns must be positive")
         if not isinstance(bits, int) or not 1 <= bits <= 63:
             raise ProfileError("clock.counter_bits must be an integer in [1, 63]")

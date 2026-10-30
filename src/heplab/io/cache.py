@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import tempfile
+import time
 from pathlib import Path
 
 from .provenance import config_hash, file_hash
@@ -38,6 +39,76 @@ def _directory(key: str) -> Path:
     if target.is_symlink() or target.resolve().parent != root:
         raise ValueError("cache path escapes its root")
     return target
+
+
+def quarantine(key: str) -> Path | None:
+    """Move a damaged cache entry aside so the chunk can be re-read; keeps it for diagnosis."""
+    target = _directory(key)
+    if not target.is_dir():
+        return None
+    destination = target.with_name(f".quarantine-{key}-{os.getpid()}-{time.time_ns()}")
+    os.rename(target, destination)
+    return destination
+
+
+def source_integrity_record(source_id: str, declared: dict, size_bytes: int) -> dict | None:
+    """Return a matching previously verified source receipt, if one is intact."""
+    if not re.fullmatch(r"[0-9a-f]{64}", source_id):
+        raise ValueError("source IDs must be SHA-256 hex digests")
+    root = cache_root().resolve()
+    directory = root / ".integrity"
+    receipt = directory / f"{source_id}.json"
+    if directory.is_symlink() or receipt.is_symlink() or not receipt.is_file():
+        return None
+    if receipt.resolve().parent != directory.resolve():
+        raise ValueError("source integrity receipt escapes its directory")
+    try:
+        value = json.loads(receipt.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if (
+        value.get("source_id") == source_id
+        and value.get("declared_checksum") == declared
+        and value.get("size_bytes") == size_bytes
+        and value.get("verified") is True
+        and value.get("method") in {"local_bytes", "remote_digest", "remote_stream"}
+    ):
+        return value
+    return None
+
+
+def record_source_integrity(source_id: str, declared: dict, size_bytes: int, method: str) -> dict:
+    """Atomically retain a successful source checksum verification receipt."""
+    if method not in {"local_bytes", "remote_digest", "remote_stream"}:
+        raise ValueError("unsupported source integrity method")
+    root = cache_root().resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    directory = root / ".integrity"
+    if directory.is_symlink():
+        raise ValueError("source integrity directory cannot be a symlink")
+    directory.mkdir(exist_ok=True)
+    receipt = directory / f"{source_id}.json"
+    if receipt.is_symlink() or receipt.resolve().parent != directory.resolve():
+        raise ValueError("source integrity receipt escapes its directory")
+    value = {
+        "source_id": source_id,
+        "declared_checksum": declared,
+        "size_bytes": size_bytes,
+        "verified": True,
+        "method": method,
+        "verified_at": time.time(),
+    }
+    fd, name = tempfile.mkstemp(prefix=".verify-", dir=directory)
+    stage = Path(name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump(value, stream, sort_keys=True, allow_nan=False)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(stage, receipt)
+    finally:
+        stage.unlink(missing_ok=True)
+    return value
 
 
 def _sync(path: Path):

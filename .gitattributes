@@ -1,0 +1,2 @@
+# Checked-in JSON includes resources verified by exact byte hashes.
+*.json text eol=lf

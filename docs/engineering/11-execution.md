@@ -1,6 +1,6 @@
 # 11 · Execution, retries, cancellation and deterministic merging
 
-Status: target orchestration. Current CLI processes in one process, fetch accumulates a full Python list, and the API has no asynchronous POST-run implementation. Snakemake and Dask are proposed integrations, not a present run service.
+Status: target general orchestration. The local Workbench has a bounded SQLite queue with restart recovery, cancellation, per-job idempotency, a 500-job cap, and 30-day terminal-job retention. General data processing still runs in one process, `fetch` accumulates a full Python list, and Snakemake/Dask are not wired behind the processor interface.
 
 ```mermaid
 stateDiagram-v2

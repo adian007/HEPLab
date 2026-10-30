@@ -37,6 +37,7 @@ nav:
       - Material and electronics increment: engineering/material-response.md
       - Geometry and reference calibration: engineering/geometry-calibration.md
       - CMS conditions and measured reference: engineering/cms-conditions-and-measurements.md
+      - CMS resonance regression: engineering/cms-physics-regression.md
       - CMS export and conditional calibration: engineering/cms-export-workflow.md
       - Reconstruction: engineering/08-reconstruction.md
   - Analysis and execution:
@@ -44,7 +45,10 @@ nav:
       - Statistical inference: engineering/10-statistics.md
       - Execution: engineering/11-execution.md
       - Interfaces: engineering/12-interfaces.md
+      - Python API v1: engineering/python-api.md
+      - Education, sharing and notebooks: engineering/education-and-sharing.md
       - Simulator GUI design: engineering/gui-design.md
+      - USD event display export: engineering/usd-export.md
   - Assurance and release:
       - Preservation and trust: engineering/13-preservation-and-trust.md
       - Verification: engineering/14-verification.md
@@ -52,6 +56,7 @@ nav:
       - Operations: engineering/16-operations.md
       - Delivery plan: engineering/17-delivery-plan.md
       - CMS, laboratory and desktop completion: engineering/completion-plan.md
+      - Detailed implementation roadmap: engineering/implementation-roadmap.md
       - Laboratory profile and offline replay: engineering/laboratory-replay.md
       - Desktop shell and packaged worker: engineering/desktop-shell.md
       - Requirements: engineering/18-requirements.md

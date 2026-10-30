@@ -1,0 +1,21 @@
+@using HEPLab.Web.Services
+@inject SiteContentService Site
+@{
+    var current = Context.Request.Path.Value?.TrimEnd('/') ?? "";
+    var index = 0;
+}
+<nav class="guide-nav" aria-label="Guide navigation">
+    @foreach (var group in Site.Navigation)
+    {
+        <section class="nav-group">
+            <h2><span>@((++index).ToString("00"))</span>@group.Title</h2>
+            <div class="nav-list">
+                @foreach (var link in group.Links)
+                {
+                    var active = current == link.Url.TrimEnd('/');
+                    <a href="@link.Url" class="@(active ? "active" : null)" aria-current="@(active ? "page" : null)">@link.Title</a>
+                }
+            </div>
+        </section>
+    }
+</nav>

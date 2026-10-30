@@ -10,6 +10,7 @@ ak = pytest.importorskip("awkward")
 np = pytest.importorskip("numpy")
 uproot = pytest.importorskip("uproot")
 
+from heplab.io.certification import LumiMask  # noqa: E402
 from heplab.io.xrootd import iter_chunks  # noqa: E402
 from heplab.readers.nanoaod import normalize_entry  # noqa: E402
 
@@ -82,11 +83,57 @@ def test_DATA_002_N_then_M_and_full_have_exact_coverage(tmp_path, monkeypatch):
     complete = list(iter_chunks("fixture", chunk_size=2))
     assert [(d["entry_start"], d["entry_stop"]) for d, _ in complete] == [(0, 2), (2, 4)]
     assert [event["EventInfo"]["event"] for _, chunk in complete for event in chunk] == [0, 1, 2, 3]
-    assert all(d["integrity"] == "declared_only" for d, _ in complete)
+    assert all(d["integrity"] == "source_checksum_verified" for d, _ in complete)
+    assert all(d["integrity_method"] == "local_bytes" for d, _ in complete)
     with pytest.raises(ValueError, match="fewer events"):
         list(iter_chunks("fixture", sample=5))
     with pytest.raises(ValueError, match="disagrees"):
         list(iter_chunks("fixture", sample=1, is_data=False))
+
+
+def test_DATA_007_certification_does_not_change_raw_chunk_cache_key(tmp_path, monkeypatch):
+    root_path = tmp_path / "tiny.root"
+    with uproot.recreate(root_path) as root:
+        root["Events"] = nano_columns()
+    folder = tmp_path / "catalog"
+    folder.mkdir()
+    manifest = {
+        "schema": "heplab-dataset-manifest/v0",
+        "name": "fixture",
+        "kind": "data",
+        "format": "NANOAOD",
+        "record": 1,
+        "files": [
+            {
+                "url": str(root_path),
+                "size_bytes": root_path.stat().st_size,
+                "entries": 4,
+                "adler32": f"{zlib.adler32(root_path.read_bytes()) & 0xFFFFFFFF:08x}",
+            }
+        ],
+    }
+    (folder / "fixture.yaml").write_text(yaml.safe_dump(manifest))
+    first_mask_path, second_mask_path = tmp_path / "first.json", tmp_path / "second.json"
+    first_mask_path.write_text('{"1": [[1, 5]]}', encoding="utf-8")
+    second_mask_path.write_text('{"1": []}', encoding="utf-8")
+    monkeypatch.setenv("HEPLAB_MANIFEST_DIR", str(folder))
+    monkeypatch.setenv("HEPLAB_CACHE_DIR", str(tmp_path / "cache"))
+
+    first_descriptor, first_events = next(
+        iter_chunks("fixture", sample=1, lumi_mask=LumiMask(first_mask_path))
+    )
+    second_descriptor, second_events = next(
+        iter_chunks("fixture", sample=1, lumi_mask=LumiMask(second_mask_path))
+    )
+    assert first_descriptor["certification_sha256"] != second_descriptor["certification_sha256"]
+    assert first_events[0]["EventInfo"]["certified"] is True
+    assert second_events[0]["EventInfo"]["certified"] is False
+    cache_entries = [
+        path
+        for path in (tmp_path / "cache").iterdir()
+        if path.is_dir() and not path.name.startswith(".")
+    ]
+    assert len(cache_entries) == 1
 
 
 def test_SCHEMA_003_DELPHES_isolation_does_not_fabricate_ID_or_pixel_seed(tmp_path):

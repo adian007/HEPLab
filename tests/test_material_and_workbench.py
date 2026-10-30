@@ -110,8 +110,11 @@ def test_local_gui_job_lifecycle_token_origin_bounds_and_export(tmp_path):
     from heplab.server.app import create_app
 
     with TestClient(create_app(tmp_path), base_url="http://localhost") as client:
-        assert client.get("/").status_code == 200
-        assert "Simulation control" in client.get("/").text
+        root = client.get("/")
+        assert root.status_code == 200
+        workbench = client.get("/workbench")
+        assert workbench.status_code == 200
+        assert "HEPLab Workbench" in workbench.text
         assert client.get("/ui/workbench.js").status_code == 200
         assert client.get("/ui/workbench.js").headers["cache-control"] == "no-store"
         assert client.get("/ui/../app.py").status_code == 404
@@ -183,6 +186,12 @@ def test_native_commit_wins_over_late_cancellation(tmp_path, monkeypatch):
         return output
 
     monkeypatch.setattr("heplab.sim.pipeline.run_chain", committed_run)
+    monkeypatch.setattr(
+        "heplab.readers.delphes.read",
+        lambda *_args, **_kwargs: iter(
+            [{"EventInfo": {"weight": 1.0}, "Muon": [], "Jet": [], "MET": {"pt": None}}]
+        ),
+    )
     jobs = Jobs(tmp_path)
     try:
         identity = jobs.submit(RunConfig(mode="pythia", backend="delphes"))

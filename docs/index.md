@@ -25,6 +25,7 @@ detector simulator remains implementation work. See the
 
 Useful entry points:
 
+- [Detailed implementation roadmap: physics, desktop, public website and GUI](engineering/implementation-roadmap.md)
 - [System architecture and complete run logic](engineering/01-architecture.md)
 - [Physics engine and numerical contracts](engineering/04-numerical-core.md)
 - [Transport and material-model boundaries](engineering/06-transport.md)

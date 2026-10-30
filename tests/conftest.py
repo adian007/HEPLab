@@ -8,6 +8,20 @@ the package editable (`pip install -e . --no-deps`).
 import sys
 from pathlib import Path
 
-SRC = Path(__file__).resolve().parents[1] / "src"
-if str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
+ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+for path in (ROOT, SRC):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
+
+
+def pytest_collection_modifyitems(config, items):
+    """Fail instead of skipping kernel tests when CI requires the wheel."""
+    import os
+
+    if os.environ.get("HEPLAB_REQUIRE_KERNELS") != "1":
+        return
+    try:
+        import heplab_kernels  # noqa: F401
+    except ImportError as exc:
+        raise RuntimeError("HEPLAB_REQUIRE_KERNELS=1 but heplab_kernels is not installed") from exc

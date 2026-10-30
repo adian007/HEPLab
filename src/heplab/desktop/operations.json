@@ -4,8 +4,20 @@
   "max_response_bytes": 8388608,
   "max_string_chars": 1024,
   "handshake_timeout_s": 20,
+  "max_concurrent_requests": 4,
   "operations": {
-    "workbench.session": {"args": {}, "timeout_s": 30},
+    "data.library": {"args": {}, "timeout_s": 30},
+    "data.event": {"args": {"analysis_id": {"type": "id"}, "index": {"type": "integer", "min": 0, "max": 250000}}, "timeout_s": 120},
+    "data.analyses": {"args": {"offset": {"type": "integer", "min": 0, "max": 1000000000}}, "timeout_s": 30},
+    "data.load": {"args": {"dataset_id": {"type": "id"}}, "timeout_s": 120},
+    "data.analyze": {"args": {"config": {"type": "object"}}, "timeout_s": 120},
+    "data.get": {"args": {"analysis_id": {"type": "id"}}, "timeout_s": 30},
+    "data.rows": {"args": {"analysis_id": {"type": "id"}, "role": {"type": "id"}, "offset": {"type": "integer", "min": 0, "max": 250000}}, "timeout_s": 30},
+    "data.import_begin": {"args": {"config": {"type": "object"}}, "timeout_s": 30},
+    "data.import_chunk": {"args": {"config": {"type": "object"}}, "timeout_s": 30},
+    "data.import_finish": {"args": {"upload_id": {"type": "id"}}, "timeout_s": 120},
+    "data.import_abort": {"args": {"upload_id": {"type": "id"}}, "timeout_s": 30},
+    "workbench.session": {"args": {}, "timeout_s": 120},
     "detector.display": {"args": {}, "timeout_s": 15},
     "jobs.submit": {
       "args": {
@@ -14,7 +26,11 @@
       },
       "timeout_s": 30
     },
+    "workbench.preview": {"args": {"request": {"type": "object"}}, "timeout_s": 15},
+    "workbench.lifetime": {"args": {"config": {"type": "object"}}, "timeout_s": 30},
+    "workbench.export-html": {"args": {"result": {"type": "object"}}, "timeout_s": 30},
     "jobs.get": {"args": {"job_id": {"type": "id"}}, "timeout_s": 15},
+    "jobs.list": {"args": {}, "timeout_s": 15},
     "jobs.cancel": {"args": {"job_id": {"type": "id"}}, "timeout_s": 15},
     "jobs.event": {
       "args": {"job_id": {"type": "id"}, "index": {"type": "integer", "min": 0, "max": 999}},

@@ -16,6 +16,8 @@ pub struct Spec {
     pub max_response_bytes: usize,
     pub max_string_chars: usize,
     pub handshake_timeout_s: u64,
+    /// Worker request threads; also how many abandoned calls it may carry.
+    pub max_concurrent_requests: usize,
     pub operations: BTreeMap<String, Operation>,
 }
 

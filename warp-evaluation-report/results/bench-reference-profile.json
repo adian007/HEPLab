@@ -1,0 +1,49 @@
+{
+  "driver": "drivers/profile_bench.py",
+  "entry_point": "heplab.server.workbench.Jobs._run analytic loop (bench + analyze_events)",
+  "config": {
+    "mode": "analytic",
+    "backend": "reference",
+    "seed": 42,
+    "events": 200,
+    "momentum_gev": 45.0,
+    "bz_tesla": 3.8,
+    "thickness_mm": 1.0,
+    "noise_adc": 1.0,
+    "threshold_adc": 5.0,
+    "response_model": "ideal",
+    "field_model": "ideal_bore",
+    "source_model": "angular_sample",
+    "muon_pt_min_gev": 20.0,
+    "muon_abs_eta_max": 2.4,
+    "muon_iso_max": 0.15,
+    "mass_min_gev": 60.0,
+    "mass_max_gev": 120.0
+  },
+  "events": 200,
+  "tracks_per_event": 2,
+  "timings": {
+    "V0_full_s": 1.6440327000000252,
+    "V1_no_transport_s": 0.35209889999896404,
+    "V2_floor_s": 0.034372399999483605,
+    "gui_muon_display_ms": {
+      "calls": 20,
+      "min_ms": 3.6574000005202834,
+      "mean_ms": 4.152829999748064,
+      "max_ms": 4.9397000002500135
+    }
+  },
+  "derived": {
+    "transport_share": 0.7858321796160389,
+    "engine_ops_and_calibration_share": 0.19326045035447018,
+    "free_transport_ceiling_ratio": 4.669235547185357,
+    "free_engine_ceiling_ratio": 47.83002350795186
+  },
+  "environment": {
+    "python": "3.13.14",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "machine": "AMD64",
+    "cpu_count": 8,
+    "gpu": "Intel Arc 140V (no CUDA device present)"
+  }
+}

@@ -5,6 +5,7 @@
 use heplab_desktop_core::{CancelToken, Supervisor, WorkerCommand};
 use serde_json::json;
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -32,7 +33,7 @@ fn fake(mode: &str) -> Supervisor {
 
 #[test]
 fn good_worker_answers_and_validation_happens_before_launch() {
-    let mut worker = fake("good");
+    let worker = fake("good");
     let cancel = CancelToken::default();
     let reply = worker.call("runs.list", &json!({}), &cancel).unwrap();
     assert_eq!(reply, json!({"op": "runs.list"}));
@@ -40,7 +41,7 @@ fn good_worker_answers_and_validation_happens_before_launch() {
         .call("os.system", &json!({"command": "id"}), &cancel)
         .unwrap_err();
     assert_eq!(error.code, "unknown_operation");
-    assert_eq!(worker.restarts, 0);
+    assert_eq!(worker.restarts(), 0);
 }
 
 #[test]
@@ -53,18 +54,18 @@ fn handshake_rejects_wrong_version_and_protocol() {
 
 #[test]
 fn crash_is_reported_with_stderr_and_next_call_restarts() {
-    let mut worker = fake("crash");
+    let worker = fake("crash");
     let cancel = CancelToken::default();
     let error = worker.call("runs.list", &json!({}), &cancel).unwrap_err();
     assert_eq!(error.code, "worker_crashed");
     // The stderr reader may lag the exit slightly; the code is what matters.
     assert!(worker.call("runs.list", &json!({}), &cancel).is_err());
-    assert!(worker.restarts >= 1);
+    assert!(worker.restarts() >= 1);
 }
 
 #[test]
-fn cancellation_kills_a_hung_request_promptly() {
-    let mut worker = fake("hang");
+fn cancellation_returns_promptly_and_keeps_the_worker() {
+    let worker = fake("hang");
     let cancel = CancelToken::default();
     worker.ensure_started().unwrap();
     let trigger = cancel.clone();
@@ -77,11 +78,55 @@ fn cancellation_kills_a_hung_request_promptly() {
     canceller.join().unwrap();
     assert_eq!(error.code, "cancelled");
     assert!(start.elapsed() < Duration::from_secs(5));
-    assert_eq!(worker.restarts, 1);
+    // The worker owns simulation jobs: abandoning one call must not kill it.
+    assert_eq!(worker.restarts(), 0);
 }
 
 #[test]
-fn cancellation_kills_grandchildren_too() {
+fn a_slow_call_does_not_block_a_quick_one() {
+    let worker = Arc::new(fake("slow"));
+    worker.ensure_started().unwrap();
+    let slow = {
+        let worker = Arc::clone(&worker);
+        thread::spawn(move || {
+            let start = Instant::now();
+            let reply = worker.call("runs.list", &json!({}), &CancelToken::default());
+            (reply, start.elapsed())
+        })
+    };
+    thread::sleep(Duration::from_millis(200));
+    let start = Instant::now();
+    let quick = worker
+        .call("engine.capabilities", &json!({}), &CancelToken::default())
+        .unwrap();
+    assert_eq!(quick, json!("engine.capabilities"));
+    assert!(
+        start.elapsed() < Duration::from_millis(1000),
+        "quick call waited"
+    );
+    let (reply, elapsed) = slow.join().unwrap();
+    assert_eq!(reply.unwrap(), json!("runs.list"));
+    assert!(elapsed >= Duration::from_millis(1400));
+    assert_eq!(worker.restarts(), 0);
+}
+
+#[test]
+fn a_wedged_worker_is_restarted_once_its_threads_are_exhausted() {
+    let worker = fake("hang");
+    let cancel = CancelToken::default();
+    worker.ensure_started().unwrap();
+    let limit = heplab_desktop_core::spec().max_concurrent_requests;
+    for _ in 0..=limit {
+        cancel.cancel(); // observed after the first poll interval
+        let error = worker.call("runs.list", &json!({}), &cancel).unwrap_err();
+        assert_eq!(error.code, "cancelled");
+    }
+    worker.ensure_started().unwrap();
+    assert_eq!(worker.restarts(), 1);
+}
+
+#[test]
+fn shutdown_kills_grandchildren_too() {
     let root = std::env::temp_dir().join(format!("heplab-tree-{}", std::process::id()));
     std::fs::create_dir_all(&root).unwrap();
     let beat = root.join("heartbeat.txt");
@@ -94,23 +139,24 @@ fn cancellation_kills_grandchildren_too() {
         project_root: root.clone(),
         env: vec![],
     };
-    let mut worker = Supervisor::new(command, "test-1");
-    let cancel = CancelToken::default();
+    let worker = Supervisor::new(command, "test-1");
     worker.ensure_started().unwrap();
-    let trigger = cancel.clone();
-    let canceller = thread::spawn(move || {
-        thread::sleep(Duration::from_millis(800));
-        trigger.cancel();
-    });
-    let error = worker.call("runs.list", &json!({}), &cancel).unwrap_err();
-    canceller.join().unwrap();
-    assert_eq!(error.code, "cancelled");
+    // On Windows the grandchild's start-up can stall on the stdin pipe it
+    // inherits while the worker blocks reading it; one request unblocks it.
+    let cancel = CancelToken::default();
+    cancel.cancel();
+    let _ = worker.call("runs.list", &json!({}), &cancel);
     let size = || std::fs::metadata(&beat).map_or(0, |m| m.len());
-    assert!(size() > 0, "grandchild never started");
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while size() == 0 {
+        assert!(Instant::now() < deadline, "grandchild never started");
+        thread::sleep(Duration::from_millis(50));
+    }
+    worker.shutdown();
     thread::sleep(Duration::from_millis(500));
     let settled = size();
     thread::sleep(Duration::from_millis(1000));
-    assert_eq!(size(), settled, "grandchild survived cancellation");
+    assert_eq!(size(), settled, "grandchild survived shutdown");
     std::fs::remove_dir_all(root).unwrap();
 }
 
@@ -150,7 +196,7 @@ fn real_python_worker_round_trip() {
         env: vec![("PYTHONPATH".into(), repo().join("src").into())],
     };
     let version = std::env::var("HEPLAB_TEST_WORKER_VERSION").unwrap_or("0.1.0.dev0".into());
-    let mut worker = Supervisor::new(command, &version);
+    let worker = Supervisor::new(command, &version);
     let cancel = CancelToken::default();
     assert_eq!(
         worker.call("runs.list", &json!({}), &cancel).unwrap(),
@@ -182,7 +228,7 @@ fn frozen_sidecar_round_trip_when_provided() {
         project_root: root.clone(),
         env: vec![],
     };
-    let mut worker = Supervisor::new(command, "0.1.0.dev0");
+    let worker = Supervisor::new(command, "0.1.0.dev0");
     let cancel = CancelToken::default();
     assert_eq!(
         worker.call("runs.list", &json!({}), &cancel).unwrap(),

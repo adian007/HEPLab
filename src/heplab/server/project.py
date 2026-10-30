@@ -4,52 +4,30 @@ Shared by the FastAPI routes and the desktop worker so the website and the
 desktop app show identical data.
 """
 
-# Display strings stay on one line each.
-# ruff: noqa: E501
-
 from __future__ import annotations
 
 import json
+from pathlib import Path
+
+# Display strings stay on one line each.
+# ruff: noqa: E501
+
+_CAPABILITY_FILE = Path(__file__).resolve().parents[1] / "data" / "project-capabilities.json"
 
 
 def overview() -> dict:
     """Public, read-only status summary for the project overview website."""
+    capabilities = json.loads(_CAPABILITY_FILE.read_text(encoding="utf8"))
     return {
         "name": "HEPLab",
         "version": "0.1.0.dev0",
         "stage": "EARLY IMPLEMENTATION",
         "license": "Apache-2.0",
-        "repository": "https://github.com/adian007/QuantumArtGenerator-Cybersecurity",
-        "desktop_status": "Desktop app planned · not yet distributed",
+        "repository": "https://github.com/adian007/HEPLab",
+        "desktop_status": "Windows desktop build smoke-tested; no public installer is currently distributed.",
         "capabilities": [
-            {
-                "id": "data",
-                "name": "CMS Open Data",
-                "status": "foundations",
-                "detail": "Versioned manifests, readers, certification, cache and provenance.",
-                "href": "docs/engineering/02-data-supply.md",
-            },  # noqa: E501
-            {
-                "id": "simulation",
-                "name": "Local simulation",
-                "status": "working-increment",
-                "detail": "Reference bench, Rust engine, and native PYTHIA8/DELPHES runtime.",
-                "href": "docs/engineering/sim-runtime.md",
-            },  # noqa: E501
-            {
-                "id": "analysis",
-                "name": "Analysis workflow",
-                "status": "early-implementation",
-                "detail": "Schemas, readers, processors, statistics and immutable artifacts.",
-                "href": "docs/engineering/01-architecture.md",
-            },  # noqa: E501
-            {
-                "id": "evidence",
-                "name": "Validation evidence",
-                "status": "in-progress",
-                "detail": "Smoke evidence is distinct from independent physics validation.",
-                "href": "docs/engineering/14-verification.md",
-            },  # noqa: E501
+            {key: item[key] for key in ("id", "name", "status", "detail", "href")}
+            for item in capabilities
         ],
         "stack": [
             {"name": "Python 3.12", "role": "Application services, CLI and data workflows"},
@@ -58,7 +36,10 @@ def overview() -> dict:
                 "name": "PYTHIA8 + DELPHES",
                 "role": "Optional native collision generation and fast simulation",
             },  # noqa: E501
-            {"name": "React + TypeScript", "role": "Public project overview website"},
+            {
+                "name": "HEPLab Workbench",
+                "role": "Local desktop interface with offline guided tour",
+            },
         ],
         "evidence": [],
         "roadmap": [

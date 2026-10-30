@@ -1,0 +1,78 @@
+         10752634 function calls (10563634 primitive calls) in 4.067 seconds
+
+   Ordered by: cumulative time
+   List reduced from 139 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.017    0.017    4.195    4.195 profile_bench.py:104(run_stage)
+      200    0.038    0.000    4.169    0.021 workbench.py:108(bench)
+      800    0.122    0.000    3.357    0.004 detector.py:223(trajectory)
+   135662    0.475    0.000    2.865    0.000 reference.py:202(propagate_uniform_bz)
+   132752    0.056    0.000    2.842    0.000 detector.py:270(at)
+   685510    0.266    0.000    1.323    0.000 reference.py:27(_finite)
+   137662    0.151    0.000    1.262    0.000 reference.py:193(__post_init__)
+   720910    0.453    0.000    1.144    0.000 {built-in method builtins.all}
+   138262    0.188    0.000    0.703    0.000 reference.py:76(physical_mass)
+  2610378    0.471    0.000    0.639    0.000 reference.py:28(<genexpr>)
+   138262    0.134    0.000    0.522    0.000 <string>:2(__init__)
+      400    0.010    0.000    0.409    0.001 detector.py:313(silicon_stopping_power)
+   138262    0.053    0.000    0.388    0.000 reference.py:47(__post_init__)
+   138262    0.099    0.000    0.344    0.000 reference.py:68(mass_squared)
+     1400    0.006    0.000    0.342    0.000 provenance.py:16(config_hash)
+     1200    0.018    0.000    0.271    0.000 engine.py:190(execute)
+172800/1400    0.136    0.000    0.246    0.000 provenance.py:23(check)
+     1000    0.013    0.000    0.187    0.000 detector.py:72(geometry)
+  2114530    0.187    0.000    0.187    0.000 {built-in method math.isfinite}
+      400    0.002    0.000    0.185    0.000 _local.py:539(read_text)
+      400    0.002    0.000    0.182    0.000 _abc.py:628(read_text)
+     1200    0.009    0.000    0.182    0.000 engine.py:76(_reference)
+   422186    0.106    0.000    0.171    0.000 reference.py:64(momentum)
+     9600    0.008    0.000    0.166    0.000 detector.py:231(intersections)
+     9600    0.069    0.000    0.158    0.000 detector.py:145(surface_paths)
+     6200    0.015    0.000    0.143    0.000 __init__.py:185(dumps)
+      400    0.001    0.000    0.135    0.000 _local.py:529(open)
+      400    0.114    0.000    0.134    0.000 {built-in method _io.open}
+     6200    0.011    0.000    0.125    0.000 encoder.py:185(encode)
+     6200    0.109    0.000    0.109    0.000 encoder.py:207(iterencode)
+
+
+
+--- by internal time ---
+         10752634 function calls (10563634 primitive calls) in 4.067 seconds
+
+   Ordered by: internal time
+   List reduced from 139 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+   135662    0.475    0.000    2.865    0.000 reference.py:202(propagate_uniform_bz)
+  2610378    0.471    0.000    0.639    0.000 reference.py:28(<genexpr>)
+   720910    0.453    0.000    1.144    0.000 {built-in method builtins.all}
+   685510    0.266    0.000    1.323    0.000 reference.py:27(_finite)
+   138262    0.188    0.000    0.703    0.000 reference.py:76(physical_mass)
+  2114530    0.187    0.000    0.187    0.000 {built-in method math.isfinite}
+   137662    0.151    0.000    1.262    0.000 reference.py:193(__post_init__)
+172800/1400    0.136    0.000    0.246    0.000 provenance.py:23(check)
+   138262    0.134    0.000    0.522    0.000 <string>:2(__init__)
+      800    0.122    0.000    3.357    0.004 detector.py:223(trajectory)
+      400    0.114    0.000    0.134    0.000 {built-in method _io.open}
+     6200    0.109    0.000    0.109    0.000 encoder.py:207(iterencode)
+   422186    0.106    0.000    0.171    0.000 reference.py:64(momentum)
+   138262    0.099    0.000    0.344    0.000 reference.py:68(mass_squared)
+     9600    0.069    0.000    0.158    0.000 detector.py:145(surface_paths)
+   617400    0.068    0.000    0.068    0.000 {built-in method builtins.isinstance}
+   434296    0.067    0.000    0.067    0.000 {built-in method math.hypot}
+   132752    0.056    0.000    2.842    0.000 detector.py:270(at)
+   138262    0.053    0.000    0.388    0.000 reference.py:47(__post_init__)
+   290124    0.041    0.000    0.041    0.000 {built-in method builtins.max}
+      200    0.038    0.000    4.169    0.021 workbench.py:108(bench)
+   138262    0.032    0.000    0.032    0.000 {built-in method math.fsum}
+      400    0.031    0.000    0.033    0.000 {method 'read' of '_io.TextIOWrapper' objects}
+   129600    0.030    0.000    0.041    0.000 detector.py:295(<genexpr>)
+     3600    0.029    0.000    0.103    0.000 reference.py:117(addressed_uniform)
+   173996    0.028    0.000    0.028    0.000 {built-in method math.sin}
+   175196    0.026    0.000    0.026    0.000 {built-in method math.cos}
+      400    0.026    0.000    0.026    0.000 decoder.py:351(raw_decode)
+   121800    0.025    0.000    0.033    0.000 provenance.py:25(<genexpr>)
+   146062    0.024    0.000    0.024    0.000 {built-in method math.sqrt}
+
+

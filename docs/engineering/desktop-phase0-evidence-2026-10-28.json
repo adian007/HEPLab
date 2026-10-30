@@ -1,0 +1,187 @@
+{
+  "audit_date": "2026-10-28",
+  "revision": "eb91e368fc708ba3f9d3d018e3ea27b8987458a4",
+  "branch": "codex/desktop-phase0-baseline",
+  "dirty_inputs": true,
+  "environment": {
+    "pytest": "9.1.1",
+    "fastapi": "0.141.1",
+    "starlette": "1.6.0",
+    "httpx": "0.28.1",
+    "pydantic": "2.13.4",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "iminuit": "2.33.0",
+    "uproot": "5.7.7",
+    "awkward": "2.14.0",
+    "pyarrow": "25.0.1"
+  },
+  "full_suite": {
+    "command": "python -m pytest",
+    "passed": 172,
+    "skipped": 1,
+    "warnings": 1,
+    "seconds": 53.36,
+    "raw_log": "Tool output only; summary transcribed from completed test command"
+  },
+  "audit_suite": {
+    "passed": 58,
+    "warnings": 1,
+    "seconds": 4.69,
+    "log": "output\\desktop-phase0-20261028-152134\\audit-suite.log",
+    "junit": "output\\desktop-phase0-20261028-152134\\audit-suite.xml"
+  },
+  "frontend_sha256": {
+    "workbench.js": {
+      "source": "f5d6868a657fcd597948ac5dfb3d4e8c9fab7ea9134ce83a0d94d039a4768cb5",
+      "generated": "f5d6868a657fcd597948ac5dfb3d4e8c9fab7ea9134ce83a0d94d039a4768cb5"
+    },
+    "index.html": {
+      "source": "7d24a68b040564e2a1d9ae94271b9bda48e3fc9367b4ed536df20c91d260c343",
+      "generated": "7d24a68b040564e2a1d9ae94271b9bda48e3fc9367b4ed536df20c91d260c343"
+    },
+    "workbench.css": {
+      "source": "5e94d4ca107de88867345e92de7db07b183aa6a072b9285dd4dcc57f2cc8c5dc",
+      "generated": "5e94d4ca107de88867345e92de7db07b183aa6a072b9285dd4dcc57f2cc8c5dc"
+    }
+  },
+  "worker": {
+    "packaged_sha256": "bc13f928db6b264af17ddfa5003452c7c09a78c45e438d8d47b0c08996c9f435",
+    "source_reopen_identical": true,
+    "packaged_reopen_identical": true,
+    "source_response_separate": true,
+    "packaged_response_separate": true,
+    "packaged_capabilities": {
+      "token": "desktop-ipc",
+      "engine": {
+        "reference": true,
+        "rust_extension": true,
+        "rust_error": null,
+        "rust_executable_configured": false,
+        "fidelity": "T0-analytic-thin-slab-and-educational-response",
+        "calibrated_detector": false,
+        "material_transport": "bounded_thin_slab",
+        "digitization": "deposit_threshold_noise_saturation",
+        "geometry_navigation": "finite_cylinders_and_annular_disks",
+        "field_models": [
+          "ideal_bore",
+          "cms_tracker_oae_3_8t"
+        ],
+        "full_cms_material_map": false
+      },
+      "simulation": {
+        "available": false,
+        "reason": "PYTHIA8/DELPHES runtime unavailable; set HEPLAB_SIM_PREFIX (see runtime guide)"
+      }
+    },
+    "source_requested_events": 100,
+    "source_effective_events": 1
+  },
+  "observations": {
+    "1": {
+      "analytic": {
+        "normal": "Event energy ledgerPassed1.000e-15 GeV residual; absolute gate 1e-9 GeV",
+        "injected_0_5": "Event energy ledgerFailed5.000e-1 GeV residual; absolute gate 1e-9 GeV",
+        "nan": "Event energy ledgerFailedNaN GeV residual; absolute gate 1e-9 GeV",
+        "missing": "Event energy ledgerFailedNaN GeV residual; absolute gate 1e-9 GeV"
+      },
+      "generator_missing": {
+        "exception": "TypeError: Cannot read properties of undefined (reading 'toExponential')"
+      },
+      "tolerances_recorded": []
+    },
+    "2": {
+      "history_before_refresh": 4,
+      "history_after_refresh": 4,
+      "setup_momentum_restored": 45,
+      "future_result_accepted": "heplab-workbench-result-v999",
+      "future_setup_message": "4:25:41 PM  Choose a HEPLab setup JSON file.",
+      "invalid_seed_message": "4:25:41 PM  Invalid setup parameter: seed",
+      "unknown_key_message": "4:25:41 PM  Loaded setup: probe-setup.json"
+    },
+    "3": {
+      "recalled_draft_momentum": 45,
+      "recalled_result_momentum": 45,
+      "minimum_window_warning": "Parameters modified · showing previous result",
+      "minimum_window_warning_visible": true,
+      "use_settings_actions": 0
+    },
+    "4": {
+      "table": "Muon / 0\t13\t-1\t45.000\t45.000\t0.5508\t55\tDigit accepted\t45.418\t0.000\nMuon / 1\t-13\t1\t45.000\t45.000\t0.5508\t54\tDigit accepted\t45.957\t0.000",
+      "inspector": "PDG ID13Charge-1 eInput |p|45 GeV/cTruth pT45.00000 GeV/cη0.00000Material deposit0.550793 MeVScattering θ₀25.8353 μradAnalog signal55.2699 ADCDigitized channel55 ADCSaturationNoEnergy residual1.9687e-15 GeVOutgoing energy44.99957325 GeVPredicted crossings5Material referencepdg-si-muon-loglinear-split-v1Tracking reference sampleAcceptedSampled pT45.41835 GeV/cReference efficiency0.8508Relative pT resolution1.408%Momentum scale0.9999837Response scopeeta-bin aggregates in the DY reference population; pT-local response unvalidatedValidationAnalytic trajectory; scoped reference calibration only",
+      "comparison_overlay_present": true
+    },
+    "5": {
+      "message": "This response model requires momentum ≥ 5 GeV/c.",
+      "run_enabled": true,
+      "invalid_submission_count": 0,
+      "failed_status": "FAILED",
+      "failed_result_label": "Result up to date",
+      "export_enabled_after_failure": true
+    },
+    "6": {
+      "notice": "Drell–Yan generation is unavailable in this build. Choose the muon laboratory to run local experiments. PYTHIA8/DELPHES runtime unavailable; set HEPLAB_SIM_PREFIX (see runtime guide)",
+      "selector": "Muon thin-slab bench\nDrell–Yan · PYTHIA8 / DELPHES",
+      "title": "Drell–Yan collisions",
+      "navigation": [
+        {
+          "id": "previous-event",
+          "disabled": true,
+          "title": ""
+        },
+        {
+          "id": "next-event",
+          "disabled": true,
+          "title": ""
+        }
+      ],
+      "helpLinks": 0,
+      "runDisabled": true
+    },
+    "7": {
+      "result_filename": "heplab-b907ef89ef8b4d3ee334f9b1-event-0.json",
+      "result_identity": {
+        "format": "heplab-workbench-result-v2",
+        "run_id": "b907ef89ef8b4d3ee334f9b1",
+        "heplab_version": "0.1.0.dev0",
+        "created_utc": "2026-10-28T15:25:42.838280+00:00",
+        "config_sha256": "1094c1cb4a31f3f516a00afed15f54df39005cab11e2c3bb0fb7f7fdfe27bc40"
+      },
+      "setup_filename": "heplab-setup.json"
+    }
+  },
+  "browser_automation_errors_final_attempt": [],
+  "browser_automation_errors_first_attempt": [
+    "Playwright route.fulfill: Route is already handled; probe corrected and rerun. No app defect inferred."
+  ],
+  "native_ui_tested": false,
+  "raw_evidence_sha256": {
+    "baseline.json": "2770cef1f3e88b1d248ca0511dc79d8b4748bb487274b2677afa8869840b407e",
+    "audit-suite.log": "8efd353bd00c909dd4ecda6c1dcb0c3c26c52005bcf559140aaee2026f29f9cb",
+    "audit-suite.xml": "18033fddc4c43a74bedfbc962dbcd28cddf1d9c5ddf0eba968980d9639bdaa60",
+    "source-worker.json": "6bfa1690584735bf1912162ce3f4cbec159cb67d48a1c962a902c7acfeac771f",
+    "packaged-worker.json": "c8917b2c6a016c8888fb8dc21e9da05efef54862c5450a5105fb935be4793aaf",
+    "browser-attempt2/browser-evidence.json": "08eca4e5d655af7092e1fc84a8534dfac47da446550ba2a004cb961a966af0f2",
+    "browser-attempt2/exported-result.json": "2461df95c51e394aee31d882275fe852231b5d7cded914ad45044d5db4f23a68",
+    "browser-attempt2/saved-setup.json": "d191bf39acaff3a201ccdd529f366e05f890c65c3360e682966ec60993f0b439"
+  },
+  "final_browser_recheck": {
+    "path": "output\\desktop-phase0-20261028-152134\\browser-final\\browser-evidence.json",
+    "sha256": "96cde619f3b02864875f84da6db81da9c183d89d30b464a2b74f61350098d4d7",
+    "findings_completed": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7"
+    ],
+    "automation_errors": []
+  },
+  "original_input_verification": {
+    "changed": [
+      "docs/engineering/desktop-shell.md"
+    ]
+  }
+}

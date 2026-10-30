@@ -49,6 +49,39 @@ application text. Side panes resize. On narrow screens the panes stack; no separ
 physics behavior is introduced. No web fonts, remote scripts, decorative animation,
 external telemetry, or network assets are required at runtime.
 
+## Event viewport rendering and live mode
+
+The viewport draws detector outlines, guide surfaces, grid, tracks and crossing
+markers with WebGL (`static/event-display-gl.js`); a transparent 2D canvas on
+top keeps labels, the orientation triad, the scale bar and picking. If WebGL is
+unavailable or its context is lost, the previous Canvas2D renderer is used.
+Measured on an integrated Intel Arc GPU with all seven CMS outline layers
+(~413k segments): 135 ms per frame with Canvas2D, ~7 ms with WebGL, in both the
+browser and the WebView2 desktop shell.
+
+- **Replay** animates each trajectory outward from the origin along its
+  sampled path. The clock is flight path in metres; the displayed time is
+  `s/c`, a light-travel label, not a per-particle velocity model. Crossing
+  markers appear as each track reaches them. Reduced-motion users get complete
+  tracks without autoplay.
+- **Live** recomputes one bench event (`POST /api/v1/preview`, desktop
+  `workbench.preview`) on every slider move: momentum, B<sub>z</sub>, aimed η/φ
+  and slab thickness. It uses the same `bench()` physics as Run, is validated by
+  the same `RunConfig`, carries `preview: true` and is never saved.
+- **Recorded CMS events**: *Browse selected real events in 3D* opens the
+  selected data events of the current analysis; ←/→ or PageUp/PageDown step
+  through them. Each event also shows reconstructed NanoAOD jets (cones to the
+  ECAL), calorimeter towers (jet energy split by PF EM/hadronic fraction,
+  0.02 m/GeV), electrons (ideal 3.8 T helix to the ECAL face), photons, isolated
+  tracks, taus (off by default; unfiltered candidates mostly duplicate the
+  muons), PF MET and the primary vertex. These come from display-only sidecar
+  files built by `tools/build_cms_display_projection.py`: the same entry range of
+  the same Open Data source, joined per event by run/lumi/event and refused on
+  any identity or checksum mismatch. The muon projections used by analyses and
+  calibrations are unchanged; without a sidecar the display falls back to muons.
+  Towers and cones are display construction from stored kinematics, not
+  calorimeter hits or clusters. The Canvas2D fallback draws muons only.
+
 ## Scientific representation boundaries
 
 The current display uses the [sourced geometry and reference calibration](geometry-calibration.md)
@@ -68,3 +101,80 @@ Future evaluation should observe a physicist configuring a fixed-seed run,
 inspecting a conservation discrepancy, comparing events, and exporting evidence.
 Measure task completion, configuration errors, selection ambiguity, and the ability
 to distinguish input, truth, detector response, and visualization assumptions.
+
+## Product redesign plan
+
+The desktop Workbench is the intended simulator UI. The public project website
+is a separate read-only product and must never contain local run controls or
+hosted simulation. The detailed work packages, product boundary, acceptance
+gates and risk register are in the
+[implementation roadmap](implementation-roadmap.md). Apply this sequence
+before a broad visual rewrite:
+
+1. Observe representative researchers, detector/simulation engineers and
+   learners completing setup, run, inspect, compare and export tasks.
+2. Map navigation to Home, Simulate, Runs, Data, Laboratory (only when a real
+   profile/decoder is supported), and Learn/Help. Keep a persistent project
+   context and a three-zone simulation workspace.
+3. Separate draft inputs, preflight, job execution, committed result and
+   view-only exploration. Show backend, seed, model version, units, supported
+   domain, provenance and validation maturity at the point of use.
+4. Implement run lifecycle and immutable results first, then linked event/table/
+   inspector interactions, comparison, project import/export, and finally
+   device-specific workflows after laboratory acceptance.
+5. Re-test keyboard and assistive-technology use, narrow windows, crash/restart,
+   and task completion on packaged desktop builds. Do not present test-passing
+   software as physics validation.
+
+The site should explain how to obtain and understand the desktop app, show
+evidence and limits, and offer tutorials and contribution/release information.
+It should not be the place where users run the simulator.
+
+## Detector inspection controls
+
+The Event display toolbar provides explicit zoom out/in buttons, a zoom percentage,
+and Fit (F). Mouse-wheel and trackpad zoom keep the point under the cursor fixed;
+the supported scale is 10% to 12,800% of the selected region. Keyboard +/− uses
+the same camera path. Drag orbits in 3D, and Shift+drag pans.
+
+Core selects the Pixel region, enables its original CMS module outlines, and hides
+the outer detector, grid and guide surfaces. This isolates the barrel and endcap
+modules for inspection. XY looks along the beam axis at the concentric layers;
+XZ shows the longitudinal arrangement. Region → Tracker restores the larger
+silicon tracker view, and Region → CMS restores the full detector framing.
+
+Camera operations leave event data unchanged. The finest bundled geometry is
+module boundaries; magnification does not add sensor-pixel or electronics detail.
+The same controls and adaptive metre/centimetre/millimetre scale bar work with
+the WebGL renderer and the Canvas2D fallback.
+
+Rendering offers Solid surfaces, Solid + edges and Outlines. Opaque faces use
+depth testing and flat directional lighting. Cutaway removes a sector around
+the Z axis; Opening adjusts its width (30–180 degrees) and Rotate changes its
+azimuth. Both detector faces and outlines are cut consistently. Event tracks,
+reconstructed objects, and crossing markers remain overlaid and uncut.
+
+Surface assets preserve the pinned CMS source identity. Native GLB triangles
+are used where present. Pixel and strip faces are triangulated only from closed,
+convex, planar source-outline loops; rejected outlines remain visible in solid
+mode. These thin visual faces do not establish material thickness or transport
+geometry. Rebuild them offline with `python tools/build_cms_surfaces.py` from
+the existing hash-verified `.cache/cms-display` sources. The manifest records
+native/derived triangle counts, retained outlines, byte sizes and SHA-256 hashes.
+
+Each CMS display layer has a keyboard-accessible 0–100% opacity slider. These
+settings persist in local browser storage and do not change RunConfig or event
+results. Reset opacity restores detector layers to 100% and the guide shell to
+20%. Core restores pixel opacity so it remains useful after a transparency preset.
+Transparent WebGL faces use weighted blended accumulation/revealage, with opaque
+faces retaining depth testing. Unsupported float render targets and context loss
+use the depth-sorted Canvas2D fallback. Tracks and reconstructed objects remain
+visible over detector faces regardless of opacity.
+
+Event focus frames the tracker horizontally, softens pixel/strip modules and adds
+an optional smooth blue Tracker shell (guide). Its radius and half-length come
+from the existing tracker-envelope guide; it is illustrative, has no material,
+and does not replace source CMS module geometry. Rotate view changes camera roll
+by 90 degrees. The preset changes only display settings. The bundled recorded
+sample does not contain the full charged-track/hit collections shown by iSpy;
+no extra tracks or measured hits are inferred for visual density.

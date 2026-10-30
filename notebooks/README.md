@@ -1,8 +1,10 @@
 # Notebooks
 
-> Gallery status: planned. See the [engineering interfaces](../docs/engineering/12-interfaces.md)
-> and [delivery plan](../docs/engineering/17-delivery-plan.md). The names below are
-> planned artifacts, not checked-in runnable notebooks.
+> Runnable now: [`masterclass/z-boson.ipynb`](masterclass/z-boson.ipynb), the guided
+> "Rediscover the Z boson" lab (works offline with the synthetic practice sample). The
+> analysis notebooks listed under "Planned" are not checked in yet. See the
+> [engineering interfaces](../docs/engineering/12-interfaces.md) and
+> [delivery plan](../docs/engineering/17-delivery-plan.md).
 
 ```mermaid
 flowchart LR

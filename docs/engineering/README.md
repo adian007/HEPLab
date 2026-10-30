@@ -8,6 +8,11 @@ baseline observations where this increment supersedes them.
 
 Current work follows the [CMS, laboratory and desktop completion plan](completion-plan.md)
 and [CMS export/calibration workflow](cms-export-workflow.md).
+The cross-product execution sequence, desktop-only simulator boundary, public
+website track, Workbench UX redesign and risk register are in the
+[detailed implementation roadmap](implementation-roadmap.md).
+Workbench event displays can now be exported as vendor-neutral
+[OpenUSD stages](usd-export.md) for external viewers and offline rendering.
 
 This handbook defines the target system and the checks required to trust it. It is an implementation specification, not a claim that the target exists today. Every chapter distinguishes existing behavior from required behavior. **No document, language, or test suite establishes that software has zero bugs.** Release decisions require recorded evidence, physics review, and known limitations.
 
@@ -68,8 +73,9 @@ Current increments: [native PYTHIA8/DELPHES runtime](sim-runtime.md),
 
 Latest: [sourced geometry and reference calibration](geometry-calibration.md).
 
-Website and future desktop client: [web architecture and information
-design](../web/README.md). The React frontend is implemented as a local client;
-public deployment and desktop packaging remain future release work.
+The public read-only site and local desktop Workbench have separate product
+boundaries: [web architecture and information design](../web/README.md). The
+Windows Workbench build has been smoke-tested; public installers and the full
+native platform matrix remain release gates.
 
 Every new subsystem needs inputs, outputs, units, validity limits, a deterministic algorithm, error behavior, one Mermaid diagram, and an acceptance case. Every physics approximation needs a named authority or a declared project assumption. When an implementation changes meaning, update the contract and version before reusing a cache or result. Run `python tools/check_handbook.py` to check local links, diagrams, requirement references, and example contracts. The checker does not establish physics correctness.

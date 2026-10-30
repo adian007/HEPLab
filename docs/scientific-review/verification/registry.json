@@ -1,0 +1,82 @@
+{
+  "schema": "heplab-verification-registry-v1",
+  "purpose": "Reproducible numerical verification of named software submodels; these checks do not validate the full simulator against nature or CMS.",
+  "command": "python tools/run_verification_registry.py",
+  "checks": [
+    {
+      "id": "four-vector-invariant-mass",
+      "source": "docs/scientific-review/verification/independent_checks.py",
+      "threshold": { "absolute_difference_gev_max": 2e-12 },
+      "scope": "independent algebraic identity for a back-to-back on-shell muon pair",
+      "not_established": ["collision production", "detector response", "experimental accuracy"]
+    },
+    {
+      "id": "uniform-field-helix",
+      "source": "src/heplab/physics/reference.py",
+      "threshold": { "position_absolute_difference_m_max": 2e-13, "energy_drift_gev_max": 0.0 },
+      "scope": "closed-form uniform axial-field propagation",
+      "not_established": ["field map accuracy", "material transport", "run-era CMS conditions"]
+    },
+    {
+      "id": "curvature-sagitta-sweep",
+      "source": "src/heplab/physics/curvature.py",
+      "threshold": { "independent_uniform_field_sagitta_formula_residual_m_max": 2e-12, "uniform_cases_min": 32, "oae_difference_gate": "diagnostic_only_no_measurement_threshold" },
+      "scope": "charge, momentum and uniform-field sweep checked against an independent circle sagitta formula, with a bounded OAE software comparison at nominal 3.8 T",
+      "not_established": ["CMS field measurement agreement", "run-era conditions", "material transport", "detector calibration"]
+    },
+    {
+      "id": "cms-oae-field-integrator",
+      "source": "src/heplab/physics/cms_field.py",
+      "threshold": { "rk4_5mm_vs_dop853_endpoint_difference_m_max": 1e-10 },
+      "scope": "independent integrator agreement for the same pinned OAE field function",
+      "not_established": ["independent field-map agreement", "full detector transport", "CMS calibration"]
+    },
+    {
+      "id": "cms-oae-domain-grid",
+      "source": "docs/scientific-review/verification/independent_checks.py",
+      "threshold": { "cases_min": 18, "rk4_vs_dop853_endpoint_difference_m_max": 1e-10, "boundary_tolerance_m": 1e-6 },
+      "scope": "same pinned OAE field function checked at three momenta, three pseudorapidities, both charge signs, and an outward validity-boundary stop",
+      "not_established": ["independent field measurements", "run-era field accuracy", "material transport", "CMS calibration"]
+    },
+    {
+      "id": "muon-lifetime-survival-scale",
+      "source": "src/heplab/physics/lifetime.py",
+      "threshold": { "analytic_formula_relative_difference": 1e-15 },
+      "scope": "fixed-momentum vacuum exponential survival law",
+      "not_established": ["atmospheric shower", "air energy loss", "cosmic-ray flux"]
+    },
+    {
+      "id": "silicon-table-domain-and-interpolation",
+      "source": "src/heplab/physics/calibration.py",
+      "threshold": { "endpoint_absolute_difference_gev_per_m": 0.0, "out_of_domain": "must reject" },
+      "scope": "frozen PDG-derived mean stopping-power table",
+      "not_established": ["straggling", "secondary production", "sensor calibration"]
+    },
+    {
+      "id": "straight-geometry-intersections",
+      "source": "src/heplab/physics/detector.py",
+      "threshold": { "path_absolute_difference_m_max": 2e-14 },
+      "scope": "zero-field finite-cylinder and annular-disk roots compared to closed-form straight-line geometry",
+      "not_established": ["surveyed detector geometry", "material navigation", "measured hit positions"]
+    },
+    {
+      "id": "thin-silicon-slab-bookkeeping",
+      "source": "src/heplab/physics/material.py",
+      "threshold": { "energy_residual_gev_max": 2e-15, "theta0_absolute_difference_rad_max": 2e-16 },
+      "scope": "independent continuous mean-loss energy ledger, outgoing on-shell momentum, Highland core scale and distinct electronics input",
+      "not_established": ["straggling", "secondary production", "sensor calibration", "Geant4 transport"]
+    },
+    {
+      "id": "addressed-rng-repeat-and-moments",
+      "source": "src/heplab/physics/reference.py",
+      "threshold": { "draws": 10000, "absolute_mean_error_max": 0.015, "absolute_variance_error_max": 0.003 },
+      "scope": "address-addressed uniform repeatability and distribution sanity check",
+      "not_established": ["cryptographic use", "all platform/compiler behavior", "physical randomness"]
+    }
+  ],
+  "external_evidence_status": {
+    "matched_cms_data_mc_and_systematics": "unresolved_external_dependency",
+    "geant4_material_response_reference": "unresolved_external_dependency",
+    "run_era_globaltag_iov_transport": "unresolved_external_dependency"
+  }
+}

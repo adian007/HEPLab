@@ -59,11 +59,16 @@ For this Windows workspace, launch the installed runtimes and GUI:
 ```
 
 The script derives the WSL user and project paths. It configures the Rust executable
-only when built, and the simulation prefix only when installed. `heplab gui` alone
-also starts the workspace; missing capabilities are displayed explicitly.
+only when built, and the simulation prefix only when installed. The desktop app
+and `heplab gui` also discover the conventional runtime automatically: the user's
+home prefix on Linux, or a WSL installation on Windows (Ubuntu preferred; Docker
+distributions excluded). Missing capabilities are displayed beside the run controls.
+The frozen desktop worker includes numpy, awkward, uproot and the staged supervisor
+source; a system Windows Python installation is not required.
 
-For direct CLI use in PowerShell, set `HEPLAB_SIM_PREFIX` to the Linux installation
-path and `HEPLAB_SIM_WSL_DISTRO` to `Ubuntu`, then call `heplab sim chain`.
+For a nonstandard installation in PowerShell, set `HEPLAB_SIM_PREFIX` to the Linux
+installation path and `HEPLAB_SIM_WSL_DISTRO` to its distribution, then restart the
+desktop app or call `heplab sim chain`. Explicit settings override discovery.
 
 ## Registered process and reproducibility
 

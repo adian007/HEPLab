@@ -7,7 +7,9 @@ import json
 import math
 import os
 import subprocess
+from functools import lru_cache
 
+from .constants import MUON_MASS_GEV
 from .reference import (
     FourVector,
     TrackState,
@@ -18,10 +20,39 @@ from .reference import (
 )
 
 
+@lru_cache(maxsize=1)
+def _rust_binding() -> tuple[bool, str | None]:
+    try:
+        import heplab_kernels
+
+        if not callable(getattr(heplab_kernels, "run_json", None)):
+            return False, "Native Rust binding is incompatible: run_json is missing"
+        result = json.loads(
+            heplab_kernels.run_json(
+                json.dumps(
+                    {
+                        "op": "mass",
+                        "first": [45, 0, 0, MUON_MASS_GEV],
+                        "second": [45, 0, math.pi, MUON_MASS_GEV],
+                    }
+                )
+            )
+        )
+        if not isinstance(result, int | float) or not math.isclose(
+            result, 2 * math.hypot(45.0, MUON_MASS_GEV), abs_tol=1e-6
+        ):
+            return False, "Native Rust binding failed its startup numerical check"
+        return True, None
+    except (ImportError, OSError, ValueError) as exc:
+        return False, f"Native Rust binding unavailable: {exc}"
+
+
 def capabilities() -> dict:
+    rust, error = _rust_binding()
     return {
         "reference": True,
-        "rust_extension": importlib.util.find_spec("heplab_kernels") is not None,
+        "rust_extension": rust,
+        "rust_error": error,
         "rust_executable_configured": bool(os.environ.get("HEPLAB_RUST_EXECUTABLE")),
         "fidelity": "T0-analytic-thin-slab-and-educational-response",
         "calibrated_detector": False,
@@ -45,6 +76,54 @@ def _serialize(state):
     return asdict(state)
 
 
+def trajectory_reference(request: dict) -> dict:
+    """Pure-Python composite trajectory; the oracle for the Rust kernel op."""
+    from .detector import surface_paths
+
+    state = _state(request["state"])
+    bz, max_path, step = request["bz_tesla"], request["max_path_m"], request["step_m"]
+    exits = [p for s in request["exit_surfaces"] for p in surface_paths(state, s, bz, max_path)]
+    exit_path = min(exits, default=max_path)
+    boundary = propagate_uniform_bz(state, exit_path, bz)
+
+    def at(path):
+        return (
+            propagate_uniform_bz(state, path, bz)
+            if path <= exit_path
+            else propagate_uniform_bz(boundary, path - exit_path, 0.0)
+        )
+
+    crossings = []
+    for surface in request["surfaces"]:
+        for path in surface_paths(state, surface, bz, exit_path):
+            moved = at(path)
+            crossings.append(
+                {
+                    "surface_id": surface["id"],
+                    "path_m": path,
+                    "position_m": list(moved.position),
+                    "time_ns": moved.time_ns,
+                    "kind": "predicted_surface_crossing",
+                }
+            )
+    paths = sorted(
+        {
+            0.0,
+            max_path,
+            exit_path,
+            *(min(i * step, max_path) for i in range(math.ceil(max_path / step) + 1)),
+            *(crossing["path_m"] for crossing in crossings),
+        }
+    )
+    return {
+        "points": [list(at(s).position) for s in paths],
+        "path_m": paths,
+        "crossings": sorted(crossings, key=lambda c: c["path_m"]),
+        "field_exit_path_m": exit_path if exits else None,
+        "termination": "path_budget_after_field_exit" if exits else "path_budget_inside_field",
+    }
+
+
 def _reference(request):
     op = request["op"]
     if op == "cms_tracker_field":
@@ -55,6 +134,8 @@ def _reference(request):
         from .cms_field import trace_tracker
 
         return trace_tracker(_state(request["state"]), request["path_length_m"], request["step_m"])
+    if op == "trajectory":
+        return trajectory_reference(request)
     if op == "intersect":
         from .detector import surface_paths
 
@@ -166,6 +247,15 @@ def execute(request: dict, *, backend="reference"):
         "digitize": {"op", "deposit_gev", "config", "address"},
         "cms_tracker_field": {"op", "position_m"},
         "trace_cms_tracker": {"op", "state", "path_length_m", "step_m"},
+        "trajectory": {
+            "op",
+            "state",
+            "surfaces",
+            "exit_surfaces",
+            "bz_tesla",
+            "max_path_m",
+            "step_m",
+        },
         "mass": {"op", "first", "second"},
         "boost": {"op", "vector", "beta"},
         "propagate": {"op", "state", "path_length_m", "bz_tesla"},
@@ -203,6 +293,61 @@ def execute(request: dict, *, backend="reference"):
         ]
         if any(type(v) not in (int, float) or not math.isfinite(v) for v in numbers):
             raise ValueError("tracker fields require finite numbers, not booleans")
+    if request["op"] == "trajectory":
+        state = request["state"]
+        if (
+            not isinstance(state, dict)
+            or set(state) != {"position", "momentum", "charge", "time_ns"}
+            or not isinstance(state["momentum"], dict)
+            or set(state["momentum"]) != {"energy", "px", "py", "pz"}
+            or not isinstance(state["position"], list | tuple)
+            or len(state["position"]) != 3
+        ):
+            raise ValueError("missing or unknown trajectory state fields")
+        if (
+            not isinstance(request["surfaces"], list)
+            or not request["surfaces"]
+            or not isinstance(request["exit_surfaces"], list)
+            or not request["exit_surfaces"]
+        ):
+            raise ValueError("trajectory requires nonempty surface lists")
+        surface_fields = {
+            "cylinder": {"id", "kind", "radius_m", "half_length_m"},
+            "disk": {"id", "kind", "z_m", "inner_radius_m", "outer_radius_m"},
+        }
+        for surface in [*request["surfaces"], *request["exit_surfaces"]]:
+            if (
+                not isinstance(surface, dict)
+                or surface.get("kind") not in surface_fields
+                or set(surface) != surface_fields[surface["kind"]]
+                or not isinstance(surface["id"], str)
+            ):
+                raise ValueError("missing or unknown trajectory surface fields")
+            dimensions = [v for k, v in surface.items() if k not in {"id", "kind"}]
+            if any(type(v) not in (int, float) or not math.isfinite(v) for v in dimensions):
+                raise ValueError("trajectory surface dimensions must be finite numbers")
+            if surface["kind"] == "cylinder":
+                valid = surface["radius_m"] > 0 and surface["half_length_m"] > 0
+            else:
+                valid = 0 <= surface["inner_radius_m"] < surface["outer_radius_m"]
+            if not valid:
+                raise ValueError("invalid trajectory surface dimensions")
+        numbers = [
+            request["bz_tesla"],
+            request["max_path_m"],
+            request["step_m"],
+            state["charge"],
+            state["time_ns"],
+            *state["position"],
+            *state["momentum"].values(),
+        ]
+        if any(type(v) not in (int, float) or not math.isfinite(v) for v in numbers):
+            raise ValueError("trajectory fields require finite numbers, not booleans")
+        if not 0.005 <= request["step_m"] <= 0.2 or not 0 < request["max_path_m"] <= 20:
+            raise ValueError("trajectory sampling/path budget invalid")
+        x, y, z = state["position"]
+        if math.hypot(x, y) >= 3.0 or abs(z) >= 6.25:
+            raise ValueError("trajectory must start inside the modeled solenoid bore")
     if request["op"] == "intersect":
         surface = request["surface"]
         surface_fields = {
@@ -231,7 +376,7 @@ def execute(request: dict, *, backend="reference"):
         }:
             raise ValueError("missing or unknown momentum fields")
         position = state["position"]
-        if not isinstance(position, (list, tuple)) or len(position) != 3:
+        if not isinstance(position, list | tuple) or len(position) != 3:
             raise ValueError("position must have three components")
         numbers = [v for k, v in surface.items() if k != "kind"]
         numbers += [

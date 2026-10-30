@@ -1,0 +1,33 @@
+{
+  "schema": "heplab-cms-resonance-validation-v2",
+  "status": "measured-data-regression",
+  "scope": "frozen CMS Run2016G low-mass data fits plus held-out Z template closure; regression evidence, not a CMS detector calibration",
+  "sources": {
+    "z_mass": "https://cms-results.web.cern.ch/cms-results/public-results/publications/SMP-23-002/index.html",
+    "muon_resolution_eta": "https://cms-results.web.cern.ch/cms-results/public-results/superseded/MUO-21-001/index.html",
+    "upsilon_resolution": "https://cms.cern/news/first-measurement-upsilon-production-7-tev-lhc"
+  },
+  "resonance_masses_gev": {
+    "z": {"mass": 91.1880, "tolerance": 0.0048, "basis": "CMS Z to mumu residual uncertainty"},
+    "jpsi": {"mass": 3.0969, "tolerance": 0.020, "basis": "CMS J/psi standard-candle peak; broad peak-fit regression band"},
+    "upsilon_1s": {"mass": 9.4603, "tolerance": 0.030, "sigma_tolerance_gev": [0.04, 0.15], "basis": "PDG peak mass and broad band spanning CMS 69 MeV central and 96 MeV inclusive resolution results"},
+    "upsilon_2s": {"mass": 10.0233, "tolerance": 0.030, "basis": "PDG peak mass; detector mass-scale regression band"},
+    "upsilon_3s": {"mass": 10.3552, "tolerance": 0.030, "basis": "PDG peak mass; detector mass-scale regression band"}
+  },
+  "jpsi_relative_mass_resolution_by_abs_eta": [
+    {"abs_eta": [0.0, 0.9], "sigma_over_mass": [0.008, 0.018]},
+    {"abs_eta": [0.9, 1.7], "sigma_over_mass": [0.010, 0.030]},
+    {"abs_eta": [1.7, 2.4], "sigma_over_mass": [0.015, 0.045]}
+  ],
+  "upsilon_published_resolution_gev": {
+    "central_rapidity": 0.069,
+    "all_rapidities": 0.096
+  },
+  "resolution_band_method": "Broad envelopes digitized from CMS-PAS-MUO-21-001 Figure 17-a pp data. They are regression guardrails, not tabulated official CMS measurements.",
+  "limits": [
+    "The low-mass sample is only the first 100000 entries of one Run2016G file, not a luminosity-representative dataset.",
+    "CMS comparison plots use different selections and collision conditions; the eta envelopes are broad cross-era regression bounds.",
+    "The Z check is a held-out data/MC template closure, not a precision Z mass measurement.",
+    "Passing these checks is regression evidence, not a physics-validation claim for the detector simulator."
+  ]
+}

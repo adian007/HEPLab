@@ -1,0 +1,414 @@
+{
+  "schema": "heplab-cms-data-resonance-validation-v1",
+  "status": "exploratory_target_dependent",
+  "source": {
+    "url": "https://opendata.cern.ch/eos/opendata/cms/Run2016G/DoubleMuon/NANOAOD/UL2016_MiniAODv2_NanoAODv9-v2/2430000/05DD095C-F6C3-9A4F-9FB3-348A5A6403D5.root",
+    "record": 30522,
+    "entry_start": 0,
+    "entry_stop": 100000,
+    "input_entries_available": 100000,
+    "trigger_counts_and_candidates": {
+      "entries_read": 100000,
+      "certified_events": 100000,
+      "jpsi": 3355,
+      "upsilon_1s": 599,
+      "upsilon_2s": 335,
+      "upsilon_3s": 239
+    },
+    "trigger_paths": {
+      "jpsi": [
+        "HLT_DoubleMu4_3_Jpsi_Displaced",
+        "HLT_DoubleMu4_JpsiTrk_Displaced",
+        "HLT_Mu7p5_L2Mu2_Jpsi",
+        "HLT_Mu7p5_Track2_Jpsi",
+        "HLT_Mu7p5_Track3p5_Jpsi",
+        "HLT_Mu7p5_Track7_Jpsi",
+        "HLT_Dimuon20_Jpsi",
+        "HLT_Dimuon0er16_Jpsi_NoVertexing",
+        "HLT_Dimuon0er16_Jpsi_NoOS_NoVertexing",
+        "HLT_Dimuon6_Jpsi_NoVertexing"
+      ],
+      "upsilon": [
+        "HLT_Mu7p5_L2Mu2_Upsilon",
+        "HLT_Mu7p5_Track2_Upsilon",
+        "HLT_Mu7p5_Track3p5_Upsilon",
+        "HLT_Mu7p5_Track7_Upsilon",
+        "HLT_Dimuon13_Upsilon",
+        "HLT_Dimuon0_Upsilon_Muon"
+      ]
+    },
+    "source_adler32": "71602056",
+    "source_size_bytes": 2155974646,
+    "source_integrity": {
+      "algorithm": "adler32",
+      "value": "71602056",
+      "verified": true,
+      "method": "CERN OpenData HTTP Want-Digest"
+    },
+    "dataset_manifest_sha256": "d3bb5b7a7d3ae06cb5bbc3e6b3b1eb94396be2e52edbcabe0eb64bc139c01aa8",
+    "certification_sha256": "e63961f7d175746c3d1ba985d293de0a822d041094c7991c41cffa661d982e28",
+    "extractor_git_revision": "7327c0606b7ed39ef76a80e8f8d580ecd06a9d30",
+    "python": "3.13.14",
+    "uproot": "5.7.7",
+    "awkward": "2.14.0",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "environment_lock_sha256": "5b99e3a4de67ea3dcd40022436e9bab8b0da062b11ecea00959d5413a3323ad6",
+    "git_dirty": true,
+    "container_digest": null,
+    "execution_environment": "Windows-11-10.0.26300-SP0",
+    "selected_pairs_sha256": "40731108c127315afe391f86fbe7f42bfbc1411dc8e4de27a394cb524b2fcce1"
+  },
+  "selection": {
+    "event": "first 100000 entries from one Run2016G DoubleMuon NanoAOD file; certified run/lumi subset",
+    "muons": "opposite charge; pT >= 2 GeV; |eta| < 2.4",
+    "trigger": "OR of recorded low-mass J/psi or Upsilon trigger paths listed in the source manifest",
+    "candidate": "one opposite-charge pair per event, closest to the target PDG mass inside the fit window"
+  },
+  "fits": {
+    "jpsi": {
+      "entries": 3355,
+      "fit": {
+        "entries": 3355,
+        "status": "fit_ok",
+        "mean_gev": 3.0899800040417795,
+        "mean_uncertainty_gev_approx": 0.0007206286669026737,
+        "sigma_gev": 0.039183916442011434,
+        "sigma_uncertainty_gev_approx": 0.0005095614170843024,
+        "uncertainty_method": "Gaussian Fisher approximation using fitted signal count; background uncertainty omitted",
+        "signal_fraction": 0.8812519474751705,
+        "background_slope_per_gev": 0.0,
+        "fit_window_gev": [
+          2.75,
+          3.35
+        ]
+      },
+      "reference_gate": {
+        "mass_residual_gev": -0.006919995958220682,
+        "mass_tolerance_gev": 0.02,
+        "mass_passed": true,
+        "passed": true
+      }
+    },
+    "upsilon_1s": {
+      "entries": 599,
+      "fit": {
+        "entries": 599,
+        "status": "fit_ok",
+        "mean_gev": 9.450195598149786,
+        "mean_uncertainty_gev_approx": 0.0051936597959405225,
+        "sigma_gev": 0.09832705063962918,
+        "sigma_uncertainty_gev_approx": 0.0036724720608854846,
+        "uncertainty_method": "Gaussian Fisher approximation using fitted signal count; background uncertainty omitted",
+        "signal_fraction": 0.5983732991162797,
+        "background_slope_per_gev": 0.0,
+        "fit_window_gev": [
+          8.85,
+          9.72
+        ]
+      },
+      "reference_gate": {
+        "mass_residual_gev": -0.010104401850213662,
+        "mass_tolerance_gev": 0.03,
+        "mass_passed": true,
+        "passed": true,
+        "sigma_tolerance_gev": [
+          0.04,
+          0.15
+        ],
+        "sigma_passed": true
+      }
+    },
+    "upsilon_2s": {
+      "entries": 335,
+      "fit": {
+        "entries": 335,
+        "status": "fit_ok",
+        "mean_gev": 10.02909212201739,
+        "mean_uncertainty_gev_approx": 0.008086047975119926,
+        "sigma_gev": 0.09715056486447947,
+        "sigma_uncertainty_gev_approx": 0.0057176993562070505,
+        "uncertainty_method": "Gaussian Fisher approximation using fitted signal count; background uncertainty omitted",
+        "signal_fraction": 0.43089675716051096,
+        "background_slope_per_gev": 0.0,
+        "fit_window_gev": [
+          9.72,
+          10.25
+        ]
+      },
+      "reference_gate": {
+        "mass_residual_gev": 0.005792122017389545,
+        "mass_tolerance_gev": 0.03,
+        "mass_passed": true,
+        "passed": true
+      }
+    },
+    "upsilon_3s": {
+      "entries": 239,
+      "fit": {
+        "entries": 239,
+        "status": "fit_ok",
+        "mean_gev": 10.34,
+        "mean_uncertainty_gev_approx": 0.008958912063289852,
+        "sigma_gev": 0.08686032340836679,
+        "sigma_uncertainty_gev_approx": 0.006334907472006218,
+        "uncertainty_method": "Gaussian Fisher approximation using fitted signal count; background uncertainty omitted",
+        "signal_fraction": 0.39330949919736513,
+        "background_slope_per_gev": 0.0,
+        "fit_window_gev": [
+          10.25,
+          10.85
+        ]
+      },
+      "reference_gate": {
+        "mass_residual_gev": -0.015200000000000102,
+        "mass_tolerance_gev": 0.03,
+        "mass_passed": true,
+        "passed": true
+      }
+    }
+  },
+  "limits": [
+    "One 100k-entry range from one Run2016G file, not a luminosity-representative dataset",
+    "No trigger-object matching, acceptance correction, or per-muon momentum correction",
+    "The resonance peak fit is a data spectrum regression, not a detector-response calibration",
+    "Eta-bin comparisons are broad cross-era envelopes digitized from the cited CMS plot"
+  ],
+  "z_dimuon": {
+    "data_pairs": [
+      5457,
+      5406
+    ],
+    "raw_data_spectrum_fit": {
+      "entries": 10306,
+      "status": "fit_ok",
+      "mean_gev": 90.8050023822657,
+      "mean_uncertainty_gev_approx": 0.02593714947842472,
+      "sigma_gev": 2.3923818063985975,
+      "sigma_uncertainty_gev_approx": 0.018340334280843244,
+      "uncertainty_method": "Gaussian Fisher approximation using fitted signal count; background uncertainty omitted",
+      "signal_fraction": 0.8255176327769355,
+      "background_slope_per_gev": 0.0,
+      "fit_window_gev": [
+        75.0,
+        105.0
+      ]
+    },
+    "template_fit": {
+      "mass_scale": 0.9999071057327896,
+      "additional_fractional_mass_sigma": 0.006730265770822228,
+      "uniform_background_fraction": 0.0,
+      "mean_negative_log_likelihood": 2.6682342022538035,
+      "optimizer_success": true,
+      "parameters": [
+        0.9999071057327896,
+        0.006730265770822228,
+        0.0
+      ],
+      "uncertainty_status": "training-parameter and physics-systematic uncertainties unresolved",
+      "scope": "selected 1D mass spectrum only; not per-muon response or detector calibration"
+    },
+    "bootstrap": {
+      "seed": 20261027,
+      "requested": 20,
+      "successful": 20,
+      "intervals_95_percent": [
+        [
+          0.9990875613149635,
+          1.0009797831452398
+        ],
+        [
+          0.0005,
+          0.008793689012491706
+        ],
+        [
+          0.0,
+          0.01937211800079276
+        ]
+      ]
+    },
+    "heldout_template_closure": {
+      "statistic": 24.218945482606973,
+      "degrees_of_freedom": 29,
+      "pvalue": 0.7180637805075449,
+      "minimum_pvalue": 0.01,
+      "minimum_expected_per_bin": 12.393612976514566,
+      "passed": true,
+      "observed": [
+        18,
+        19,
+        23,
+        25,
+        36,
+        38,
+        52,
+        49,
+        58,
+        91,
+        114,
+        168,
+        255,
+        407,
+        618,
+        794,
+        814,
+        555,
+        354,
+        199,
+        142,
+        57,
+        64,
+        49,
+        36,
+        27,
+        24,
+        21,
+        15,
+        9
+      ],
+      "expected": [
+        19.71971943717804,
+        18.67437298095451,
+        23.759851256114104,
+        28.105144557427767,
+        30.872806775274157,
+        39.01819997945761,
+        44.3248461707445,
+        54.744187881039664,
+        58.38882043686997,
+        80.14208886425959,
+        115.2649720123453,
+        161.7225180228358,
+        244.4537489663963,
+        386.8217723428822,
+        602.5399956844635,
+        788.056304867564,
+        796.3397439675042,
+        594.6534225136805,
+        371.18648714920295,
+        222.93515358827602,
+        132.87282873135032,
+        91.80019145218637,
+        65.06772598525235,
+        41.34407801419972,
+        29.2150708676063,
+        25.07745094026761,
+        22.082267456539395,
+        16.138766634623817,
+        12.393612976514566,
+        13.283849486988553
+      ],
+      "covariance_includes": [
+        "conditional data counts",
+        "finite held-out MC template",
+        "training data and MC bootstrap fit uncertainty"
+      ],
+      "covariance_omits": [
+        "physics systematics"
+      ]
+    },
+    "published_reference": "https://cms-results.web.cern.ch/cms-results/public-results/publications/SMP-23-002/index.html",
+    "published_mass_gev": 91.188,
+    "passed": true,
+    "interpretation": "The gate is the frozen held-out data/MC shape closure. The raw peak fit is diagnostic: it includes FSR and uses no Rochester or precision-scale correction, so it is not directly compared to the published precision Z mass."
+  },
+  "jpsi_resolution_by_abs_eta": [
+    {
+      "abs_eta": [
+        0.0,
+        0.9
+      ],
+      "fit": {
+        "entries": 3279,
+        "status": "fit_ok",
+        "mean_gev": 3.0924900288127533,
+        "mean_uncertainty_gev_approx": 0.0005102800694319364,
+        "sigma_gev": 0.027042427881316052,
+        "sigma_uncertainty_gev_approx": 0.0003608224973996646,
+        "uncertainty_method": "Gaussian Fisher approximation using fitted signal count; background uncertainty omitted",
+        "signal_fraction": 0.8565105797016708,
+        "background_slope_per_gev": 0.0,
+        "fit_window_gev": [
+          2.75,
+          3.35
+        ]
+      },
+      "sigma_over_mass": 0.00874454812444391,
+      "published_plot_envelope": [
+        0.008,
+        0.018
+      ],
+      "passed": true
+    },
+    {
+      "abs_eta": [
+        0.9,
+        1.7
+      ],
+      "fit": {
+        "entries": 2483,
+        "status": "fit_ok",
+        "mean_gev": 3.0876161243967752,
+        "mean_uncertainty_gev_approx": 0.000999861798477647,
+        "sigma_gev": 0.048033086770406644,
+        "sigma_uncertainty_gev_approx": 0.0007070090579529214,
+        "uncertainty_method": "Gaussian Fisher approximation using fitted signal count; background uncertainty omitted",
+        "signal_fraction": 0.9294463422398545,
+        "background_slope_per_gev": 0.0,
+        "fit_window_gev": [
+          2.75,
+          3.35
+        ]
+      },
+      "sigma_over_mass": 0.015556689962483864,
+      "published_plot_envelope": [
+        0.01,
+        0.03
+      ],
+      "passed": true
+    },
+    {
+      "abs_eta": [
+        1.7,
+        2.4
+      ],
+      "fit": {
+        "entries": 948,
+        "status": "fit_ok",
+        "mean_gev": 3.086623915075274,
+        "mean_uncertainty_gev_approx": 0.0021225877077773103,
+        "sigma_gev": 0.06352662765038034,
+        "sigma_uncertainty_gev_approx": 0.001500896161832546,
+        "uncertainty_method": "Gaussian Fisher approximation using fitted signal count; background uncertainty omitted",
+        "signal_fraction": 0.9448698153423597,
+        "background_slope_per_gev": 0.0,
+        "fit_window_gev": [
+          2.75,
+          3.35
+        ]
+      },
+      "sigma_over_mass": 0.02058126593917455,
+      "published_plot_envelope": [
+        0.015,
+        0.045
+      ],
+      "passed": true
+    }
+  ],
+  "passed": false,
+  "deterministic_result_sha256": "61d422fe86583062c5b3813eebb998ab604d77fe85c84e0a2b533d88bff6259d",
+  "validation_environment": {
+    "python": "3.13.14",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "environment_lock_sha256": "5b99e3a4de67ea3dcd40022436e9bab8b0da062b11ecea00959d5413a3323ad6",
+    "git_revision": "7327c0606b7ed39ef76a80e8f8d580ecd06a9d30",
+    "git_dirty": true,
+    "container_digest": null,
+    "execution_environment": "Windows-11-10.0.26300-SP0"
+  },
+  "legacy_original_status": "passed",
+  "legacy_original_passed": true,
+  "independent_validation_eligible": false,
+  "interpretation": "Preserved historical output. Candidate ranking used distance to the PDG target mass; it is exploratory only and must not be cited as independent validation."
+}

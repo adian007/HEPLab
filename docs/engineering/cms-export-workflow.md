@@ -3,8 +3,13 @@
 This continues the [completion plan](completion-plan.md). The pinned CMSSW image
 was loaded and the ideal Extended2016 geometry export and reference navigation
 completed. The preserved run and material reports in
-`artifacts/cms/geometry/export-2016-retry1/` are the evidence. Full transport
-remains gated on overlap review, Run2016G conditions, and Geant4 comparison.
+`artifacts/cms/geometry/export-2016-retry1/` are the evidence. Native Geant4
+comparisons now cover all 146 overlap candidates; they confirm unresolved
+navigation findings, so full material transport remains disabled. The combined
+Geant4 report is preserved at
+`artifacts/cms/geometry/geant4-navigation-comparison-2026-10-28/REPORT.md`;
+run `python tools/verify_cms_navigation_evidence.py` to check preserved
+export hashes and the final comparison summary.
 
 ## M0: resumable acquisition and export
 
@@ -58,8 +63,10 @@ python tools/run_cms_export.py --output artifacts/cms/geometry/export-2016-retry
 ```
 
 The workflow's automatic completion means **export and reference navigation**,
-not full transport validation. Overlap review, compatible field/conditions,
-Geant4 material equivalence and process validation remain gates.
+not full transport validation. Overlap review and Geant4 material equivalence
+have now been executed across the stored candidate set, but failed reciprocity
+and material/volume-boundary cases keep transport blocked. Compatible
+field/conditions and particle-process validation also remain gates.
 
 ## M1: reference material navigation
 
@@ -79,7 +86,13 @@ rather than using an arbitrary epsilon that might skip a thin foil. Segment
 length accounting and coordinate/path agreement have explicit gates. The
 export audit requests 108 deterministic rays across η and φ in the ideal CMS
 description in the completed export. These are directional material references,
-not scattered/curved particle trajectories or shower simulation.
+not scattered/curved particle trajectories or shower simulation. The later
+independent Geant4/DDD comparison completed all 146 stored overlap candidates.
+Both navigators pass local path-length accounting, while 38/2,628 ray pairs
+fail cross-backend material-path agreement and forward/reverse checks remain
+inconsistent. It yields zero transport clearances; see the combined report
+linked above. Analytic fixture success does not waive detector-geometry
+failures.
 
 `tools/verify_cms_material.py` has run against ROOT 6.40.04. Three independent
 analytic rays cross 1 mm and 10 µm silicon foils, including reverse and oblique

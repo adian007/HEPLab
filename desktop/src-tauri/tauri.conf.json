@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "HEPLab",
-  "version": "0.1.0-dev.0",
+  "version": "0.1.0+dev.0",
   "identifier": "org.heplab.desktop",
   "build": {
     "frontendDist": "../frontend",
@@ -11,10 +11,10 @@
     "withGlobalTauri": false,
     "windows": [
       {
-        "title": "HEPLab Simulator",
+        "title": "HEPLab Workbench",
         "width": 1440,
         "height": 900,
-        "minWidth": 1100,
+        "minWidth": 800,
         "minHeight": 680
       }
     ],
@@ -26,7 +26,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "externalBin": ["binaries/heplab-worker"],
+    "resources": {"worker/": "worker/"},
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -38,6 +38,9 @@
     "shortDescription": "Reproducible particle-physics simulation and laboratory replay",
     "linux": {
       "deb": {"depends": []}
+    },
+    "windows": {
+      "wix": {"version": "0.1.0.0"}
     },
     "macOS": {
       "minimumSystemVersion": "11.0"

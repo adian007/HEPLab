@@ -13,6 +13,7 @@ def read(
     entry_stop=None,
     source_id="",
     allow_unit_weights=False,
+    include_truth=True,
     **_kwargs,
 ):
     import uproot
@@ -53,6 +54,8 @@ def read(
             "Weight",
             "Particle",
         }
+        if not include_truth:
+            collections.remove("Particle")
         leaves = sorted(
             {
                 key.rsplit("/", 1)[-1]

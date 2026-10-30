@@ -33,8 +33,8 @@ from Phase-II iRPC geometry and a standalone laboratory arrangement.
 
 | Milestone | Deliverable | Acceptance evidence | Dependency |
 |---|---|---|---|
-| M0: reproducible CMS export | Pinned container, working CMSSW, geometry/material ROOT file, complete logs and hashes | Smoke test, successful cmsRun, source inventory, material/solid/depth audit | Docker and image download |
-| M1: material navigation | Full exported solids navigated with material names, composition, density, X0 and interaction length | Analytic slab fixtures, boundary/tangent tests, complete path-length accounting, directional maps and overlap report | M0 |
+| M0: reproducible CMS export | Pinned container, working CMSSW, geometry/material ROOT file, complete logs and hashes | Smoke test, successful cmsRun, source inventory, material/solid/depth audit | **Exported and hash-verified; ideal Extended2016 DDD only** |
+| M1: material navigation | Full exported solids navigated with material names, composition, density, X0 and interaction length | Analytic slab fixtures, boundary/tangent tests, complete path-length accounting, directional maps and overlap report | **Compared against native Geant4; acceptance blocked by unresolved geometry/navigation findings** |
 | M2: field and transport | Volume-aware CMS field and material-coupled propagation with explicit supported species/processes | Run/IOV coherence, external field checks, tolerance convergence, energy ledger and Geant4 comparisons | M1 and compatible conditions |
 | M3: measured CMS calibration | Era-compatible selected data/MC, corrections, response parameters and uncertainties | Frozen training/validation samples, weighted statistics, FSR/background treatment, held-out closure | M2 for transport claims; data/MC work can start earlier |
 | M4: laboratory profile | Identified chamber and DAQ schema, geometry, clocks, channel map and run metadata | Reviewed inventory, decoder golden files, unit/time/channel validation | Physical identification and example data |
@@ -244,16 +244,41 @@ an unsupported completion date.
 
 Progress, 2026-10-28: M0 export completed (`export-2016-retry1`, 3,678 volumes,
 360 materials, 108 reference rays); M1 overlap review and ROOT/Geant4 navigation
-comparisons ran, with physics acceptance still blocked on cross-backend and
-forward/reverse disagreements. M4/M5 offline software foundation—device profile
+comparisons are complete for all 146 stored overlap candidates (38 source
+volume-pair groups). The independent Geant4 build confirms the solid-level
+containment/intersection witnesses. Across 5,256 local traces, 38 ray pairs
+disagree on material paths, 41 fail material-boundary comparisons, 224 fail
+volume-boundary comparisons, and forward/reverse checks fail 510/1,314 Geant4
+and 478/1,314 ROOT cases. Path-length accounting and world-size sensitivity
+checks pass, but there are zero transport clearances. Thus M0 is complete within
+its declared ideal-geometry scope and M1's evidence run is complete while M1
+acceptance remains blocked; neither establishes full CMS transport. Run
+`python tools/verify_cms_navigation_evidence.py` to recheck preserved M0 hashes
+and M1 summary consistency. The original geometry and source inputs remain
+unchanged. M4/M5 offline software foundation—device profile
 with explicit unknowns, loss-accounted decoding, clock epochs, channel offsets,
 coincidence events, independent-trigger efficiency and immutable replay
 records—is implemented on synthetic fixtures only; see
 [laboratory replay](laboratory-replay.md). The physical equipment is still
 unidentified, so M4 acceptance has not started. M7 foundation: the shared
 operation table, bounded worker, Rust supervisor and frozen Linux sidecar are
-implemented and tested; the Tauri 2 shell and four-runner build matrix are
-written but not yet compiled; see [desktop shell](desktop-shell.md).
+implemented and tested; the Tauri 2 shell has since been compiled and exercised
+on Windows x86-64. Linux and both macOS bundles, cross-architecture fixtures,
+and signed distribution remain open; see [desktop shell](desktop-shell.md).
+
+## External dependencies that prevent milestone closure
+
+The repository can finish software and evidence work that has local inputs, but
+it cannot manufacture the evidence below. M3 production calibration needs
+independent, era-compatible data and MC with corrections, signed-weight and
+FSR/background handling, and held-out closure; the checked-in 100k data/MC
+subset is explicitly exploratory and range-integrity only. M4/M5/M6 acceptance
+needs the physical device identity, operator-supplied DAQ specification and
+real recorded runs with an independent track/trigger denominator. M7 needs
+native Linux and both macOS runners plus signing/notarization credentials for a
+distributable release. M8 depends on independently reviewed accepted M3/M6
+domains and completed M7. These gates must stay open until those inputs and
+reviews exist.
 
 Sources: [official CMS Docker environment](https://opendata.cern.ch/docs/cms-guide-docker),
 [CMS iRPC electronics and readout](https://cds.cern.ch/record/2792677/files/CR2020_098.pdf),

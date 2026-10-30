@@ -59,6 +59,22 @@ def main():
         )
         mc_masses[split].append(pair["mass_gev"])
     edges = np.linspace(75, 105, 31)
+    z_input_fixture = {
+        "schema": "heplab-cms-z-template-input-v1",
+        "data_source": {
+            "record": measured_report["data_record"],
+            "selected_pairs_sha256": measured_report["selected_pairs_sha256"],
+            "entries": measured_report["data_source"]["entry_stop"],
+            "split": measured_report["split"],
+        },
+        "mc_source": source,
+        "fit_edges_gev": edges.tolist(),
+        "data_masses_gev": data_masses,
+        "mc_masses_gev": mc_masses,
+    }
+    z_input_fixture["sha256"] = hashlib.sha256(
+        json.dumps(z_input_fixture, sort_keys=True, separators=(",", ":")).encode("utf8")
+    ).hexdigest()
     fit = fit_template(data_masses[0], mc_masses[0], edges)
     bootstrap = bootstrap_template(data_masses[0], mc_masses[0], edges)
     fit["uncertainty_status"] = "conditional bootstrap available; physics systematics unresolved"
@@ -100,6 +116,9 @@ def main():
         ROOT / "src/heplab/data/reference/cms-mass-calibration.json",
     ]:
         output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf8")
+    (ROOT / "src/heplab/data/reference/cms-z-template-candidates.json").write_text(
+        json.dumps(z_input_fixture, separators=(",", ":")) + "\n", encoding="utf8"
+    )
     print(
         json.dumps(
             {

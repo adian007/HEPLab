@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Mean muon energy loss in silicon · HEPLab example</title>
+  <style>
+    :root { color-scheme: light dark; font: 16px/1.55 system-ui, sans-serif; }
+    body { max-width: 920px; margin: 0 auto; padding: 2rem 1.2rem 4rem; }
+    main { display: grid; gap: 1rem; }
+    .eyebrow { color: #187078; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+    .notice { border: 2px solid #a76200; border-radius: .65rem; padding: 1rem; }
+    .panel { border: 1px solid #8886; border-radius: .65rem; padding: 1rem; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    th, td { text-align: right; padding: .4rem .55rem; border-bottom: 1px solid #8885; }
+    th:first-child, td:first-child { text-align: left; }
+    code { overflow-wrap: anywhere; }
+    a { color: #16707b; }
+    .back { display: inline-block; margin-bottom: 1.2rem; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+  <a class="back" href="/gallery/">← Back to the HEPLab examples gallery</a>
+  <main>
+    <header><div class="eyebrow">PDG 2025 reference-table reproduction</div><h1>Mean muon energy loss in silicon</h1></header>
+    <section class="notice"><strong>Reference-table reproduction, not a detector measurement.</strong>
+      This example reproduces PDG 2025 mean muon ionization stopping power in silicon. The held-out maximum absolute relative error is 0.4105% against a predeclared 2% threshold. Radiative loss, event-by-event straggling, sensor response, and CMS calibration are not tested.</section>
+    <section class="panel"><h2>Declared interpolation result</h2>
+      <p>Fit scope: log-linear interpolation in kinetic energy using 25 alternating training rows; 24 rows are held out from the fit. Valid tabulated domain: 0.1 to 100 GeV kinetic energy. Requests outside that range are rejected.</p>
+      <p>Target quantity: mean ionization stopping power, GeV/m. It is not a stochastic single-particle loss distribution.</p>
+      <details><summary>Show all source table rows</summary><table><thead><tr><th>Kinetic energy (GeV)</th><th>Mean ionization (GeV/m)</th><th>Use in reproduction</th></tr></thead><tbody><tr><td>0.1</td><td>0.4306321</td><td>Training knot</td></tr><tr><td>0.12</td><td>0.4147949</td><td>Held-out reference row</td></tr><tr><td>0.14</td><td>0.4045473</td><td>Training knot</td></tr><tr><td>0.17</td><td>0.3956971</td><td>Held-out reference row</td></tr><tr><td>0.2</td><td>0.3908062</td><td>Training knot</td></tr><tr><td>0.25</td><td>0.3877785</td><td>Held-out reference row</td></tr><tr><td>0.3</td><td>0.3877785</td><td>Training knot</td></tr><tr><td>0.35</td><td>0.3894088</td><td>Held-out reference row</td></tr><tr><td>0.4</td><td>0.3915049</td><td>Training knot</td></tr><tr><td>0.45</td><td>0.3940668</td><td>Held-out reference row</td></tr><tr><td>0.5</td><td>0.3966287</td><td>Training knot</td></tr><tr><td>0.55</td><td>0.3991906</td><td>Held-out reference row</td></tr><tr><td>0.6</td><td>0.4019854</td><td>Training knot</td></tr><tr><td>0.7</td><td>0.4068763</td><td>Held-out reference row</td></tr><tr><td>0.8</td><td>0.4115343</td><td>Training knot</td></tr><tr><td>0.9</td><td>0.4159594</td><td>Held-out reference row</td></tr><tr><td>1</td><td>0.4199187</td><td>Training knot</td></tr><tr><td>1.2</td><td>0.4271386</td><td>Held-out reference row</td></tr><tr><td>1.4</td><td>0.433194</td><td>Training knot</td></tr><tr><td>1.7</td><td>0.4411126</td><td>Held-out reference row</td></tr><tr><td>2</td><td>0.4476338</td><td>Training knot</td></tr><tr><td>2.5</td><td>0.456484</td><td>Held-out reference row</td></tr><tr><td>3</td><td>0.4637039</td><td>Training knot</td></tr><tr><td>3.5</td><td>0.4697593</td><td>Held-out reference row</td></tr><tr><td>4</td><td>0.4746502</td><td>Training knot</td></tr><tr><td>4.5</td><td>0.4790753</td><td>Held-out reference row</td></tr><tr><td>5</td><td>0.4830346</td><td>Training knot</td></tr><tr><td>5.5</td><td>0.4865281</td><td>Held-out reference row</td></tr><tr><td>6</td><td>0.4895558</td><td>Training knot</td></tr><tr><td>7</td><td>0.4951454</td><td>Held-out reference row</td></tr><tr><td>8</td><td>0.4995705</td><td>Training knot</td></tr><tr><td>9</td><td>0.5035298</td><td>Held-out reference row</td></tr><tr><td>10</td><td>0.5070233</td><td>Training knot</td></tr><tr><td>12</td><td>0.5130787</td><td>Held-out reference row</td></tr><tr><td>14</td><td>0.5179696</td><td>Training knot</td></tr><tr><td>17</td><td>0.5237921</td><td>Held-out reference row</td></tr><tr><td>20</td><td>0.528683</td><td>Training knot</td></tr><tr><td>25</td><td>0.5349713</td><td>Held-out reference row</td></tr><tr><td>30</td><td>0.5400951</td><td>Training knot</td></tr><tr><td>35</td><td>0.5440544</td><td>Held-out reference row</td></tr><tr><td>40</td><td>0.5477808</td><td>Training knot</td></tr><tr><td>45</td><td>0.5508085</td><td>Held-out reference row</td></tr><tr><td>50</td><td>0.5536033</td><td>Training knot</td></tr><tr><td>55</td><td>0.5559323</td><td>Held-out reference row</td></tr><tr><td>60</td><td>0.5580284</td><td>Training knot</td></tr><tr><td>70</td><td>0.5619877</td><td>Held-out reference row</td></tr><tr><td>80</td><td>0.5652483</td><td>Training knot</td></tr><tr><td>90</td><td>0.568276</td><td>Held-out reference row</td></tr><tr><td>100</td><td>0.5708379</td><td>Training knot</td></tr></tbody></table></details>
+    </section>
+    <section class="panel"><h2>Provenance and scope</h2><ul>
+      <li>Reference: <a href="https://pdg.lbl.gov/2025/AtomicNuclearProperties/MUE/muE_silicon_Si.txt">PDG 2025 muon energy loss in silicon</a>.</li>
+      <li>Downloaded source SHA-256: <code>4f1fbf9a287a59765de8b5ea840471fe72c2b675c982e995bac9b57d2c0425fd</code>.</li>
+      <li>Checked-in parsed rows SHA-256: <code>6e1931c28982dcba31b2539b795d8f62bbe7c115e62c14940c2a17c1adf94c22</code>.</li>
+      <li>Reproduction recipe SHA-256: <code>dc9c1c70896e00ace6c2b12f0438ed4307939aaca80979d23c3aa9462e523917</code>; ID <code>pdg-si-muon-loglinear-split-v1</code>.</li>
+      <li>Output generated from repository files by <code>python tools/build_site_examples.py</code>.</li>
+    </ul></section>
+    <p><a href="/validation/evidence/">Read how HEPLab classifies evidence</a> · <a href="/simulation/models/">Model definitions and limits</a></p>
+  </main>
+</body>
+</html>

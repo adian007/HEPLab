@@ -11,6 +11,7 @@ from __future__ import annotations
 import math
 from dataclasses import asdict
 
+from .constants import CURVATURE_GEV_T_METRES, SPEED_OF_LIGHT_M_PER_NS
 from .reference import FourVector, TrackState
 
 MODEL = "cms-oae-1103l-3.8T-tracker-v1"
@@ -23,7 +24,7 @@ SOURCE = (
 
 def tracker_field(position) -> list[float]:
     if (
-        not isinstance(position, (list, tuple))
+        not isinstance(position, list | tuple)
         or len(position) != 3
         or any(type(x) not in (float, int) or not math.isfinite(x) for x in position)
     ):
@@ -95,7 +96,7 @@ def trace_tracker(state: TrackState, path_length_m: float, step_m: float) -> dic
         b = tracker_field(values[:3])
         magnitude = math.hypot(*values[3:])
         u = [v / magnitude for v in values[3:]]
-        k = 0.299792458 * state.charge
+        k = CURVATURE_GEV_T_METRES * state.charge
         return [
             *u,
             k * (u[1] * b[2] - u[2] * b[1]),
@@ -107,7 +108,7 @@ def trace_tracker(state: TrackState, path_length_m: float, step_m: float) -> dic
         remaining = path_length_m - path
         if remaining <= 1e-12:
             break
-        h = min(step_m, remaining, 0.05 * p / (0.299792458 * 4))
+        h = min(step_m, remaining, 0.05 * p / (CURVATURE_GEV_T_METRES * 4))
         while True:
             try:
                 k1 = derivative(y)
@@ -139,7 +140,7 @@ def trace_tracker(state: TrackState, path_length_m: float, step_m: float) -> dic
         (y[0], y[1], y[2]),
         FourVector(state.momentum.energy, *y[3:]),
         state.charge,
-        state.time_ns + path * state.momentum.energy / (p * 0.299792458),
+        state.time_ns + path * state.momentum.energy / (p * SPEED_OF_LIGHT_M_PER_NS),
     )
     return {
         "state": asdict(final),

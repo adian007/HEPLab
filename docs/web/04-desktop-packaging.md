@@ -19,7 +19,7 @@ missing capabilities clearly.
 ```mermaid
 flowchart LR
     USER[User] --> SHELL[Desktop shell / webview]
-    SHELL --> UI[Packaged React assets]
+    SHELL --> UI[Packaged local workbench assets]
     SHELL --> SUP[Service supervisor]
     SUP --> PY[Python HEPLab service]
     PY --> CORE[Python and Rust core]

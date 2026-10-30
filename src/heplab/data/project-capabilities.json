@@ -1,0 +1,38 @@
+[
+  {
+    "id": "data",
+    "name": "CMS Open Data",
+    "status": "foundations",
+    "detail": "Versioned manifests, readers, certification, cache and provenance.",
+    "summary": "Versioned dataset manifests carry certification, exact source ranges, checksums and provenance from the record into analysis.",
+    "includes": ["Run2016G DoubleMuon reference", "NanoAOD and DELPHES readers", "Bounded Parquet cache with integrity checks"],
+    "href": "docs/engineering/02-data-supply.md"
+  },
+  {
+    "id": "simulation",
+    "name": "Local simulation",
+    "status": "working-increment",
+    "detail": "Reference bench, Rust engine, and native PYTHIA8/DELPHES runtime.",
+    "summary": "A deterministic muon thin-slab reference bench, a Rust numerical engine, and native Drell–Yan generation through PYTHIA8 + DELPHES when that runtime is present.",
+    "includes": ["Solenoid-field propagation and XY/XZ/3D track views", "Energy loss, multiple scattering, channel response", "Seeded configurations and exportable artifacts"],
+    "href": "docs/engineering/sim-runtime.md"
+  },
+  {
+    "id": "analysis",
+    "name": "Analysis workflow",
+    "status": "early-implementation",
+    "detail": "Schemas, readers, processors, statistics and immutable artifacts.",
+    "summary": "Shared event and artifact contracts connect simulated and recorded events to common processors, histograms and fits.",
+    "includes": ["Schema-v1 event model", "Dimuon analysis with cutflows", "iminuit fitting and PNG plots"],
+    "href": "docs/engineering/01-architecture.md"
+  },
+  {
+    "id": "evidence",
+    "name": "Validation evidence",
+    "status": "in-progress",
+    "detail": "Software checks and named-reference comparisons are distinct from independent physics validation.",
+    "summary": "Run records preserve what produced them. Software checks and named-reference comparisons remain distinct from independent physics validation.",
+    "includes": ["Run identity and frozen config", "Engine capability reporting", "Immutable, source-linked outputs"],
+    "href": "docs/engineering/14-verification.md"
+  }
+]

@@ -1,0 +1,32 @@
+{
+  "analysis": {
+    "mass_max_gev": 120.0,
+    "mass_min_gev": 60.0,
+    "muon_abs_eta_max": 2.4,
+    "muon_iso_max": 0.15,
+    "muon_pt_min_gev": 20.0
+  },
+  "analytic": {
+    "bz_tesla": 3.8,
+    "field_model": "ideal_bore",
+    "momentum_gev": 5.0,
+    "noise_adc": 0.0,
+    "source_model": "transverse_pair",
+    "thickness_mm": 1.0,
+    "threshold_adc": 0.0
+  },
+  "collision": {
+    "response_model": "ideal"
+  },
+  "display": {
+    "projection": "xy-xz",
+    "region": "cms"
+  },
+  "run": {
+    "backend": "reference",
+    "events": 1,
+    "mode": "analytic",
+    "seed": 731
+  },
+  "schema": "heplab-run-config-v2"
+}

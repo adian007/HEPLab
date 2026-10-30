@@ -1,0 +1,43 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "HEPLab";
+    ViewData["Description"] = "An educational particle physics workbench. Explore local simulation, analyze CERN Open Data, and inspect the evidence behind every model.";
+    ViewData["IsHome"] = true;
+}
+<div class="home-container">
+    <div class="home-masthead"><span><i class="status-dot" aria-hidden="true"></i> OPEN SOURCE · PARTICLE PHYSICS</span><a href="/project/capabilities/">An evolving scientific workbench <lab-icon name="arrow-up-right" /></a></div>
+    <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-title">
+            <p class="eyebrow"><span class="section-number">01 /</span> FROM EQUATIONS TO EXPLORATION</p>
+            <h1 id="hero-title">A closer look at<br /> particle <em>physics.</em></h1>
+            <p class="tagline">Follow a particle. Rebuild a mass. Understand the model behind the result.</p>
+        </div>
+        <div class="hero-copy">
+            <p class="hero-description">An educational workbench for local simulation and reproducible analysis with CERN Open Data. Built to make the physics—and its limits—visible.</p>
+            <div class="hero-actions"><a class="btn btn-primary" href="/getting-started/">Start exploring <lab-icon name="arrow-right" /></a><a class="btn btn-outline-secondary" href="/education/"><lab-icon name="flask" /> Enter the learning lab</a></div>
+            <div class="hero-footnote"><span class="mini-orbit" aria-hidden="true">◎</span><span>Runs on your machine.<br /> <strong>Your data stays with you.</strong></span><a href="/simulation/workbench/" aria-label="Learn about the local workbench"><lab-icon name="arrow-up-right" /></a></div>
+        </div>
+    </section>
+    <section class="event-showcase" aria-label="Synthetic muon pair in the declared detector model">
+        <partial name="_ExperimentPreview" model="Model.Experiment" />
+    </section>
+    <div class="capability-strip" aria-label="Available workflows"><span><lab-icon name="orbit" /> Scoped simulation models</span><span><lab-icon name="layers" /> CERN Open Data analysis</span><span><lab-icon name="flask" /> Guided investigations</span><span><lab-icon name="shield" /> Traceable results</span></div>
+    <section class="explore-section" aria-labelledby="explore-title">
+        <div class="section-heading"><div><p class="eyebrow"><span class="section-number">02 /</span> CHOOSE YOUR STARTING POINT</p><h2 id="explore-title">One workbench. More ways in.</h2></div><p>Start with a question.<br /> Follow it all the way to the evidence.</p></div>
+        <div class="row g-3 pathway-grid">
+            <div class="col-md-4"><a class="pathway" href="/simulation/workbench/"><div class="pathway-top"><span class="pathway-icon"><lab-icon name="orbit" /></span><span class="mono">01 — SIMULATE</span><lab-icon name="arrow-up-right" /></div><h3>See the physics<br /> take shape.</h3><p>Explore magnetic bending, muon survival, and material effects with explicit model boundaries.</p><span class="pathway-link">Explore the local workbench <lab-icon name="arrow-right" /></span></a></div>
+            <div class="col-md-4"><a class="pathway" href="/data/open-data/"><div class="pathway-top"><span class="pathway-icon"><lab-icon name="layers" /></span><span class="mono">02 — ANALYZE</span><lab-icon name="arrow-up-right" /></div><h3>From open data<br /> to a clear result.</h3><p>Follow the CERN Open Data path from certified inputs to selections, mass spectra, and provenance.</p><span class="pathway-link">Follow the analysis workflow <lab-icon name="arrow-right" /></span></a></div>
+            <div class="col-md-4"><a class="pathway" href="/education/"><div class="pathway-top"><span class="pathway-icon"><lab-icon name="flask" /></span><span class="mono">03 — LEARN</span><lab-icon name="arrow-up-right" /></div><h3>Make your first<br /> discovery.</h3><p>Reconstruct the Z peak through six guided checkpoints using a clearly marked synthetic sample.</p><span class="pathway-link">Begin the browser investigation <lab-icon name="arrow-right" /></span></a></div>
+        </div>
+    </section>
+    <section class="evidence-feature" aria-labelledby="evidence-title">
+        <div class="evidence-statement"><p class="eyebrow"><span class="section-number">03 /</span> THE EVIDENCE MATTERS</p><h2 id="evidence-title">A result is only as useful<br /> as the context around it.</h2><p>HEPLab is an educational simulator with specific checked submodels. Every comparison has a source, a scope, and a limit.</p><a class="text-link" href="/validation/evidence/">Read the evidence <lab-icon name="arrow-right" /></a></div>
+        <div class="evidence-ledger"><a href="/simulation/models/"><span class="ledger-index">A</span><span><strong>Know the model</strong><small>Equations, units, domains, and omitted effects</small></span><lab-icon name="arrow-up-right" /></a><a href="/validation/reading-results/"><span class="ledger-index">B</span><span><strong>Inspect the provenance</strong><small>Source, configuration, version, and result scope</small></span><lab-icon name="arrow-up-right" /></a><a href="/project/limitations/"><span class="ledger-index">C</span><span><strong>Keep the limits in view</strong><small>Software checks do not establish detector calibration</small></span><lab-icon name="arrow-up-right" /></a></div>
+    </section>
+    <section class="start-section" aria-labelledby="start-title"><div><p class="eyebrow">YOUR NEXT EXPERIMENT STARTS HERE</p><h2 id="start-title">Open the workbench.</h2><p>Install from the repository, choose a model, and inspect your first result.</p><a class="text-link" href="/getting-started/">Installation and setup <lab-icon name="arrow-right" /></a></div><div class="terminal-preview"><div class="terminal-bar"><span class="terminal-dots" aria-hidden="true">● ● ●</span><span>LOCAL TERMINAL</span></div><div class="terminal-body"><span class="terminal-comment"># Launch after installing HEPLab</span><code><span aria-hidden="true">$ </span>heplab gui --open-browser</code><span class="terminal-note">Python 3.12+ · see setup for dependencies</span></div></div></section>
+    <p class="home-boundary"><span class="status-dot" aria-hidden="true"></span> Early implementation. Browser lessons use synthetic fixtures; simulation runs locally. Broad experimental detector validation remains open. <a href="/project/capabilities/">Current project status <lab-icon name="arrow-up-right" /></a></p>
+</div>
+@section Scripts {
+    <script src="/js/detector-view.js" asp-append-version="true" defer></script>
+}

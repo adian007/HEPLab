@@ -1,0 +1,71 @@
+@{
+    var isHome = ViewData["IsHome"] as bool? == true;
+    var title = ViewData["Title"] as string ?? "HEPLab";
+    var description = ViewData["Description"] as string ?? "Explore particle physics with local simulation, reproducible analysis, and declared model limits.";
+    var path = Context.Request.Path.Value ?? "/";
+}
+<!doctype html>
+<html lang="en" data-theme="dark" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="@description" />
+    <meta name="theme-color" content="#101416" />
+    <title>@(isHome ? "HEPLab — A closer look at particle physics" : title + " | HEPLab")</title>
+    <link rel="icon" href="/heplab-detector.svg" type="image/svg+xml" />
+    <link rel="preload" href="/vendor/fonts/IBMPlexSans-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <script src="/js/theme-init.js" asp-append-version="true"></script>
+    <link rel="stylesheet" href="/vendor/bootstrap/5.3.8/bootstrap.min.css" />
+    <link rel="stylesheet" href="/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/activities.css" asp-append-version="true" />
+</head>
+<body class="@(isHome ? "page-home" : "page-guide")">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header"><div class="header-inner">
+        <a class="site-title" href="/" aria-label="HEPLab home"><img src="/heplab-detector.svg" width="34" height="34" alt="" /><span>HEP<span class="brand-light">Lab</span></span></a>
+        <span class="brand-divider" aria-hidden="true"></span>
+        <nav class="top-nav" aria-label="Quick links">
+            <a href="/getting-started/" aria-current="@(path.StartsWith("/getting-started") ? "page" : null)">Guide</a>
+            <a href="/simulation/models/" aria-current="@(path.StartsWith("/simulation") ? "page" : null)">Models</a>
+            <a href="/education/" aria-current="@(path.StartsWith("/education") ? "page" : null)">Learning lab</a>
+            <a href="/validation/evidence/" aria-current="@(path.StartsWith("/validation") ? "page" : null)">Evidence</a>
+            <a href="/gallery/" aria-current="@(path.StartsWith("/gallery") ? "page" : null)">Gallery</a>
+        </nav>
+        <div class="header-actions">
+            <button id="search-open" class="search-open" type="button" aria-label="Search" aria-haspopup="dialog"><lab-icon name="search" /><span>Search the guide</span><kbd>Ctrl K</kbd></button>
+            <label class="theme-control"><span class="sr-only">Select theme</span><select id="theme-select" class="form-select form-select-sm" aria-label="Select theme"><option value="dark">Dark</option><option value="light">Light</option><option value="auto">System</option></select></label>
+            <a class="source-link" href="https://github.com/adian007/HEPLab" aria-label="HEPLab source on GitHub"><lab-icon name="source" /></a>
+            <button class="menu-toggle icon-button" id="menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#site-sidebar" aria-controls="site-sidebar" aria-label="Open navigation"><lab-icon name="menu" /></button>
+        </div>
+    </div></header>
+
+    <div class="offcanvas offcanvas-start mobile-navigation" tabindex="-1" id="site-sidebar" aria-labelledby="mobile-nav-title">
+        <div class="offcanvas-header"><h2 id="mobile-nav-title">Explore HEPLab</h2><button type="button" class="icon-button" data-bs-dismiss="offcanvas" aria-label="Close navigation"><lab-icon name="close" /></button></div>
+        <div class="offcanvas-body"><partial name="_GuideNavigation" /><label class="mobile-theme-label" for="mobile-theme-select">Appearance</label><select id="mobile-theme-select" class="form-select" aria-label="Mobile theme"><option value="dark">Dark</option><option value="light">Light</option><option value="auto">System</option></select></div>
+    </div>
+
+    <dialog id="search-dialog" class="search-dialog" aria-labelledby="search-title">
+        <div class="search-heading"><lab-icon name="search" /><label id="search-title" for="search-input">Search the guide</label><button class="icon-button search-close" type="button" aria-label="Close search"><lab-icon name="close" /></button></div>
+        <input id="search-input" type="search" autocomplete="off" placeholder="Models, installation, evidence…" aria-describedby="search-status" />
+        <p id="search-status" class="search-status" role="status">Start typing to search all guides and references.</p>
+        <div id="search-results" class="search-results"></div>
+        <div class="search-footer"><span><kbd>↑</kbd> <kbd>↓</kbd> to navigate</span><span><kbd>Esc</kbd> to close</span></div>
+    </dialog>
+
+    <div class="site-shell @(isHome ? "home-shell" : "")">
+        @if (!isHome)
+        {
+            <aside class="sidebar"><div class="sidebar-heading"><lab-icon name="book" /><span>THE FIELD GUIDE</span></div><partial name="_GuideNavigation" /><a class="sidebar-note" href="/project/limitations/"><lab-icon name="shield" /><span>Know the model.<br /><strong>Understand its limits.</strong></span><lab-icon name="arrow-up-right" /></a></aside>
+        }
+        <main id="main" class="main-content" tabindex="-1">@RenderBody()</main>
+    </div>
+    <footer class="site-footer">
+        <div class="footer-main"><a class="site-title" href="/" aria-label="HEPLab home"><lab-icon name="orbit" /><span>HEP<span class="brand-light">Lab</span></span></a><p>Particle physics, with the details in view.</p><nav aria-label="Footer"><a href="/project/capabilities/">Capabilities</a><a href="/project/limitations/">Limitations</a><a href="https://github.com/adian007/HEPLab">GitHub <lab-icon name="arrow-up-right" /></a></nav></div>
+        <div class="footer-bottom"><span>Open source · Apache-2.0 · Local execution</span><span>Educational simulation. Evidence with a declared scope.</span></div>
+    </footer>
+    <div id="site-status" class="sr-only" role="status"></div>
+    <script src="/vendor/bootstrap/5.3.8/bootstrap.bundle.min.js" defer></script>
+    <script src="/js/site.js" asp-append-version="true" defer></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

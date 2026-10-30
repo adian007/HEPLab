@@ -46,17 +46,19 @@ impl Histogram {
     pub fn fill(&mut self, value: f64, weight: f64) -> Result<()> {
         finite(&[value, weight, weight * weight])?;
         let index = self.edges.partition_point(|edge| *edge <= value);
-        let mut next = self.clone();
-        next.entries[index] = next.entries[index]
+        // Stage the single touched bin, then commit: O(1) and still transactional.
+        let entries = self.entries[index]
             .checked_add(1)
             .ok_or_else(|| crate::PhysicsError("entry counter overflow".into()))?;
-        add(&mut next.sumw[index], &mut next.compensation[index], weight)?;
-        add(
-            &mut next.sumw2[index],
-            &mut next.compensation2[index],
-            weight * weight,
-        )?;
-        *self = next;
+        let (mut sumw, mut compensation) = (self.sumw[index], self.compensation[index]);
+        add(&mut sumw, &mut compensation, weight)?;
+        let (mut sumw2, mut compensation2) = (self.sumw2[index], self.compensation2[index]);
+        add(&mut sumw2, &mut compensation2, weight * weight)?;
+        self.entries[index] = entries;
+        self.sumw[index] = sumw;
+        self.compensation[index] = compensation;
+        self.sumw2[index] = sumw2;
+        self.compensation2[index] = compensation2;
         Ok(())
     }
     pub fn merge(&mut self, other: &Self) -> Result<()> {

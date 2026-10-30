@@ -77,9 +77,7 @@ def test_rounded_cms_mixture_fractions_are_audited_and_normalized():
     record = worker.material_record(Mixture())
     assert record["source_mass_fraction_sum"] == pytest.approx(1.00005)
     assert sum(element["mass_fraction"] for element in record["elements"]) == pytest.approx(1)
-    assert [element["mass_fraction"] for element in record["elements"]] == pytest.approx(
-        [0.5, 0.5]
-    )
+    assert [element["mass_fraction"] for element in record["elements"]] == pytest.approx([0.5, 0.5])
 
     class InvalidMixture(Mixture):
         def GetWmixt(self):
