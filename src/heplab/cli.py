@@ -224,7 +224,9 @@ def cmd_run(args: argparse.Namespace) -> int:
         "dataset": None if args.input else args.dataset,
         "input_path": str(Path(args.input).expanduser().resolve()) if args.input else None,
         "input_sha256": manifest_hash if args.input else None,
-        "certification_path": str(Path(certification).expanduser().resolve()) if certification else None,
+        "certification_path": (
+            str(Path(certification).expanduser().resolve()) if certification else None
+        ),
         "certification_sha256": mask.sha256 if mask else None,
         "format": args.format,
         "max_events": args.max_events,
@@ -265,13 +267,18 @@ def cmd_reproduce(args: argparse.Namespace) -> int:
     if provenance.get("environment_lock_sha256") != environment_lock_hash():
         raise ValueError("dependency lock identity differs from the recorded environment")
     if provenance.get("source_tree_sha256") != source_snapshot():
-        raise ValueError("source tree differs from the recorded run; check out its recorded revision")
+        raise ValueError(
+            "source tree differs from the recorded run; check out its recorded revision"
+        )
     if recipe.get("input_path"):
         input_path = Path(recipe["input_path"])
         if not input_path.is_file() or file_hash(input_path) != recipe.get("input_sha256"):
             raise ValueError("recorded local input is missing or has changed")
     cert_path = recipe.get("certification_path")
-    if cert_path and (not Path(cert_path).is_file() or file_hash(cert_path) != recipe["certification_sha256"]):
+    if cert_path and (
+        not Path(cert_path).is_file()
+        or file_hash(cert_path) != recipe["certification_sha256"]
+    ):
         raise ValueError("recorded certification file is missing or has changed")
     with tempfile.TemporaryDirectory(prefix="heplab-reproduce-") as temporary:
         config_path = Path(temporary) / "analysis.json"
