@@ -1,9 +1,0 @@
-........................................................................ [ 34%]
-........................................................................ [ 69%]
-...............................................................s         [100%]
-============================== warnings summary ===============================
-tests/test_critical_blockers.py::test_API_002_local_service_rejects_foreign_origin_and_symlink
-  C:\Users\adian\AppData\Local\Programs\Python\Python313\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
-    from starlette.testclient import TestClient as TestClient  # noqa
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
