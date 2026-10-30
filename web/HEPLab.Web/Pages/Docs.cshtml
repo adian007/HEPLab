@@ -1,0 +1,47 @@
+@page "/{**slug}"
+@model DocsModel
+@if (!Model.Found)
+{
+    <section class="not-found"><p class="eyebrow">404 · Page not found</p><h1>This page isn’t here</h1><p>Use the guide navigation or return to the <a href="/">HEPLab overview</a>.</p></section>
+}
+else
+{
+    <div class="article-layout @(Model.Doc!.Url is "/education/" or "/gallery/" ? "interactive-article" : "")">
+        <article class="doc-article">
+            <nav class="doc-breadcrumb" aria-label="Breadcrumb"><a href="/">HEPLab</a><lab-icon name="chevron-right" /><span>@Model.Category</span></nav>
+            <header class="doc-heading" id="_top"><p class="eyebrow">THE HEPLAB FIELD GUIDE</p><h1>@Model.Doc!.Title</h1><p class="doc-description">@Model.Doc.Description</p><div class="doc-header-meta"><span><lab-icon name="book" /> @Model.ReadingMinutes min read</span><span>@Model.Category</span><button type="button" class="copy-page" data-copy-page><lab-icon name="copy" /><span>Copy page link</span></button></div></header>
+            @if (Model.Doc.Toc.Count > 0)
+            {
+                <details class="mobile-toc"><summary>On this page</summary><nav aria-label="Page sections">@foreach (var item in Model.Doc.Toc){<a href="#@item.Id">@item.Title</a>}</nav></details>
+            }
+            <div class="markdown-body">
+                @if (Model.Doc.Embed is { } embed)
+                {
+                    @Html.Raw(embed.BeforeHtml)
+                    <partial name="@embed.PartialName" />
+                    @Html.Raw(embed.AfterHtml)
+                }
+                else
+                {
+                    @Html.Raw(Model.Doc.Html)
+                }
+            </div>
+            <footer class="doc-footer">
+                <a href="https://github.com/adian007/HEPLab/edit/main/web/HEPLab.Web/Content/Docs/@Model.SourcePath">Edit this page</a>
+                <nav aria-label="Adjacent pages">
+                    @if (Model.Previous is not null) { <a class="previous-page" href="@Model.Previous.Url"><small>PREVIOUS</small><span>← @Model.Previous.Title</span></a> }
+                    @if (Model.Next is not null) { <a class="next-page" href="@Model.Next.Url"><small>NEXT</small><span>@Model.Next.Title →</span></a> }
+                </nav>
+            </footer>
+        </article>
+        @if (Model.Doc.Toc.Count > 0)
+        {
+            <aside class="toc" aria-label="On this page"><p>ON THIS PAGE</p><nav><a href="#_top">Overview</a>@foreach (var item in Model.Doc.Toc){<a href="#@item.Id">@item.Title</a>}</nav><a class="toc-evidence" href="/validation/reading-results/"><lab-icon name="shield" /><span>Read every result<br />with its scope.</span></a></aside>
+        }
+    </div>
+}
+
+@section Scripts {
+    @if (Model.Found && Model.Doc!.Url == "/education/") { <script src="/js/zlab.js" defer></script> }
+    @if (Model.Found && Model.Doc!.Url == "/gallery/") { <script src="/js/gallery.js" defer></script> }
+}

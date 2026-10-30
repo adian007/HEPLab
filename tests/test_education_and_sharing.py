@@ -166,6 +166,55 @@ def test_workbench_event_exports_and_gallery_indexes_pages(tmp_path, result):
         render({"something": "else"})
 
 
+def test_export_manifest_distinguishes_run_and_event_scope_and_privacy(tmp_path):
+    from heplab.server.workbench import RunConfig, bench, lifetime_experiment
+
+    run = bench(RunConfig(seed=5), threading.Event())
+    run["artifact"] = {
+        "schema": "heplab-run-artifact-v1",
+        "scope": "full_run",
+        "run_id": "run-5",
+        "result_sha256": "a" * 64,
+        "parent_run_sha256": None,
+    }
+    event = {
+        **run,
+        "artifact": {
+            **run["artifact"],
+            "schema": "heplab-event-view-v1",
+            "scope": "selected_event_view",
+            "event_index": 3,
+            "parent_run_sha256": "a" * 64,
+            "result_sha256": "b" * 64,
+        },
+        "output_directory": r"C:\\private\\local-run",
+        "raw_events": [{"secret": "excluded by default"}],
+    }
+    default_page = render(event)
+    default_meta = embedded(default_page, "heplab-meta")["manifest"]
+    default_data = embedded(default_page, "heplab-data")
+    assert default_meta["scope"] == "selected_event_view"
+    assert default_meta["event_index"] == 3
+    assert default_meta["parent_run_sha256"] == "a" * 64
+    assert default_meta["privacy"]["contains_local_paths"] is False
+    assert default_meta["privacy"]["raw_events_included"] is False
+    assert "raw_events" not in default_data and "output_directory" not in default_data
+
+    explicit_page = render(event, include_raw=True)
+    explicit_meta = embedded(explicit_page, "heplab-meta")["manifest"]
+    assert explicit_meta["privacy"]["contains_local_paths"] is True
+    assert explicit_meta["privacy"]["raw_events_included"] is True
+    assert "raw_events" in embedded(explicit_page, "heplab-data")
+
+    lifetime = lifetime_experiment(
+        {"momentum_gev_c": 1.0, "path_length_m": 20.0, "seed": 7, "sample_size": 100}
+    )
+    life_meta = embedded(render(lifetime), "heplab-meta")
+    assert life_meta["kind"] == "lifetime"
+    assert life_meta["manifest"]["scope"] == "full_run"
+    assert life_meta["manifest"]["result_sha256"] == lifetime["result_sha256"]
+
+
 def test_published_artifact_exports_after_digest_check(tmp_path, events):
     from heplab.cli import main
 

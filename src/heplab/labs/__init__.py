@@ -25,8 +25,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from ..physics.constants import MUON_MASS_GEV as MUON_MASS
+
 HERE = Path(__file__).resolve().parent
-MUON_MASS = 0.1056583755
 PRACTICE_SOURCE = "heplab-practice-z-mumu-v1"
 
 

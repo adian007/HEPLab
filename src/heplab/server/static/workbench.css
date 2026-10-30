@@ -32,6 +32,9 @@
 .plots-grid select{min-width:0;max-width:210px;font-size:10px;padding:2px}
 .plot svg{display:block;width:100%;max-height:185px;min-height:100px}
 .plot-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:10px;line-height:1.6;padding-left:6px}
+.plot-definition{margin:5px 4px 0;color:#566573;font-size:10px;line-height:1.45}
+.survival-plot{margin:12px 0 0;padding:10px;border:1px solid #d0d9e1;background:#fff}.survival-plot figcaption{font-size:11px;line-height:1.5;color:#4c5b69}.survival-plot svg{display:block;width:100%;max-width:650px;height:auto;margin:5px auto 0}
+#linked-projection-pair{position:absolute;inset:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:27px 8px 8px;background:#20252c;overflow:auto;touch-action:none;cursor:grab}#linked-projection-pair:active{cursor:grabbing}.linked-projection-pane{display:flex;flex-direction:column;min-width:0;min-height:190px;margin:0;border:1px solid #454d57;background:#20252c}.linked-projection-pane figcaption{padding:4px 7px;color:#e4eaf0;background:#303740;font-size:11px}.linked-projection-pane svg{display:block;flex:1;width:100%;min-height:150px}.linked-track{cursor:pointer}.linked-track:focus{outline:none;filter:drop-shadow(0 0 3px #fff)}.linked-projection-axis{font:10px 'Segoe UI',sans-serif;fill:#d5dde6}
 .plot-empty{font-size:11px;line-height:1.7;color:#74818c;padding:18px 10px;min-height:100px}
 .comparison-table{margin-top:14px;background:#fff;border:1px solid #d0d9e1}
 .runtime-notice{background:#fff3da;color:#725019;border-bottom:1px solid #d9bf85;padding:8px 12px;font-size:12px}
@@ -109,6 +112,15 @@ body.cms-data-active #metric-deposit,body.cms-data-active #metric-digits,body.cm
 .heplab-tour .introjs-arrow.right{border-left-color:#fafbfc}
 @media(prefers-reduced-motion:reduce){.introjs-helperLayer,.introjs-tooltipReferenceLayer,.heplab-tour .introjs-progressbar{transition:none}}
 
+@media(max-width:1100px){#linked-projection-pair{grid-template-columns:minmax(0,1fr);grid-auto-rows:minmax(190px,1fr)}}
+
 .detector-layer{display:block;border-bottom:1px solid #d3d8de;padding:3px 0}.layer-heading{display:flex;align-items:center;min-height:24px;font-size:11px}.layer-heading button{flex:1}.layer-opacity{display:flex;align-items:center;gap:8px;padding:0 6px 3px 22px}.layer-opacity input[type=range]{min-width:40px;width:100%;margin:0;accent-color:var(--accent)}.layer-opacity output{min-width:32px;text-align:right;font:10px Consolas,monospace}.opacity-title{display:flex;align-items:center;justify-content:space-between}.opacity-title button{font-size:10px;padding:1px 4px}.opacity-help{font-size:10px;color:#606b77;margin:4px 10px}.shell-layer{margin:0 8px}.shell-layer .layer-heading input{margin-right:6px}#event-focus{color:#15416f;border-color:#8ba9c9;background:#e0ebf6}
 
 #cms-display-tree{max-height:none;overflow:visible}
+
+.display-epistemic-legend{position:absolute;top:8px;left:8px;z-index:4;display:flex;flex-wrap:wrap;gap:5px 12px;max-width:min(94%,760px);padding:6px 8px;border:1px solid #59616b;border-radius:3px;background:#20252ce8;color:#eef1f5;font-size:10px;line-height:1.35}.display-epistemic-legend span{display:inline-flex;align-items:center;gap:5px}.display-epistemic-legend i{display:inline-block;width:9px;height:9px;border:1px solid #dfe7f1;border-radius:50%}.display-epistemic-legend .legend-declared{background:#58b5e7}.display-epistemic-legend .legend-crossing{background:#e9c15b}.display-epistemic-legend .legend-measured{background:#e58aa2}#renderer-status,#replay-status{font-size:10px;color:#56616c}#replay-status{max-width:210px;white-space:normal}.event-toolbar{height:auto;min-height:32px;flex-wrap:wrap;padding-block:5px}
+.advanced-settings{border-bottom:1px solid var(--line);padding:0 0 6px}
+.advanced-settings>summary{cursor:pointer;font-weight:600;font-size:12px;padding:9px;background:#eceef0;border-bottom:1px solid #d8dce0;list-style-position:inside}
+.advanced-settings>summary:focus-visible{outline:2px solid #2876c6;outline-offset:-2px}
+.advanced-settings[open]>summary{margin-bottom:4px}
+.advanced-settings .property-section{margin-top:4px}

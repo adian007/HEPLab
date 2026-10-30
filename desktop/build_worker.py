@@ -31,7 +31,19 @@ def host_triple() -> str:
     return next(line.split(": ", 1)[1] for line in output.splitlines() if line.startswith("host:"))
 
 
-def smoke(binary: Path) -> dict:
+def validate_library(library: dict, expected_sample_ids: set[str]) -> None:
+    """Require only the CMS samples this build actually packaged."""
+    if not library.get("ok") or not isinstance(library.get("result"), list):
+        raise SystemExit(f"packaged data.library failed: {library}")
+    available = {item.get("id") for item in library["result"] if isinstance(item, dict)}
+    missing = expected_sample_ids - available
+    if missing:
+        raise SystemExit(
+            f"packaged CMS datasets are unavailable: {sorted(missing)}; response={library}"
+        )
+
+
+def smoke(binary: Path, expected_sample_ids: set[str] | None = None) -> dict:
     """Handshake plus one call, from an empty project, with no PYTHONPATH."""
     with tempfile.TemporaryDirectory() as project:
         env = {k: v for k, v in os.environ.items() if not k.startswith("PYTHON")}
@@ -39,7 +51,12 @@ def smoke(binary: Path) -> dict:
             [str(binary), "--project-root", project],
             input="\n".join(
                 json.dumps({"id": identity, "op": op, "args": {}})
-                for identity, op in [(1, "runs.list"), (2, "engine.capabilities")]
+                for identity, op in [
+                    (1, "runs.list"),
+                    (2, "engine.capabilities"),
+                    (3, "jobs.list"),
+                    (4, "data.library"),
+                ]
             )
             + "\n",
             capture_output=True,
@@ -51,11 +68,21 @@ def smoke(binary: Path) -> dict:
         )
     if result.returncode:
         raise SystemExit(f"packaged worker failed to start:\n{result.stderr[-8000:]}")
-    hello, reply, engine = (json.loads(line) for line in result.stdout.splitlines())
+    lines = [json.loads(line) for line in result.stdout.splitlines()]
+    hello = lines[0]
+    replies = {value["id"]: value for value in lines[1:]}
+    reply, engine, jobs, library = (replies[i] for i in range(1, 5))
     if hello["protocol"] != "heplab-desktop-ipc-v1" or reply != {"id": 1, "ok": True, "result": []}:
         raise SystemExit(f"worker smoke test failed: {hello} {reply}")
     if not engine.get("ok") or not engine["result"]["rust_extension"]:
         raise SystemExit(f"packaged Rust engine is unavailable: {engine}")
+    from heplab.desktop.worker import SPEC
+
+    if set(hello["operations"]) != set(SPEC["operations"]):
+        raise SystemExit("packaged worker operations differ from the shell IPC table")
+    if jobs != {"id": 3, "ok": True, "result": []}:
+        raise SystemExit(f"packaged jobs.list failed: {jobs}")
+    validate_library(library, expected_sample_ids or set())
     return hello
 
 
@@ -71,19 +98,21 @@ def main() -> int:
                 f"Collision-enabled desktop packaging requires {name}; install numpy awkward uproot"
             )
     # The backend is imported dynamically. PyInstaller cannot infer this import.
+    from heplab.physics.constants import MUON_MASS_GEV
     from heplab.physics.engine import execute
 
     execute(
         {
             "op": "mass",
-            "first": [45, 0, 0, 0.10565839],
-            "second": [45, 0, 3.141592653589793, 0.10565839],
+            "first": [45, 0, 0, MUON_MASS_GEV],
+            "second": [45, 0, 3.141592653589793, MUON_MASS_GEV],
         },
         backend="rust",
     )
     triple = host_triple()
     suffix = ".exe" if sys.platform == "win32" else ""
     sample_args = []
+    expected_sample_ids: set[str] = set()
     samples = ROOT / "artifacts/cms/measured"
     if all(
         (samples / name).is_file()
@@ -108,11 +137,11 @@ def main() -> int:
                     "--add-data",
                     str(samples / filename) + os.pathsep + "heplab/data/cms-samples",
                 ]
+        expected_sample_ids = {"cms-run2016g", "cms-dy-ul16"}
     # Imported data need certification even when optional sample ROOT files
     # are absent on the release runner.
     certification = (
-        ROOT
-        / "manifests/certification/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.json"
+        ROOT / "manifests/certification/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.json"
     )
     sample_args += ["--add-data", str(certification) + os.pathsep + "heplab/data/cms-samples"]
     with tempfile.TemporaryDirectory() as work:
@@ -165,7 +194,7 @@ def main() -> int:
             shutil.rmtree(folder)
         shutil.copytree(built, folder, symlinks=True)
     target = folder / f"heplab-worker{suffix}"
-    hello = smoke(target)
+    hello = smoke(target, expected_sample_ids)
     print(json.dumps({"worker": str(target.relative_to(ROOT)), "triple": triple, **hello}))
     return 0
 

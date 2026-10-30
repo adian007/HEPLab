@@ -53,6 +53,8 @@ assert all((REFERENCE/(name+".json")).is_file() for name in
            ["cms-field-validation","cms-field-points","cms-measured-validation",
             "cms-mass-calibration","cms-resonance-validation",
             "cms-resonance-data-report","cms-resonance-selected-pairs",
+           "cms-resonance-data-report-v2","cms-resonance-selected-pairs-v2",
+           "cms-resonance-data-report-target-dependent-legacy",
             "cms-z-template-candidates"])
 print("PASS: isolated wheel catalog, alias, certification and package source snapshot")
 """

@@ -1,33 +1,63 @@
-# HEPLab project guide
+# HEPLab web application
 
-This directory contains the static documentation website built with Astro and
-Starlight. It explains the local simulator, analysis workflow, evidence,
-limitations, and contribution path. It does not execute simulations or connect
-to a local API.
+The project guide is an ASP.NET Core Razor Pages application targeting .NET 10.
+Markdown pages live in `HEPLab.Web/Content/Docs`; `Markdig` renders them on the
+server. The app owns the shared layout, navigation, table of contents, themes,
+search index endpoint, guided lab, and result gallery. Static assets and the
+offline examples are under `HEPLab.Web/wwwroot`.
 
-## Develop
+The shared UI uses Bootstrap 5.3.8, locally hosted IBM Plex Sans/Mono fonts, C#
+Tag Helpers, and reusable Razor partials. The home event preview projects the
+versioned synthetic muon fixture in C#; it does not generate or measure a new event.
+The lab and gallery are Razor components embedded in the authored guide. Asset
+versions, licenses, and file hashes are recorded under `wwwroot/vendor/`.
 
-```powershell
-pnpm --dir web install
-pnpm --dir web dev
-```
+## Run locally
 
-Open the local URL printed by Astro. Pages are written in Markdown and MDX under
-`src/content/docs/`; navigation, project identity, and Starlight configuration
-live in `astro.config.mjs`. Site-specific CSS is in `src/styles/site.css`.
-
-## Check and build
+Install the .NET 10 SDK, then from the repository root:
 
 ```powershell
-pnpm --dir web check
-pnpm --dir web build
-pnpm --dir web preview
+dotnet run --project web/HEPLab.Web
 ```
 
-The static output is written to `dist/`. Starlight provides the documentation
-layout, responsive navigation, theme switcher, and search index. Deploy the
-contents of `dist/` to a static host. The Python workbench remains a separate
-local application, started with `heplab gui` or `tools/start_workbench.ps1`.
+Open the local URL printed by `dotnet run`. The web guide is independent of the
+Python workbench and does not run simulations or read local result artifacts.
 
-See [website and desktop architecture](../docs/web/README.md) and the
-[site maintainer notes](docs/README.md).
+The app also loads the build asset manifest when a built DLL is launched in
+Production mode. This keeps CSS, JavaScript, and their compressed responses
+available during a local Release preview. A successful HTML response alone does
+not verify the preview: check the rendered layout and asset response bodies.
+
+## Build and publish
+
+```powershell
+dotnet build web/HEPLab.Web/HEPLab.Web.csproj
+dotnet publish web/HEPLab.Web/HEPLab.Web.csproj --configuration Release
+```
+
+The publish output is an ASP.NET Core app and must run on an ASP.NET Core 10
+host. This is no longer a static-only site.
+
+CI runs `tools/check_site_runtime.py` against both the Release build and publish
+output in Production. The check requests all 19 indexed pages, checks internal
+links and anchors, verifies unique IDs and one page heading, compares the SVG
+preview against the original fixture, and verifies asset MIME types and exact
+source bytes with identity and gzip requests. It follows fingerprinted asset
+names through the .NET manifest and checks the fonts and vendor hashes.
+To reproduce it locally:
+
+```powershell
+python tools/check_site_runtime.py --app web/HEPLab.Web/bin/Release/net10.0/HEPLab.Web.dll --content-root web/HEPLab.Web
+python tools/check_site_runtime.py --app web/HEPLab.Web/bin/Release/net10.0/publish/HEPLab.Web.dll
+```
+
+## Source layout
+
+- `HEPLab.Web/Pages/`: Razor Pages and the shared layout.
+- `HEPLab.Web/Services/SiteContentService.cs`: Markdown loading, routing, navigation, and search data.
+- `HEPLab.Web/Services/ExperimentPreviewService.cs`: fixture-backed C# event projection.
+- `HEPLab.Web/Pages/Shared/`: shared layout, navigation, preview, lab, and gallery partials.
+- `HEPLab.Web/TagHelpers/`: reusable C# interface icons.
+- `HEPLab.Web/Content/Docs/`: Markdown and MDX guide content.
+- `HEPLab.Web/wwwroot/`: styles, scripts, branding, and standalone result exports.
+- `docs/`: design, writing, architecture, and review notes for this app.

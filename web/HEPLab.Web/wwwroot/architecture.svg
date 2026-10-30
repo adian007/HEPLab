@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 520" role="img" aria-labelledby="title description">
+  <title id="title">HEPLab system architecture</title>
+  <desc id="description">A public documentation path connects visitors to the ASP.NET Core guide and engineering handbook. A separate local application path connects users through the workbench and CLI to Python services, which use data, analysis, and simulation engines.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8994a5" />
+    </marker>
+    <style>
+      text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+      .board { fill: #20232a; }
+      .lane { fill: #66d9c3; font-size: 13px; font-weight: 750; letter-spacing: 1.5px; }
+      .edge { fill: none; stroke: #8994a5; stroke-width: 2; }
+      .node rect { fill: #292e38; stroke: #454c59; stroke-width: 1.5; }
+      .primary rect { fill: #173b3a; stroke: #54cbb2; }
+      .node-title { fill: #f1f4f8; font-size: 17px; font-weight: 700; }
+      .node-detail { fill: #b9c1ce; font-size: 13px; }
+    </style>
+  </defs>
+  <rect class="board" width="1100" height="520" rx="18" />
+
+  <text class="lane" x="28" y="52">PUBLIC SITE</text>
+  <path class="edge" d="M 220 112 H 300" marker-end="url(#arrow)" />
+  <path class="edge" d="M 570 112 H 690" marker-end="url(#arrow)" />
+  <g class="node">
+    <rect x="28" y="76" width="192" height="72" rx="12" />
+    <text class="node-title" x="48" y="106">Project visitor</text>
+    <text class="node-detail" x="48" y="128">Reads docs and examples</text>
+  </g>
+  <g class="node primary">
+    <rect x="300" y="76" width="270" height="72" rx="12" />
+    <text class="node-title" x="320" y="106">ASP.NET Core guide</text>
+    <text class="node-detail" x="320" y="128">Static documentation</text>
+  </g>
+  <g class="node">
+    <rect x="690" y="76" width="350" height="72" rx="12" />
+    <text class="node-title" x="710" y="106">Engineering handbook</text>
+    <text class="node-detail" x="710" y="128">Source links and canonical contracts</text>
+  </g>
+
+  <text class="lane" x="28" y="228">LOCAL APPLICATION</text>
+  <path class="edge" d="M 210 326 H 258" marker-end="url(#arrow)" />
+  <path class="edge" d="M 470 326 H 520" marker-end="url(#arrow)" />
+  <path class="edge" d="M 750 326 H 800 M 800 272 V 448" />
+  <path class="edge" d="M 800 272 H 840 M 800 360 H 840 M 800 448 H 840" marker-end="url(#arrow)" />
+  <g class="node">
+    <rect x="28" y="290" width="182" height="72" rx="12" />
+    <text class="node-title" x="48" y="320">Local user</text>
+    <text class="node-detail" x="48" y="342">Runs analyses locally</text>
+  </g>
+  <g class="node">
+    <rect x="258" y="290" width="212" height="72" rx="12" />
+    <text class="node-title" x="278" y="320">Workbench and CLI</text>
+    <text class="node-detail" x="278" y="342">Desktop and command line</text>
+  </g>
+  <g class="node primary">
+    <rect x="520" y="290" width="230" height="72" rx="12" />
+    <text class="node-title" x="540" y="320">Python services</text>
+    <text class="node-detail" x="540" y="342">Jobs, analysis and artifacts</text>
+  </g>
+  <g class="node">
+    <rect x="840" y="238" width="250" height="68" rx="12" />
+    <text class="node-title" x="860" y="267">Data and cache</text>
+    <text class="node-detail" x="860" y="289">Manifests and readers</text>
+  </g>
+  <g class="node">
+    <rect x="840" y="326" width="250" height="68" rx="12" />
+    <text class="node-title" x="860" y="355">Analysis</text>
+    <text class="node-detail" x="860" y="377">Processors and immutable artifacts</text>
+  </g>
+  <g class="node">
+    <rect x="840" y="414" width="250" height="68" rx="12" />
+    <text class="node-title" x="860" y="443">Simulation engines</text>
+    <text class="node-detail" x="860" y="465">Python, Rust, optional PYTHIA/DELPHES</text>
+  </g>
+</svg>

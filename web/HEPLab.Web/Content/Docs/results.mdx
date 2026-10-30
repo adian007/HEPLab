@@ -1,0 +1,25 @@
+---
+title: Share and inspect results
+description: Export an offline HTML result with interactive plots, provenance, and accessible controls.
+---
+
+An exported result is a single HTML file. It works offline and contains the plots, event display where applicable, provenance, and embedded result record. Candidate arrays and local paths are omitted by default; use `include_raw=True` only when the destination is appropriate for those details.
+
+Workbench exports identify their scope. A `RunArtifact` describes the complete run; an `EventView` identifies one selected event and links back to its parent run digest. Both include model/source identity, seed and software metadata when available. A source hash or result digest identifies content; it does not prove physical correctness.
+
+```bash
+heplab export-html artifacts/z-result.json --include-raw
+heplab gallery artifacts/course-results
+```
+
+```python
+heplab.export_html(result, "z-result.html", title="Z peak", include_raw=True)
+```
+
+Plots support pointer gestures and keyboard zoom, pan, and reset controls. Histogram bins and event tracks are also available as accessible tables. Exported pages never load scripts or data from a remote server.
+
+## Example gallery
+
+The [gallery](/gallery/) contains synthetic demonstration exports generated from the deterministic teaching sample and the declared-muon workbench. These examples show the page format; they are not CMS measurements or validation evidence. To create a gallery from your own runs, export pages into a directory and run `heplab gallery DIRECTORY`.
+
+HEPLab does not upload results or host a user-submission service. You choose where to publish a static gallery and what it contains.

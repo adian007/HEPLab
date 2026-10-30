@@ -1,56 +1,41 @@
 # Frontend architecture
 
-## Selected direction
-
-Astro and Astro Starlight build the public project guide as a static site.
-Project pages are Markdown or MDX in `web/src/content/docs/`. Starlight supplies
-the documentation layout, sidebar, responsive navigation, theme switcher,
-breadcrumbs, table of contents, edit links, and search.
-
-The site describes the simulator; it does not execute it. It has no API
-integration and does not access local runs. The Python workbench remains a
-separate local application.
-
-## Workspace layout
+The project guide is an ASP.NET Core Razor Pages application. Markdig renders
+the Markdown and MDX documents in `web/HEPLab.Web/Content/Docs/`. Razor Pages
+provides route handling and a shared layout. The app serves `/search-index.json`
+from the same content source, so keyboard search works in development and in
+production.
 
 ```text
-web/
-├── astro.config.mjs            Starlight identity, navigation, links, styles
-├── package.json                Astro/Starlight scripts and pinned dependencies
-├── pnpm-lock.yaml              reproducible package resolution
-├── public/                     logo and favicon
-└── src/
-    ├── content.config.ts       Starlight documentation collection
-    ├── content/docs/           Markdown and MDX pages
-    ├── assets/                 bundled source assets
-    └── styles/site.css         small theme customizations
+web/HEPLab.Web/
+├── Pages/                         Razor pages and shared layout
+├── Services/SiteContentService.cs Markdown rendering, route map, nav, search data
+├── Content/Docs/                  Markdown and MDX project guide
+└── wwwroot/                       CSS, JavaScript, logo, offline examples
 ```
 
-## Content workflow
+The home page is `Pages/Index.cshtml`. Curated sidebar groups are configured in
+`Services/SiteContentService.cs`. Site-wide behavior is plain JavaScript in
+`wwwroot/js/`; the interactive lab and gallery use their own small scripts.
 
-Add a Markdown page under `src/content/docs/` with `title` and `description`
-frontmatter. Add its slug to the sidebar in `astro.config.mjs` if it should be
-visible in curated navigation. Use regular Markdown for most content and
-Starlight components when they help readers find a page or understand a caveat.
+## Content conventions
 
-Detailed scientific algorithms and validation records belong in
-`docs/engineering/`. The site summarizes them and links to the canonical source.
+Add each guide page under `Content/Docs/` with a `title` and `description` in
+YAML front matter. The relative filename defines the route: for example,
+`simulation/models.md` becomes `/simulation/models/`. Add pages to the curated
+navigation in `SiteContentService.cs` when they should appear in the sidebar.
 
-## Rendering and design
+Page content remains authored Markdown. Keep technical claims tied to the
+engineering handbook and distinguish code execution evidence from physics
+validation.
 
-Astro produces static HTML and Starlight builds the search index from the pages.
-Keep the content semantic and readable without custom client-side behavior.
-Starlight's built-in search and navigation provide the small interactive layer.
-Use its theme variables for custom colors; preserve keyboard access, visible
-focus, responsive reflow, and reduced-motion behavior.
-
-## Build
+## Build and review
 
 ```powershell
-pnpm --dir web check
-pnpm --dir web build
+dotnet build web/HEPLab.Web/HEPLab.Web.csproj
+dotnet publish web/HEPLab.Web/HEPLab.Web.csproj --configuration Release
 ```
 
-The build writes `web/dist/`, which can be hosted by a static file service. The
-site does not require the FastAPI service. Start the local workbench separately
-when documenting or reviewing simulator behavior.
+Use `dotnet run --project web/HEPLab.Web` for browser review. The published
+application requires an ASP.NET Core 10 host. It does not run or proxy the
+simulator API.

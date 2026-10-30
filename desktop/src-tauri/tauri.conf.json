@@ -14,7 +14,7 @@
         "title": "HEPLab Workbench",
         "width": 1440,
         "height": 900,
-        "minWidth": 1100,
+        "minWidth": 800,
         "minHeight": 680
       }
     ],

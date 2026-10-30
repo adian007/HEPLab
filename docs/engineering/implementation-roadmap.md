@@ -32,7 +32,7 @@ usability gates below:
 
 Reproduce the local foundation checks with `python -m pytest tests -q`,
 `python tools/check_handbook.py`, `python -m mkdocs build --strict`,
-`pnpm --dir web typecheck`, `pnpm --dir web build`, and the isolated-wheel
+`dotnet build web/HEPLab.Web/HEPLab.Web.csproj`, and the isolated-wheel
 check in CI. Passing these checks means software regression coverage passed;
 it does not upgrade a physics maturity state.
 
@@ -383,9 +383,9 @@ simulation or to expect browser access to their files.
   contrast review. Remove source maps from public builds or keep hidden maps as
   private CI artifacts. Move inline theme initialization to a CSP-compatible
   external script if policy requires.
-- Snapshot public evidence at build time with a timestamp and source digest so
-  static hosting remains useful without the local FastAPI service. The public
-  site uses only static content or the read-only summary endpoint.
+- Snapshot public evidence with a timestamp and source digest so the hosted
+  guide remains useful without the local FastAPI service. Keep public content
+  separate from any read-only summary endpoint.
 - Optimize evidence plots and fonts after measuring bundle size; lazy-load
   charts and preserve captions, units, source and uncertainty. Test without
   third-party network assets and analytics by default.
@@ -394,8 +394,9 @@ simulation or to expect browser access to their files.
 
 **Gate E:** a new visitor can accurately describe the desktop/local boundary,
 implemented capability maturity and unsupported physics domains; every claim
-links to evidence; site builds offline/static; accessibility and responsive
-checks pass; zero simulation-control routes exist on the public host.
+links to evidence; the web app builds and runs independently; accessibility
+and responsive checks pass; zero simulation-control routes exist on the public
+host.
 
 ## Track F — Workbench GUI redesign for researchers, engineers and enthusiasts
 
@@ -510,7 +511,7 @@ after substantial navigation/state changes.
 |---|---|---|---|
 | 0 | Freeze current artifact identities and reconcile M1 comparison to current geometry | Website status content; GUI user research | Current repo checkout and Docker image |
 | 1 | M1 geometry variant and field/IOV resolution | M3 data acquisition; desktop shell/product discovery | Source/conditions access and domain review |
-| 2 | M2 transport processes and comparisons | Desktop UX/build matrix; static site reliability | Accepted geometry and field scope |
+| 2 | M2 transport processes and comparisons | Desktop UX/build matrix; website reliability | Accepted geometry and field scope |
 | 3 | M3 calibration training/held-out closure | GUI and website implementation | Compatible samples, corrections and analyst review |
 | 4 | M4 device intake | Desktop and public site | Physical asset, operator, device documents |
 | 5 | M5 real replay and calibration | Public website and desktop release engineering | M4 profile, raw runs, independent trigger/tracks |

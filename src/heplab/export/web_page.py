@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import html
 import json
+import re
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -21,13 +22,28 @@ from typing import Any
 from .. import __version__
 from ..io.provenance import config_hash
 
-FORMAT = "heplab-html-export-v1"
+FORMAT = "heplab-html-export-v2"
+LEGACY_FORMAT = "heplab-html-export-v1"
 META_ID = "heplab-meta"
 # Raw per-candidate arrays can be very large; the histogram already carries them.
 DROPPED = ("masses", "candidate_weights")
+PRIVATE_KEYS = frozenset(
+    {
+        "event_rows",
+        "raw_events",
+        "raw_event_rows",
+        "output_directory",
+        "source_path",
+        "input_path",
+        "local_path",
+        "artifact_path",
+    }
+)
 
 
 def kind(result: dict) -> str:
+    if result.get("experiment") == "muon-survival":
+        return "lifetime"
     if isinstance(result.get("histogram"), dict) and "edges" in result["histogram"]:
         return "analysis"
     if isinstance(result.get("tracks"), list):
@@ -45,6 +61,9 @@ def _embed(value: Any) -> str:
 
 
 def _title(result: dict, kind_: str) -> str:
+    if kind_ == "lifetime":
+        config = result.get("config", {})
+        return f"Muon survival · {config.get('momentum_gev_c', '?')} GeV/c"
     if kind_ == "analysis":
         name = result.get("analysis", "analysis")
         entries = result.get("histogram", {}).get("entries", 0)
@@ -55,29 +74,124 @@ def _title(result: dict, kind_: str) -> str:
     )
 
 
-def metadata(result: dict, *, title: str | None = None) -> dict:
+def metadata(result: dict, *, title: str | None = None, include_raw: bool = False) -> dict:
     from ..desktop.worker import finite
 
     kind_ = kind(result)
-    content = {key: value for key, value in result.items() if key not in DROPPED}
+    content = _public_result(result, include_raw=include_raw)
+    digest = result.get("result_sha256") or config_hash(finite(content))
+    artifact = result.get("artifact") if isinstance(result.get("artifact"), dict) else {}
+    model_spec = result.get("model_spec") if isinstance(result.get("model_spec"), dict) else {}
+    if not model_spec and isinstance(result.get("display_model_spec"), dict):
+        model_spec = result["display_model_spec"]
+    source = (
+        result.get("source")
+        if isinstance(result.get("source"), dict)
+        else artifact.get("source", {})
+    )
+    source = source if isinstance(source, dict) else {}
+    components = model_spec.get("components", [])
+    manifest = {
+        "schema": "heplab-share-v2",
+        "scope": artifact.get("scope", "unscoped_result"),
+        "run_id": artifact.get("run_id"),
+        "result_sha256": digest,
+        "event_index": artifact.get("event_index"),
+        "parent_run_sha256": artifact.get("parent_run_sha256"),
+        "source": {
+            "kind": result.get("data_kind") or source.get("kind") or "declared_or_recorded_sample",
+            "record": source.get("record"),
+            "file_hashes": source.get("file_hashes", []),
+        },
+        "configuration": {
+            "model_id": [item.get("id") for item in components if isinstance(item, dict)]
+            or model_spec.get("id")
+            or result.get("model"),
+            "seed": (result.get("config") or {}).get("seed"),
+            "units": model_spec.get("units", {}),
+            "settings": (result.get("config") or {}),
+        },
+        "software": {
+            "heplab": __version__,
+            "python": (result.get("artifact") or {}).get("python"),
+            "backend": result.get("backend"),
+            "generator": (result.get("artifact") or {}).get("generator"),
+            "delphes_card_sha256": (result.get("artifact") or {}).get("delphes_card_sha256"),
+        },
+        "evidence": {
+            "status": result.get("validation"),
+            "scope": model_spec.get("limitations") or model_spec.get("validation"),
+            "references": sorted(
+                {
+                    reference
+                    for item in components
+                    if isinstance(item, dict)
+                    for reference in item.get("references", [])
+                }
+            ),
+        },
+        "privacy": {
+            "contains_local_paths": bool(
+                include_raw
+                and any(
+                    isinstance(value, str) and re.match(r"^(?:[A-Za-z]:[\\/]|\\\\|/(?!/))", value)
+                    for value in _walk_strings(result)
+                )
+            ),
+            "raw_events_included": bool(
+                include_raw
+                and any(key in result for key in PRIVATE_KEYS | {"masses", "candidate_weights"})
+            ),
+        },
+    }
     return {
         "format": FORMAT,
+        "schema": "heplab-share-v2",
         "kind": kind_,
         "title": title or _title(result, kind_),
-        "result_sha256": result.get("result_sha256") or config_hash(finite(content)),
+        "result_sha256": digest,
         "data_kind": result.get("data_kind")
         or (result["source"].get("kind") if isinstance(result.get("source"), dict) else None),
         "heplab_version": __version__,
         "exported_utc": datetime.now(UTC).isoformat(timespec="seconds"),
+        "manifest": manifest,
     }
+
+
+def _public_result(value: Any, *, include_raw: bool = False) -> Any:
+    """Remove common raw-event and host-path fields from shareable exports."""
+    if include_raw:
+        return value
+    if isinstance(value, dict):
+        return {
+            key: _public_result(item)
+            for key, item in value.items()
+            if key not in DROPPED and key not in PRIVATE_KEYS
+        }
+    if isinstance(value, list | tuple):
+        return [_public_result(item) for item in value]
+    if isinstance(value, str) and re.match(r"^(?:[A-Za-z]:[\\/]|\\\\|/(?!/))", value):
+        return "[local path omitted from shareable export]"
+    return value
+
+
+def _walk_strings(value: Any):
+    if isinstance(value, dict):
+        for child in value.values():
+            yield from _walk_strings(child)
+    elif isinstance(value, list | tuple):
+        for child in value:
+            yield from _walk_strings(child)
+    elif isinstance(value, str):
+        yield value
 
 
 def render(result: dict, *, title: str | None = None, include_raw: bool = False) -> str:
     """Return the page as a string (used by the notebook display too)."""
     if not isinstance(result, dict):
         raise ValueError("result must be a JSON object")
-    body = result if include_raw else {k: v for k, v in result.items() if k not in DROPPED}
-    meta = metadata(result, title=title)
+    body = _public_result(result, include_raw=include_raw)
+    meta = metadata(result, title=title, include_raw=include_raw)
     return (
         TEMPLATE.replace("__TITLE__", html.escape(meta["title"]))
         .replace("__META__", _embed(meta))
@@ -115,7 +229,11 @@ def read_metadata(page: Path) -> dict | None:
         value = json.loads(text[start + len(marker) : end])
     except ValueError:
         return None
-    return value if isinstance(value, dict) and value.get("format") == FORMAT else None
+    return (
+        value
+        if isinstance(value, dict) and value.get("format") in {FORMAT, LEGACY_FORMAT}
+        else None
+    )
 
 
 def _read_data(page: Path) -> dict:
@@ -254,8 +372,8 @@ TEMPLATE = """<!doctype html>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>__TITLE__</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='27' fill='%23087f6c'/%3E%3Cpath d='M12 32h40M32 12v40' stroke='white' stroke-width='4'/%3E%3C/svg%3E"><style>__STYLE__</style></head>
 <body><a class="skip-link" href="#main">Skip to result</a>
-<header class="site-header"><a class="brand" href="https://heplab.org/" aria-label="HEPLab home"><svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="5"/><path d="M9 32h46M32 9v46" stroke="currentColor" stroke-width="4"/></svg><span>HEPLab</span></a><nav class="site-nav" aria-label="Main"><a href="https://heplab.org/getting-started/">Get started</a><a href="https://heplab.org/education/">Education</a><a href="https://heplab.org/gallery/">Gallery</a></nav><div class="site-actions"><a class="top-link" href="https://github.com/adian007/HEPLab">GitHub</a><select class="theme-select" id="theme-select" aria-label="Select theme"><option value="auto">Auto</option><option value="light">Light</option><option value="dark">Dark</option></select></div></header>
-<div class="doc-layout"><aside class="sidebar" aria-label="HEPLab navigation"><section class="nav-group"><h2 class="nav-heading">Start here</h2><nav class="nav-list"><a href="https://heplab.org/">HEPLab overview</a><a href="https://heplab.org/getting-started/">Getting started</a></nav></section><section class="nav-group"><h2 class="nav-heading">Use HEPLab</h2><nav class="nav-list"><a href="https://heplab.org/simulation/workbench/">Local workbench</a><a href="https://heplab.org/analysis/workflow/">Analysis workflow</a><a href="https://heplab.org/education/">Rediscover the Z boson</a><a href="https://heplab.org/gallery/">Results gallery</a></nav></section><section class="nav-group"><h2 class="nav-heading">Reference</h2><nav class="nav-list"><a href="https://heplab.org/reference/python-api-v1/">Python API v1</a><a href="https://heplab.org/validation/evidence/">Validation evidence</a></nav></section></aside>
+<header class="site-header"><a class="brand" href="#main" aria-label="HEPLab home"><svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="5"/><path d="M9 32h46M32 9v46" stroke="currentColor" stroke-width="4"/></svg><span>HEPLab</span></a><nav class="site-nav" aria-label="Main"><span>Get started</span><span>Education</span><span>Gallery</span></nav><div class="site-actions"><span class="top-link">GitHub</span><select class="theme-select" id="theme-select" aria-label="Select theme"><option value="auto">Auto</option><option value="light">Light</option><option value="dark">Dark</option></select></div></header>
+<div class="doc-layout"><aside class="sidebar" aria-label="HEPLab navigation"><section class="nav-group"><h2 class="nav-heading">Start here</h2><nav class="nav-list"><span>HEPLab overview</span><span>Getting started</span></nav></section><section class="nav-group"><h2 class="nav-heading">Use HEPLab</h2><nav class="nav-list"><span>Local workbench</span><span>Analysis workflow</span><span>Rediscover the Z boson</span><span>Results gallery</span></nav></section><section class="nav-group"><h2 class="nav-heading">Reference</h2><nav class="nav-list"><span>Python API v1</span><span>Validation evidence</span></nav></section></aside>
 <main id="main" class="result-content" tabindex="-1">
 <section class="page-heading"><div class="eyebrow" id="result-kind"></div><h1>__TITLE__</h1><p id="subtitle"></p><span class="result-tag">Provenance attached</span></section>
 <div id="views"></div>
@@ -508,9 +626,39 @@ function eventDisplay(result){
   panel.append(el('details',{},el('summary',{text:'Track data for screen readers'}),trackTable));
 }
 
+function lifetimeView(result){
+  const summary=result.summary||{},config=result.config||{};
+  const panel=el('section',{class:'panel'});
+  panel.append(el('h2',{text:'Fixed-momentum muon survival'}));
+  panel.append(el('p',{text:'Expected survival follows the proper-time exponential. The seeded sample is a reproducibility check; it is not detector or atmospheric-shower validation.'}));
+  const table=el('table');
+  const rows=[
+    ['Momentum',`${fmt(config.momentum_gev_c)} GeV/c`],
+    ['Flight path',`${fmt(config.path_length_m)} m`],
+    ['Mean decay path',`${fmt(summary.mean_decay_path_m)} m`],
+    ['Expected survival',`${fmt(summary.expected_survival_probability)} (analytic)`],
+    ['Observed survival',`${fmt(summary.observed_survival_probability)} (${summary.observed_survivors}/${config.sample_size})`],
+    ['95% Wilson interval',JSON.stringify(summary.survival_wilson_95_percent||[])],
+    ['Seed',String(config.seed)],
+    ['RNG version',String(config.rng_version||'not recorded')]
+  ];
+  for(const [name,value]of rows)table.append(el('tr',{},el('th',{scope:'row',text:name}),el('td',{text:value})));
+  panel.append(table);
+  const comparison=el('div',{class:'survival-comparison'});
+  for(const [label,value]of [['Analytic expectation',summary.expected_survival_probability],['Seeded sample',summary.observed_survival_probability]]){
+    const row=el('div',{class:'survival-row'});row.append(el('span',{text:label}));
+    const progress=el('progress',{max:'1',value:String(value??0),'aria-label':label});
+    row.append(progress,el('code',{text:fmt(value??0)}));comparison.append(row);
+  }
+  panel.append(comparison);
+  panel.append(el('p',{class:'muted',text:'Model limits: constant momentum, straight flight, vacuum decay law. No production spectrum, air energy loss, scattering, shower, or decay daughters are simulated.'}));
+  document.getElementById('views').append(panel);
+}
+
 function provenance(result){
   const rows=[];const add=(k,v)=>{if(v!==undefined&&v!==null&&v!=='')rows.push([k,typeof v==='object'?JSON.stringify(v):String(v)]);};
   const p=result.provenance||{};for(const[k,v]of Object.entries(p))add(k,v);
+  if(meta.manifest)add('heplab-share-v2 manifest',meta.manifest);
   if(result.cms_display_geometry){const g=result.cms_display_geometry;add('display_geometry_source',`${g.source}@${g.commit} (${g.license})`);add('display_geometry_scope',g.scope);}
   for(const k of['analysis','analysis_config_sha256','result_sha256','payload_content_sha256','data_kind','created_at'])add(k,result[k]);
   if(result.artifact)for(const[k,v]of Object.entries(result.artifact))add('artifact.'+k,v);
@@ -520,6 +668,7 @@ function provenance(result){
 }
 
 if(meta.kind==='analysis'){histogram(data.histogram);views.append(cutflow(data));}
+else if(meta.kind==='lifetime')lifetimeView(data);
 else eventDisplay(data);
 provenance(data);
 })();

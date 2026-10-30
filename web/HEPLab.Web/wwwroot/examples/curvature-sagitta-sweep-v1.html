@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Magnetic curvature and sagitta sweep · HEPLab example</title>
+  <style>
+    :root { color-scheme: light dark; font: 16px/1.55 system-ui, sans-serif; }
+    body { max-width: 920px; margin: 0 auto; padding: 2rem 1.2rem 4rem; }
+    main { display: grid; gap: 1rem; }
+    .eyebrow { color: #187078; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+    .notice { border: 2px solid #a76200; border-radius: .65rem; padding: 1rem; }
+    .panel { border: 1px solid #8886; border-radius: .65rem; padding: 1rem; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    th, td { text-align: right; padding: .4rem .55rem; border-bottom: 1px solid #8885; }
+    th:first-child, td:first-child { text-align: left; }
+    code { overflow-wrap: anywhere; }
+    a { color: #16707b; }
+    .back { display: inline-block; margin-bottom: 1.2rem; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+  <a class="back" href="/gallery/">← Back to the HEPLab examples gallery</a>
+  <main>
+    <header><div class="eyebrow">Software model comparison</div><h1>Magnetic curvature and sagitta sweep</h1></header>
+    <section class="notice"><strong>Synthetic equation/model comparison; no measured tracks.</strong>
+      Muons start at the origin along +x, with η = 0, and are propagated for 1 m in vacuum. The exact uniform-field rows span momentum, charge, and field strength. The separate OAE rows use the pinned tracker field function at nominal 3.8 T.</section>
+    <section class="panel"><h2>Exact uniform-field sweep</h2>
+      <p>The signed sagitta is the transverse midpoint's signed distance from the endpoint chord. Radius is <code>pT / (0.299792458 |q/e| |B|)</code>; zero field is straight.</p>
+      <table><thead><tr><th>p (GeV/c)</th><th>q/e</th><th>B (T)</th><th>Radius (m)</th><th>Signed sagitta (m)</th></tr></thead><tbody><tr><td>1</td><td>-1</td><td>0</td><td>straight</td><td>+0</td></tr><tr><td>1</td><td>+1</td><td>0</td><td>straight</td><td>+0</td></tr><tr><td>1</td><td>-1</td><td>2</td><td>1.66782</td><td>-0.0743884601</td></tr><tr><td>1</td><td>+1</td><td>2</td><td>1.66782</td><td>+0.0743884601</td></tr><tr><td>1</td><td>-1</td><td>3.8</td><td>0.8778</td><td>-0.138592631</td></tr><tr><td>1</td><td>+1</td><td>3.8</td><td>0.8778</td><td>+0.138592631</td></tr><tr><td>1</td><td>-1</td><td>5</td><td>0.667128</td><td>-0.178762041</td></tr><tr><td>1</td><td>+1</td><td>5</td><td>0.667128</td><td>+0.178762041</td></tr><tr><td>5</td><td>-1</td><td>0</td><td>straight</td><td>+0</td></tr><tr><td>5</td><td>+1</td><td>0</td><td>straight</td><td>+0</td></tr><tr><td>5</td><td>-1</td><td>2</td><td>8.3391</td><td>-0.0149851328</td></tr><tr><td>5</td><td>+1</td><td>2</td><td>8.3391</td><td>+0.0149851328</td></tr><tr><td>5</td><td>-1</td><td>3.8</td><td>4.389</td><td>-0.0284494953</td></tr><tr><td>5</td><td>+1</td><td>3.8</td><td>4.389</td><td>+0.0284494953</td></tr><tr><td>5</td><td>-1</td><td>5</td><td>3.33564</td><td>-0.0374039431</td></tr><tr><td>5</td><td>+1</td><td>5</td><td>3.33564</td><td>+0.0374039431</td></tr><tr><td>20</td><td>-1</td><td>0</td><td>straight</td><td>+0</td></tr><tr><td>20</td><td>+1</td><td>0</td><td>straight</td><td>+0</td></tr><tr><td>20</td><td>-1</td><td>2</td><td>33.3564</td><td>-0.00374733556</td></tr><tr><td>20</td><td>+1</td><td>2</td><td>33.3564</td><td>+0.00374733556</td></tr><tr><td>20</td><td>-1</td><td>3.8</td><td>17.556</td><td>-0.00711958962</td></tr><tr><td>20</td><td>+1</td><td>3.8</td><td>17.556</td><td>+0.00711958962</td></tr><tr><td>20</td><td>-1</td><td>5</td><td>13.3426</td><td>-0.00936741801</td></tr><tr><td>20</td><td>+1</td><td>5</td><td>13.3426</td><td>+0.00936741801</td></tr><tr><td>100</td><td>-1</td><td>0</td><td>straight</td><td>+0</td></tr><tr><td>100</td><td>+1</td><td>0</td><td>straight</td><td>+0</td></tr><tr><td>100</td><td>-1</td><td>2</td><td>166.782</td><td>-0.000749480584</td></tr><tr><td>100</td><td>+1</td><td>2</td><td>166.782</td><td>+0.000749480584</td></tr><tr><td>100</td><td>-1</td><td>3.8</td><td>87.78</td><td>-0.00142401033</td></tr><tr><td>100</td><td>+1</td><td>3.8</td><td>87.78</td><td>+0.00142401033</td></tr><tr><td>100</td><td>-1</td><td>5</td><td>66.7128</td><td>-0.00187369409</td></tr><tr><td>100</td><td>+1</td><td>5</td><td>66.7128</td><td>+0.00187369409</td></tr></tbody></table>
+    </section>
+    <section class="panel"><h2>Bounded tracker-field comparison</h2>
+      <p>OAE RK4 paths are compared with the exact uniform 3.8 T helix at the same input. Endpoint differences are reported as diagnostics and have no field-measurement acceptance threshold.</p>
+      <table><thead><tr><th>p (GeV/c)</th><th>q/e</th><th>OAE sagitta (m)</th><th>Endpoint Δ vs uniform 3.8 T (m)</th><th>Actual path / stop</th></tr></thead><tbody><tr><td>1</td><td>-1</td><td>-0.139067718</td><td>0.00183588</td><td>1 · path_budget</td></tr><tr><td>1</td><td>+1</td><td>+0.139067718</td><td>0.00183588</td><td>1 · path_budget</td></tr><tr><td>5</td><td>-1</td><td>-0.0285534146</td><td>0.000381714</td><td>1 · path_budget</td></tr><tr><td>5</td><td>+1</td><td>+0.0285534146</td><td>0.000381714</td><td>1 · path_budget</td></tr><tr><td>20</td><td>-1</td><td>-0.00714565886</td><td>9.55733e-05</td><td>1 · path_budget</td></tr><tr><td>20</td><td>+1</td><td>+0.00714565886</td><td>9.55733e-05</td><td>1 · path_budget</td></tr><tr><td>100</td><td>-1</td><td>-0.00142922532</td><td>1.91165e-05</td><td>1 · path_budget</td></tr><tr><td>100</td><td>+1</td><td>+0.00142922532</td><td>1.91165e-05</td><td>1 · path_budget</td></tr></tbody></table>
+    </section>
+    <p>Both paths are software predictions. No material transport, scattering, decay, detector response, field measurement agreement, or run-era conditions are included.</p>
+    <section class="panel"><h2>Provenance and scope</h2><ul>
+      <li>Constants record: <code>pdg-2025</code> · <a href="https://pdg.lbl.gov/2025/">PDG 2025</a>.</li>
+      <li>Model ID: <code>magnetic-curvature-sweep-v1</code>; inputs and all case results are in the <a href="curvature-sweep-v1.json">versioned JSON report</a>.</li>
+      <li><code>src/heplab/physics/cms_field.py</code> SHA-256 <code>cee2a5464c3ba14f9636124cb6784686dc42d5db60bbfaa6390e21ff42a6dc18</code></li><li><code>src/heplab/physics/constants.py</code> SHA-256 <code>3d452a82b7ff94868e87f3bcdfe4567ed5008a3c5cf8edcda1cc950d96d8a42c</code></li><li><code>src/heplab/physics/curvature.py</code> SHA-256 <code>a2fae8ba5369a4572d584dcdbb0d00202c47f86a09ea4f4d8eeee48e4601103e</code></li><li><code>src/heplab/physics/reference.py</code> SHA-256 <code>691b6231b561d83174025e4c6909d225661e725d6c985491876fe366d2ee9f92</code></li>
+      <li>Report SHA-256: <code>9429d0c44bd969d78f006628ba172eb9d849f40747efa7f6297bdd0f2eb3e2ad</code>; output built with <code>python tools/build_site_examples.py</code>.</li>
+    </ul></section>
+    <p><a href="/validation/evidence/">Read how HEPLab classifies evidence</a> · <a href="/simulation/models/">Model definitions and limits</a></p>
+  </main>
+</body>
+</html>

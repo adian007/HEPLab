@@ -11,6 +11,23 @@ permissions:
   contents: read
 
 jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python tools/check_site_contract.py
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet restore web/HEPLab.Web/HEPLab.Web.csproj
+      - run: dotnet build web/HEPLab.Web/HEPLab.Web.csproj --no-restore --configuration Release
+      - run: python tools/check_site_runtime.py --app web/HEPLab.Web/bin/Release/net10.0/HEPLab.Web.dll --content-root web/HEPLab.Web
+      - run: dotnet publish web/HEPLab.Web/HEPLab.Web.csproj --no-build --configuration Release --output .cache/heplab-web
+      - run: python tools/check_site_runtime.py --app .cache/heplab-web/HEPLab.Web.dll
+
   lint-and-type:
     runs-on: ubuntu-latest
     steps:
@@ -64,6 +81,7 @@ jobs:
           enable-cache: true
       - run: uv sync --locked --extra docs --extra dev
       - run: uv run --no-sync python tools/check_handbook.py
+      - run: uv run --no-sync python tools/run_verification_registry.py
       - run: npm install --prefix .cache/handbook-tools --ignore-scripts --no-audit --no-fund mermaid@12.2.0 jsdom@26.1.0
       - run: node tools/check_mermaid.mjs
       - run: node --check src/heplab/server/static/workbench.js

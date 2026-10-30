@@ -91,13 +91,19 @@ def create_app(artifact_dir: str | Path = "artifacts"):
 
     @app.get("/api/v1/session")
     def session():
+        from ..physics.constants import constants_record
         from ..physics.engine import capabilities
         from ..sim.pipeline import capabilities as simulation_capabilities
 
         simulation = simulation_capabilities()
 
         return JSONResponse(
-            {"token": jobs.token, "engine": capabilities(), "simulation": simulation},
+            {
+                "token": jobs.token,
+                "engine": capabilities(),
+                "simulation": simulation,
+                "constants": constants_record(),
+            },
             headers={"Cache-Control": "no-store"},
         )
 
@@ -177,6 +183,26 @@ def create_app(artifact_dir: str | Path = "artifacts"):
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @app.post("/api/v1/lifetime")
+    def lifetime_experiment(body: dict):
+        from .workbench import lifetime_experiment as run_lifetime
+
+        try:
+            return run_lifetime(body)
+        except ValidationError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @app.post("/api/v1/export-html")
+    def export_result_html(body: dict):
+        from ..export.web_page import render
+
+        try:
+            return {"html": render(body["result"])}
+        except (KeyError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     @app.get("/api/v1/jobs/{identity}")
     def get_job(identity: str):

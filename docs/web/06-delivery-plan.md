@@ -7,14 +7,14 @@ validation, and desktop packaging.
 
 ### W0 — project documentation site (implemented)
 
-- Build a static project guide with Astro and Starlight.
+- Build a project guide with ASP.NET Core Razor Pages and Markdig.
 - Document setup, workbench behavior, analysis, evidence, limitations, and
   contribution paths.
 - Keep public documentation independent of local APIs and artifacts.
 
 ### W1 — public hosting and maintenance
 
-- Choose a static hosting target and add deployment automation.
+- Choose a .NET 10 hosting target and add deployment automation.
 - Keep project status pages aligned with implementation evidence.
 - Add release-specific pages when supported installers exist.
 
@@ -34,5 +34,5 @@ validation, and desktop packaging.
   workbench without granting arbitrary filesystem authority to a public site.
 - Scientific output preserves run identity, immutable artifacts, provenance,
   units, and validation state.
-- Static site output is reproducible and reviewed for licenses and unwanted
+- Published app content is reproducible and reviewed for licenses and unwanted
   network calls.

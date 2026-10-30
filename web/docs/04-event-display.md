@@ -1,7 +1,7 @@
 # Workbench display
 
 The interactive event display belongs to the local Python workbench, not the
-Astro/Starlight project guide. Start it with `heplab gui` or the supported
+ASP.NET Core project guide. Start it with `heplab gui` or the supported
 Windows launcher at `tools/start_workbench.ps1`.
 
 The project guide may show sourced screenshots or diagrams that explain the

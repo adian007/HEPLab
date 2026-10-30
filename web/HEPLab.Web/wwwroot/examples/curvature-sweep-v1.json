@@ -1,0 +1,609 @@
+{
+  "classification": "educational software-model comparison; not detector validation",
+  "constants": {
+    "id": "pdg-2025",
+    "source": "https://pdg.lbl.gov/2025/listings/rpp2025-list-muon.pdf",
+    "values": [
+      {
+        "name": "muon_mass",
+        "source_id": "pdg-2025",
+        "source_url": "https://pdg.lbl.gov/2025/listings/rpp2025-list-muon.pdf",
+        "uncertainty": 2.3e-09,
+        "unit": "GeV/c^2",
+        "value": 0.1056583755
+      },
+      {
+        "name": "muon_mean_lifetime",
+        "source_id": "pdg-2025",
+        "source_url": "https://pdg.lbl.gov/2025/listings/rpp2025-list-muon.pdf",
+        "uncertainty": 2.2e-12,
+        "unit": "s",
+        "value": 2.1969811e-06
+      },
+      {
+        "name": "speed_of_light",
+        "source_id": "codata-exact-c",
+        "source_url": "https://physics.nist.gov/cgi-bin/cuu/Value?c",
+        "uncertainty": 0.0,
+        "unit": "m/s",
+        "value": 299792458.0
+      },
+      {
+        "name": "curvature_conversion",
+        "source_id": "codata-exact-c",
+        "source_url": "https://physics.nist.gov/cgi-bin/cuu/Value?c",
+        "uncertainty": 0.0,
+        "unit": "GeV/(c T m)",
+        "value": 0.299792458
+      }
+    ]
+  },
+  "result": {
+    "config": {
+      "charges_e": [
+        -1.0,
+        1.0
+      ],
+      "momenta_gev_c": [
+        1.0,
+        5.0,
+        20.0,
+        100.0
+      ],
+      "path_length_m": 1.0,
+      "tracker_step_m": 0.005,
+      "uniform_fields_t": [
+        0.0,
+        2.0,
+        3.8,
+        5.0
+      ]
+    },
+    "ideal_uniform_field": [
+      {
+        "charge_e": -1.0,
+        "endpoint_m": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "field_t": 0.0,
+        "momentum_gev_c": 1.0,
+        "radius_m": null,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.0
+      },
+      {
+        "charge_e": 1.0,
+        "endpoint_m": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "field_t": 0.0,
+        "momentum_gev_c": 1.0,
+        "radius_m": null,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.0
+      },
+      {
+        "charge_e": -1.0,
+        "endpoint_m": [
+          0.9411508296750314,
+          0.2909180626236959,
+          0.0
+        ],
+        "field_t": 2.0,
+        "momentum_gev_c": 1.0,
+        "radius_m": 1.6678204759907604,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": -0.0743884600910028
+      },
+      {
+        "charge_e": 1.0,
+        "endpoint_m": [
+          0.9411508296750314,
+          -0.2909180626236959,
+          0.0
+        ],
+        "field_t": 2.0,
+        "momentum_gev_c": 1.0,
+        "radius_m": 1.6678204759907604,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.0743884600910028
+      },
+      {
+        "charge_e": -1.0,
+        "endpoint_m": [
+          0.7973093678464688,
+          0.5106067705142643,
+          0.0
+        ],
+        "field_t": 3.8,
+        "momentum_gev_c": 1.0,
+        "radius_m": 0.8778002505214528,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": -0.13859263132516794
+      },
+      {
+        "charge_e": 1.0,
+        "endpoint_m": [
+          0.7973093678464688,
+          -0.5106067705142643,
+          0.0
+        ],
+        "field_t": 3.8,
+        "momentum_gev_c": 1.0,
+        "radius_m": 0.8778002505214528,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.13859263132516794
+      },
+      {
+        "charge_e": -1.0,
+        "endpoint_m": [
+          0.6654076967096111,
+          0.6192468831767051,
+          0.0
+        ],
+        "field_t": 5.0,
+        "momentum_gev_c": 1.0,
+        "radius_m": 0.6671281903963041,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": -0.1787620407397846
+      },
+      {
+        "charge_e": 1.0,
+        "endpoint_m": [
+          0.6654076967096111,
+          -0.6192468831767051,
+          0.0
+        ],
+        "field_t": 5.0,
+        "momentum_gev_c": 1.0,
+        "radius_m": 0.6671281903963041,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.1787620407397846
+      },
+      {
+        "charge_e": -1.0,
+        "endpoint_m": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "field_t": 0.0,
+        "momentum_gev_c": 5.0,
+        "radius_m": null,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.0
+      },
+      {
+        "charge_e": 1.0,
+        "endpoint_m": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "field_t": 0.0,
+        "momentum_gev_c": 5.0,
+        "radius_m": null,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.0
+      },
+      {
+        "charge_e": -1.0,
+        "endpoint_m": [
+          0.9976050421566762,
+          0.05988667535866521,
+          0.0
+        ],
+        "field_t": 2.0,
+        "momentum_gev_c": 5.0,
+        "radius_m": 8.339102379953802,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": -0.01498513277103015
+      },
+      {
+        "charge_e": 1.0,
+        "endpoint_m": [
+          0.9976050421566762,
+          -0.05988667535866521,
+          0.0
+        ],
+        "field_t": 2.0,
+        "momentum_gev_c": 5.0,
+        "radius_m": 8.339102379953802,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.01498513277103015
+      },
+      {
+        "charge_e": -1.0,
+        "endpoint_m": [
+          0.9913704129591526,
+          0.11342916226691606,
+          0.0
+        ],
+        "field_t": 3.8,
+        "momentum_gev_c": 5.0,
+        "radius_m": 4.389001252607264,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": -0.028449495346230133
+      },
+      {
+        "charge_e": 1.0,
+        "endpoint_m": [
+          0.9913704129591526,
+          -0.11342916226691606,
+          0.0
+        ],
+        "field_t": 3.8,
+        "momentum_gev_c": 5.0,
+        "radius_m": 4.389001252607264,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.028449495346230133
+      },
+      {
+        "charge_e": -1.0,
+        "endpoint_m": [
+          0.9850879165631484,
+          0.14877692018200547,
+          0.0
+        ],
+        "field_t": 5.0,
+        "momentum_gev_c": 5.0,
+        "radius_m": 3.335640951981521,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": -0.03740394310817506
+      },
+      {
+        "charge_e": 1.0,
+        "endpoint_m": [
+          0.9850879165631484,
+          -0.14877692018200547,
+          0.0
+        ],
+        "field_t": 5.0,
+        "momentum_gev_c": 5.0,
+        "radius_m": 3.335640951981521,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.03740394310817506
+      },
+      {
+        "charge_e": -1.0,
+        "endpoint_m": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "field_t": 0.0,
+        "momentum_gev_c": 20.0,
+        "radius_m": null,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.0
+      },
+      {
+        "charge_e": 1.0,
+        "endpoint_m": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "field_t": 0.0,
+        "momentum_gev_c": 20.0,
+        "radius_m": null,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.0
+      },
+      {
+        "charge_e": -1.0,
+        "endpoint_m": [
+          0.999850214201407,
+          0.014988500266864112,
+          0.0
+        ],
+        "field_t": 2.0,
+        "momentum_gev_c": 20.0,
+        "radius_m": 33.35640951981521,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": -0.0037473355588505553
+      },
+      {
+        "charge_e": 1.0,
+        "endpoint_m": [
+          0.999850214201407,
+          -0.014988500266864112,
+          0.0
+        ],
+        "field_t": 2.0,
+        "momentum_gev_c": 20.0,
+        "radius_m": 33.35640951981521,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.0037473355588505553
+      },
+      {
+        "charge_e": -1.0,
+        "endpoint_m": [
+          0.9994593366841874,
+          0.028472583971390374,
+          0.0
+        ],
+        "field_t": 3.8,
+        "momentum_gev_c": 20.0,
+        "radius_m": 17.556005010429057,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": -0.007119589617302445
+      },
+      {
+        "charge_e": 1.0,
+        "endpoint_m": [
+          0.9994593366841874,
+          -0.028472583971390374,
+          0.0
+        ],
+        "field_t": 3.8,
+        "momentum_gev_c": 20.0,
+        "radius_m": 17.556005010429057,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.007119589617302445
+      },
+      {
+        "charge_e": -1.0,
+        "endpoint_m": [
+          0.9990640595966436,
+          0.03745651886594326,
+          0.0
+        ],
+        "field_t": 5.0,
+        "momentum_gev_c": 20.0,
+        "radius_m": 13.342563807926084,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": -0.009367418009554021
+      },
+      {
+        "charge_e": 1.0,
+        "endpoint_m": [
+          0.9990640595966436,
+          -0.03745651886594326,
+          0.0
+        ],
+        "field_t": 5.0,
+        "momentum_gev_c": 20.0,
+        "radius_m": 13.342563807926084,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.009367418009554021
+      },
+      {
+        "charge_e": -1.0,
+        "endpoint_m": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "field_t": 0.0,
+        "momentum_gev_c": 100.0,
+        "radius_m": null,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.0
+      },
+      {
+        "charge_e": 1.0,
+        "endpoint_m": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "field_t": 0.0,
+        "momentum_gev_c": 100.0,
+        "radius_m": null,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.0
+      },
+      {
+        "charge_e": -1.0,
+        "endpoint_m": [
+          0.9999940083095785,
+          0.0029979155986834603,
+          0.0
+        ],
+        "field_t": 2.0,
+        "momentum_gev_c": 100.0,
+        "radius_m": 166.78204759907604,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": -0.0007494805836759512
+      },
+      {
+        "charge_e": 1.0,
+        "endpoint_m": [
+          0.9999940083095785,
+          -0.0029979155986834603,
+          0.0
+        ],
+        "field_t": 2.0,
+        "momentum_gev_c": 100.0,
+        "radius_m": 166.78204759907604,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.0007494805836759512
+      },
+      {
+        "charge_e": -1.0,
+        "endpoint_m": [
+          0.9999783700990557,
+          0.005695995099294922,
+          0.0
+        ],
+        "field_t": 3.8,
+        "momentum_gev_c": 100.0,
+        "radius_m": 87.78002505214528,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": -0.0014240103253154563
+      },
+      {
+        "charge_e": 1.0,
+        "endpoint_m": [
+          0.9999783700990557,
+          -0.005695995099294922,
+          0.0
+        ],
+        "field_t": 3.8,
+        "momentum_gev_c": 100.0,
+        "radius_m": 87.78002505214528,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.0014240103253154563
+      },
+      {
+        "charge_e": -1.0,
+        "endpoint_m": [
+          0.9999625522882591,
+          0.0074946711177077486,
+          0.0
+        ],
+        "field_t": 5.0,
+        "momentum_gev_c": 100.0,
+        "radius_m": 66.71281903963042,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": -0.0018736940916820174
+      },
+      {
+        "charge_e": 1.0,
+        "endpoint_m": [
+          0.9999625522882591,
+          -0.0074946711177077486,
+          0.0
+        ],
+        "field_t": 5.0,
+        "momentum_gev_c": 100.0,
+        "radius_m": 66.71281903963042,
+        "scope": "exact uniform axial field; vacuum; eta=0; no material or decay",
+        "signed_sagitta_m": 0.0018736940916820174
+      }
+    ],
+    "limits": [
+      "Software comparison of declared equations and one pinned OAE field function only.",
+      "The OAE function is not independently validated against CMS field measurements or run-era conditions.",
+      "No material transport, scattering, decay, detector response, or calibration."
+    ],
+    "model_id": "magnetic-curvature-sweep-v1",
+    "schema": "heplab-curvature-sweep-v1",
+    "tracker_oae_reference": [
+      {
+        "actual_path_m": 1.0,
+        "charge_e": -1.0,
+        "difference_from_uniform_3_8t_endpoint_m": 0.0018358786665690734,
+        "endpoint_m": [
+          0.7960178804654037,
+          0.5119115620318268,
+          -5.469790679580932e-06
+        ],
+        "momentum_gev_c": 1.0,
+        "scope": "pinned CMS tracker OAE field function + RK4; nominal 3.8 T; field-domain limited",
+        "signed_sagitta_m": -0.13906771797108042,
+        "termination": "path_budget"
+      },
+      {
+        "actual_path_m": 1.0,
+        "charge_e": 1.0,
+        "difference_from_uniform_3_8t_endpoint_m": 0.0018358786665690734,
+        "endpoint_m": [
+          0.7960178804654037,
+          -0.5119115620318268,
+          -5.469790679580932e-06
+        ],
+        "momentum_gev_c": 1.0,
+        "scope": "pinned CMS tracker OAE field function + RK4; nominal 3.8 T; field-domain limited",
+        "signed_sagitta_m": 0.13906771797108042,
+        "termination": "path_budget"
+      },
+      {
+        "actual_path_m": 1.0,
+        "charge_e": -1.0,
+        "difference_from_uniform_3_8t_endpoint_m": 0.00038171401077088067,
+        "endpoint_m": [
+          0.9913111576207906,
+          0.1138062489133323,
+          -2.280108476792014e-07
+        ],
+        "momentum_gev_c": 5.0,
+        "scope": "pinned CMS tracker OAE field function + RK4; nominal 3.8 T; field-domain limited",
+        "signed_sagitta_m": -0.02855341456804893,
+        "termination": "path_budget"
+      },
+      {
+        "actual_path_m": 1.0,
+        "charge_e": 1.0,
+        "difference_from_uniform_3_8t_endpoint_m": 0.00038171401077088067,
+        "endpoint_m": [
+          0.9913111576207906,
+          -0.1138062489133323,
+          -2.280108476792014e-07
+        ],
+        "momentum_gev_c": 5.0,
+        "scope": "pinned CMS tracker OAE field function + RK4; nominal 3.8 T; field-domain limited",
+        "signed_sagitta_m": 0.02855341456804893,
+        "termination": "path_budget"
+      },
+      {
+        "actual_path_m": 1.0,
+        "charge_e": -1.0,
+        "difference_from_uniform_3_8t_endpoint_m": 9.557330713406978e-05,
+        "endpoint_m": [
+          0.9994556136563061,
+          0.028568084735241767,
+          -1.4273699120730974e-08
+        ],
+        "momentum_gev_c": 20.0,
+        "scope": "pinned CMS tracker OAE field function + RK4; nominal 3.8 T; field-domain limited",
+        "signed_sagitta_m": -0.0071456588573224735,
+        "termination": "path_budget"
+      },
+      {
+        "actual_path_m": 1.0,
+        "charge_e": 1.0,
+        "difference_from_uniform_3_8t_endpoint_m": 9.557330713406978e-05,
+        "endpoint_m": [
+          0.9994556136563061,
+          -0.028568084735241767,
+          -1.4273699120730974e-08
+        ],
+        "momentum_gev_c": 20.0,
+        "scope": "pinned CMS tracker OAE field function + RK4; nominal 3.8 T; field-domain limited",
+        "signed_sagitta_m": 0.0071456588573224735,
+        "termination": "path_budget"
+      },
+      {
+        "actual_path_m": 1.0,
+        "charge_e": -1.0,
+        "difference_from_uniform_3_8t_endpoint_m": 1.9116516393892095e-05,
+        "endpoint_m": [
+          0.9999782211277344,
+          0.005715111035219101,
+          -5.71006952211232e-10
+        ],
+        "momentum_gev_c": 100.0,
+        "scope": "pinned CMS tracker OAE field function + RK4; nominal 3.8 T; field-domain limited",
+        "signed_sagitta_m": -0.0014292253193939305,
+        "termination": "path_budget"
+      },
+      {
+        "actual_path_m": 1.0,
+        "charge_e": 1.0,
+        "difference_from_uniform_3_8t_endpoint_m": 1.9116516393892095e-05,
+        "endpoint_m": [
+          0.9999782211277344,
+          -0.005715111035219101,
+          -5.71006952211232e-10
+        ],
+        "momentum_gev_c": 100.0,
+        "scope": "pinned CMS tracker OAE field function + RK4; nominal 3.8 T; field-domain limited",
+        "signed_sagitta_m": 0.0014292253193939305,
+        "termination": "path_budget"
+      }
+    ]
+  },
+  "schema": "heplab-curvature-sweep-report-v1",
+  "source_sha256": {
+    "src/heplab/physics/cms_field.py": "cee2a5464c3ba14f9636124cb6784686dc42d5db60bbfaa6390e21ff42a6dc18",
+    "src/heplab/physics/constants.py": "3d452a82b7ff94868e87f3bcdfe4567ed5008a3c5cf8edcda1cc950d96d8a42c",
+    "src/heplab/physics/curvature.py": "a2fae8ba5369a4572d584dcdbb0d00202c47f86a09ea4f4d8eeee48e4601103e",
+    "src/heplab/physics/reference.py": "691b6231b561d83174025e4c6909d225661e725d6c985491876fe366d2ee9f92"
+  }
+}

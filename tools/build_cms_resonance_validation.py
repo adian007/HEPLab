@@ -24,9 +24,12 @@ from heplab.physics.cms_mass_calibration import (
     heldout_closure,
 )
 from heplab.physics.cms_resonance_validation import (
+    EVENT_SPLIT_ALGORITHM,
     RESONANCES,
     evaluate_reference,
+    event_split,
     fit_peak,
+    select_candidate_index,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,7 +37,8 @@ SOURCE = (
     "https://opendata.cern.ch/eos/opendata/cms/Run2016G/DoubleMuon/NANOAOD/"
     "UL2016_MiniAODv2_NanoAODv9-v2/2430000/05DD095C-F6C3-9A4F-9FB3-348A5A6403D5.root"
 )
-ENTRY_STOP = 100_000
+DEFAULT_ENTRY_START = 100_000
+DEFAULT_ENTRY_COUNT = 200_000
 Z_BOOTSTRAP_REPLICATES = 20
 ETA_BINS = ((0.0, 0.9), (0.9, 1.7), (1.7, 2.4))
 TRIGGERS = {
@@ -80,7 +84,19 @@ def digest_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def extract_pairs(source: str | Path, entry_stop: int) -> tuple[list[dict], dict]:
+def extract_pairs(source: str | Path, entry_start: int, entry_stop: int) -> tuple[list[dict], dict]:
+    """Select one trigger-eligible pair per event using scalar pT sum only.
+
+    The event range defaults to entries after the historical target-selected
+    sample. A deterministic event-ID hash creates training and held-out
+    partitions before any mass fit is evaluated.
+    """
+    if (
+        type(entry_start) is not int
+        or type(entry_stop) is not int
+        or not 0 <= entry_start < entry_stop
+    ):
+        raise ValueError("entry range must be a nonempty nonnegative half-open interval")
     branches = ["run", "luminosityBlock", "event", *MUON_BRANCHES]
     branches += [branch for names in TRIGGERS.values() for branch in names]
     tree = uproot.open(source, timeout=60)["Events"]
@@ -90,7 +106,7 @@ def extract_pairs(source: str | Path, entry_stop: int) -> tuple[list[dict], dict
         raise ValueError(f"NanoAOD source is missing branches: {sorted(missing)}")
     arrays = tree.arrays(
         branches,
-        entry_start=0,
+        entry_start=min(entry_start, tree.num_entries),
         entry_stop=min(entry_stop, tree.num_entries),
         library="ak",
     )
@@ -149,45 +165,55 @@ def extract_pairs(source: str | Path, entry_stop: int) -> tuple[list[dict], dict
             accepted = accepted | arrays[name]
         fired[population] = accepted
 
-    selected = {key: [] for key in RESONANCES}
-    event_count = {"entries_read": len(arrays), "certified_events": int(certified.sum())}
-    for resonance, window in RESONANCES.items():
-        population = "jpsi" if resonance == "jpsi" else "upsilon"
-        low, high = window["window_gev"]
+    runs = ak.to_list(arrays.run)
+    lumis = ak.to_list(arrays.luminosityBlock)
+    events = ak.to_list(arrays.event)
+    rows = []
+    event_count = {
+        "entries_read": len(arrays),
+        "entry_start": min(entry_start, tree.num_entries),
+        "entry_stop": min(entry_stop, tree.num_entries),
+        "certified_events": int(certified.sum()),
+        "candidate_events": {},
+    }
+    split_counts = {population: {"training": 0, "heldout": 0} for population in fired}
+    for population, resonance_names in (
+        ("jpsi", ("jpsi",)),
+        ("upsilon", ("upsilon_1s", "upsilon_2s", "upsilon_3s")),
+    ):
         event_mask = ak.broadcast_arrays(fired[population], mass)[0]
-        mask = quality & event_mask & (mass >= low) & (mass <= high)
-        masked_mass = ak.to_list(mass[mask])
-        masked_first_eta = ak.to_list(pairs.first.eta[mask])
-        masked_second_eta = ak.to_list(pairs.second.eta[mask])
-        masked_runs = ak.to_list(arrays.run)
-        masked_lumis = ak.to_list(arrays.luminosityBlock)
-        masked_events = ak.to_list(arrays.event)
-        counts = 0
-        target = window["mass_gev"]
-        # Keep one nearest-peak pair per event so combinatorics cannot inflate yields.
-        for event_index, (masses, eta1, eta2) in enumerate(
-            zip(masked_mass, masked_first_eta, masked_second_eta, strict=True)
+        mask = quality & event_mask
+        values = ak.to_list(mass[mask])
+        eta1s = ak.to_list(pairs.first.eta[mask])
+        eta2s = ak.to_list(pairs.second.eta[mask])
+        pt1s = ak.to_list(pairs.first.pt[mask])
+        pt2s = ak.to_list(pairs.second.pt[mask])
+        population_rows = 0
+        for index, (masses, eta1, eta2, pt1, pt2) in enumerate(
+            zip(values, eta1s, eta2s, pt1s, pt2s, strict=True)
         ):
-            candidates = [
-                (abs(value - target), value, e1, e2)
-                for value, e1, e2 in zip(masses, eta1, eta2, strict=True)
-            ]
-            if not candidates:
+            p1, p2 = list(map(float, pt1)), list(map(float, pt2))
+            candidate = select_candidate_index(zip(p1, p2, strict=True))
+            if candidate is None:
                 continue
-            _distance, value, e1, e2 = min(candidates)
-            record = {
-                "run": int(masked_runs[event_index]),
-                "luminosity_block": int(masked_lumis[event_index]),
-                "event": int(masked_events[event_index]),
-                "mass_gev": float(value),
-                "muon_abs_eta": [abs(float(e1)), abs(float(e2))],
+            split = event_split(int(runs[index]), int(lumis[index]), int(events[index]))
+            split_counts[population][split] += 1
+            row = {
+                "run": int(runs[index]),
+                "luminosity_block": int(lumis[index]),
+                "event": int(events[index]),
+                "split": split,
+                "selection_population": population,
+                "candidate_pair_index": candidate,
+                "mass_gev": float(masses[candidate]),
+                "muon_pt_gev": [p1[candidate], p2[candidate]],
+                "muon_abs_eta": [abs(float(eta1[candidate])), abs(float(eta2[candidate]))],
             }
-            selected[resonance].append(record)
-            counts += 1
-        event_count[resonance] = counts
-    return [
-        row | {"resonance": name} for name, rows in selected.items() for row in rows
-    ], event_count
+            rows.extend(row | {"resonance": name} for name in resonance_names)
+            population_rows += 1
+        event_count["candidate_events"][population] = population_rows
+    event_count["split_counts"] = split_counts
+    return rows, event_count
 
 
 def git_revision() -> str | None:
@@ -266,12 +292,14 @@ def report_from_rows(rows: list[dict], source_provenance: dict) -> dict:
     reference_path = ROOT / "src/heplab/data/reference/cms-resonance-validation.json"
     reference = json.loads(reference_path.read_text(encoding="utf8"))
     result: dict = {
-        "schema": "heplab-cms-data-resonance-validation-v1",
-        "status": "data_fit_gate",
+        "schema": "heplab-cms-data-resonance-validation-v2",
+        "status": "data_regression_gate",
+        "validation_level": "named_reference_data_regression",
         "source": source_provenance,
         "selection": {
             "event": (
-                f"first {source_provenance['entry_stop']} entries from one Run2016G "
+                f"entries [{source_provenance['entry_start']}, {source_provenance['entry_stop']}) "
+                "from one Run2016G "
                 "DoubleMuon NanoAOD file; certified run/lumi subset"
             ),
             "muons": "opposite charge; pT >= 2 GeV; |eta| < 2.4",
@@ -280,26 +308,58 @@ def report_from_rows(rows: list[dict], source_provenance: dict) -> dict:
                 "listed in the source manifest"
             ),
             "candidate": (
-                "one opposite-charge pair per event, closest to the target PDG mass "
-                "inside the fit window"
+                "one opposite-charge pair per event, maximizing scalar pT sum; "
+                "stable pair-order tie break; mass is not used"
             ),
+            "split": {
+                "algorithm": EVENT_SPLIT_ALGORITHM,
+                "key": "run:luminosityBlock:event",
+                "heldout_fraction": 0.2,
+                "selection_and_split_precede_mass_fit": True,
+            },
         },
         "fits": {},
         "limits": [
-            "One 100k-entry range from one Run2016G file, not a luminosity-representative dataset",
+            "Held-out events are disjoint from training; they come from one file and run period, "
+            "so they do not constitute an independent dataset",
+            "Candidate selection is mass-independent, but trigger populations and offline cuts "
+            "still define acceptance",
             "No trigger-object matching, acceptance correction, or per-muon momentum correction",
             "The resonance peak fit is a data spectrum regression, not a "
             "detector-response calibration",
             "Eta-bin comparisons are broad cross-era envelopes digitized from the cited CMS plot",
         ],
     }
+    splits = {row.get("split") for row in rows}
+    if not splits <= {"training", "heldout"} or not {"training", "heldout"} <= splits:
+        raise ValueError("v2 candidate rows require both training and held-out event splits")
+    event_keys = {}
+    for row in rows:
+        key = (row["resonance"], row["run"], row["luminosity_block"], row["event"])
+        prior = event_keys.setdefault(key, row["split"])
+        if prior != row["split"]:
+            raise ValueError("one event appears in both training and held-out populations")
     masses = {
-        name: [row["mass_gev"] for row in rows if row["resonance"] == name] for name in RESONANCES
+        name: {
+            split: [
+                row["mass_gev"]
+                for row in rows
+                if row["resonance"] == name and row["split"] == split
+            ]
+            for split in ("training", "heldout")
+        }
+        for name in RESONANCES
     }
     for name, config in RESONANCES.items():
-        fit = fit_peak(masses[name], tuple(config["window_gev"]))
-        gate = evaluate_reference(fit, reference["resonance_masses_gev"][name])
-        result["fits"][name] = {"entries": len(masses[name]), "fit": fit, "reference_gate": gate}
+        training_fit = fit_peak(masses[name]["training"], tuple(config["window_gev"]))
+        heldout_fit = fit_peak(masses[name]["heldout"], tuple(config["window_gev"]))
+        gate = evaluate_reference(heldout_fit, reference["resonance_masses_gev"][name])
+        result["fits"][name] = {
+            "entries": {split: len(population) for split, population in masses[name].items()},
+            "training_fit": training_fit,
+            "heldout_fit": heldout_fit,
+            "heldout_reference_gate": gate,
+        }
 
     # Z uses its independent high-mass data/MC template and held-out closure.
     z_fixture_path = ROOT / "src/heplab/data/reference/cms-z-template-candidates.json"
@@ -352,7 +412,7 @@ def report_from_rows(rows: list[dict], source_provenance: dict) -> dict:
         ),
     }
 
-    jpsi_rows = [row for row in rows if row["resonance"] == "jpsi"]
+    jpsi_rows = [row for row in rows if row["resonance"] == "jpsi" and row["split"] == "heldout"]
     eta_results = []
     eta_refs = reference["jpsi_relative_mass_resolution_by_abs_eta"]
     for (low, high), eta_ref in zip(ETA_BINS, eta_refs, strict=True):
@@ -379,10 +439,19 @@ def report_from_rows(rows: list[dict], source_provenance: dict) -> dict:
     result["jpsi_resolution_by_abs_eta"] = eta_results
     result["passed"] = (
         result["z_dimuon"]["passed"]
-        and all(item["reference_gate"].get("passed", False) for item in result["fits"].values())
+        and all(
+            item["heldout_reference_gate"].get("passed", False) for item in result["fits"].values()
+        )
         and all(row["passed"] for row in eta_results)
     )
-    result["status"] = "passed" if result["passed"] else "failed"
+    result["status"] = (
+        "passed_reference_regression" if result["passed"] else "failed_reference_regression"
+    )
+    result["interpretation"] = (
+        "A passing status means only that this frozen held-out event sample meets the "
+        "predeclared reference regression gates. It does not establish detector calibration "
+        "or validate the HEPLab simulator."
+    )
     result["deterministic_result_sha256"] = hashlib.sha256(
         json.dumps(
             _stable_result_value(
@@ -413,11 +482,12 @@ def main() -> None:
     parser.add_argument(
         "--provenance",
         type=Path,
-        help="source report paired with --from-pairs (defaults to sibling validation.json)",
+        help="v2 source report paired with --from-pairs (defaults to sibling validation.json)",
     )
-    parser.add_argument("--entries", type=int, default=ENTRY_STOP)
+    parser.add_argument("--entry-start", type=int, default=DEFAULT_ENTRY_START)
+    parser.add_argument("--entries", type=int, default=DEFAULT_ENTRY_COUNT)
     parser.add_argument(
-        "--output-dir", type=Path, default=ROOT / "artifacts/cms/resonance-validation"
+        "--output-dir", type=Path, default=ROOT / "artifacts/cms/resonance-validation-v2"
     )
     args = parser.parse_args()
     if args.from_pairs:
@@ -427,6 +497,8 @@ def main() -> None:
                 encoding="utf8"
             )
         )
+        if prior_report.get("schema") != "heplab-cms-data-resonance-validation-v2":
+            raise ValueError("--from-pairs requires a target-independent v2 selected-pairs fixture")
         prior_source = prior_report["source"]
         if digest_file(args.from_pairs) != prior_source["selected_pairs_sha256"]:
             raise ValueError("frozen resonance candidate sample does not match its provenance")
@@ -447,14 +519,20 @@ def main() -> None:
         if source == SOURCE and source_record["url"] != SOURCE:
             raise ValueError("dataset manifest URL differs from the frozen CMS source URL")
         integrity = verify_source(source, prior_source)
-        rows, counts = extract_pairs(source, args.entries)
+        if args.entry_start < 0 or args.entries <= 0:
+            raise ValueError("--entry-start must be nonnegative and --entries must be positive")
+        entry_stop = args.entry_start + args.entries
+        rows, counts = extract_pairs(source, args.entry_start, entry_stop)
         source_provenance = {
             "url": str(source),
             "record": 30522,
-            "entry_start": 0,
-            "entry_stop": args.entries,
+            "entry_start": counts["entry_start"],
+            "entry_stop": counts["entry_stop"],
             "input_entries_available": counts["entries_read"],
             "trigger_counts_and_candidates": counts,
+            "candidate_selection_algorithm": "maximum-scalar-pT-sum-v1",
+            "event_split_algorithm": EVENT_SPLIT_ALGORITHM,
+            "split_fraction_heldout": 0.2,
             "trigger_paths": TRIGGERS,
             "source_adler32": prior_source["declared_adler32"],
             "source_size_bytes": prior_source["source_size_bytes"],

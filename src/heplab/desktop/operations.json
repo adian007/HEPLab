@@ -27,6 +27,8 @@
       "timeout_s": 30
     },
     "workbench.preview": {"args": {"request": {"type": "object"}}, "timeout_s": 15},
+    "workbench.lifetime": {"args": {"config": {"type": "object"}}, "timeout_s": 30},
+    "workbench.export-html": {"args": {"result": {"type": "object"}}, "timeout_s": 30},
     "jobs.get": {"args": {"job_id": {"type": "id"}}, "timeout_s": 15},
     "jobs.list": {"args": {}, "timeout_s": 15},
     "jobs.cancel": {"args": {"job_id": {"type": "id"}}, "timeout_s": 15},

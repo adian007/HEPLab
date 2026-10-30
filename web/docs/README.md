@@ -1,6 +1,6 @@
 # HEPLab website: engineering notes
 
-These notes describe how the HEPLab Starlight project guide in `web/` is built,
+These notes describe how the HEPLab ASP.NET Core guide in `web/` is built,
 how to edit its pages, and how to keep the content accurate. They are for anyone
 editing the site.
 
@@ -21,11 +21,10 @@ only the website's own code, design and writing.
 
 ## The site in one paragraph
 
-An Astro Starlight documentation site that explains HEPLab: what it does today,
-how mature each part is, recorded validation evidence, architecture, install
-commands, links to the handbook, and known limits. It is static and has no
-dependency on the local FastAPI service. The simulator is a separate local
-application.
+An ASP.NET Core Razor Pages documentation site that explains HEPLab: what it
+does today, how mature each part is, recorded validation evidence, architecture,
+install commands, links to the handbook, and known limits. It does not depend on
+the local FastAPI service. The simulator is a separate local application.
 
 ## Rules that override everything else
 
@@ -33,6 +32,5 @@ application.
    partial, say so on the page.
 2. The engineering handbook is the source of truth for physics and
    requirements. The site summarizes and links; it does not restate.
-3. The site must work as static content at narrow widths and in both color
-   themes. Starlight's search and mobile navigation are the only essential
-   interactive features.
+3. The site must work at narrow widths and in both color themes. Search, mobile
+   navigation, the teaching lab, and gallery must remain keyboard-accessible.

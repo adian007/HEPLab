@@ -1,5 +1,11 @@
 # CMS resonance regression suite
 
+> **Historical v1 description.** The low-mass v1 selector ranked candidates by
+> distance from a PDG target and must not be cited as independent closure. Its
+> preserved report is labeled exploratory. Use the corrected, frozen v2
+> procedure and current failed gate status in
+> [CMS resonance reference regression v2](cms-physics-regression-v2.md).
+
 The CI gate re-fits a compact, frozen set of CMS data candidates. It covers the
 Z template closure, the J/ψ and Υ(1S, 2S, 3S) peaks, and the J/ψ dimuon mass
 resolution in three muon-|η| bins. Run it offline with:

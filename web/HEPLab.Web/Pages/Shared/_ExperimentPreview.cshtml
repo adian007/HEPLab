@@ -1,0 +1,43 @@
+@using HEPLab.Web.Services
+@model ExperimentPreviewService
+<figure class="experiment-preview" aria-labelledby="preview-caption">
+    <div class="preview-toolbar">
+        <div><span class="status-dot" aria-hidden="true"></span><span>EVENT @Model.EventIndex.ToString("000000")</span></div>
+        <span class="badge synthetic-badge">SYNTHETIC FIXTURE</span>
+    </div>
+    <div class="preview-view-label">
+        <span>3D detector view <span class="preview-subtitle">· idealized surfaces and predicted paths</span></span>
+        <span class="mono">x, y, z / m</span>
+    </div>
+    <div class="detector-view" data-detector-view data-fixture-url="@ExperimentPreviewService.FixtureUrl" aria-label="Interactive 3D view of the synthetic muon-pair event">
+        <canvas class="detector-canvas" tabindex="0" role="img" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown + - 0" aria-label="3D detector view. Two synthetic muon paths emerge from the origin in the transverse plane inside a 3.8 tesla axial magnetic field. For this back-to-back pair, both bend toward negative y. Paths are solid within the 3 metre bore and dashed where the model sets the field to zero outside it. Use the view buttons, drag or arrow keys to change camera angle, and scroll or plus and minus keys to zoom.">
+            A synthetic back-to-back muon pair in an idealized detector. The axial field points in the positive z direction.
+        </canvas>
+        <div class="detector-loading" data-view-status role="status">Loading the declared event and geometry…</div>
+        <div class="detector-readout" aria-hidden="true"><span>CAMERA</span><strong data-camera-label>3D perspective</strong></div>
+    </div>
+    <div class="detector-controls" role="group" aria-label="3D detector view controls">
+        <button type="button" class="detector-control is-active" data-view-preset="perspective" aria-pressed="true">3D view</button>
+        <button type="button" class="detector-control" data-view-preset="transverse" aria-pressed="false">Transverse x–y</button>
+        <button type="button" class="detector-control" data-view-preset="longitudinal" aria-pressed="false">Longitudinal x–z</button>
+        <span class="detector-hint">Drag to orbit · scroll to zoom</span>
+    </div>
+    <div class="preview-track-legend" aria-label="Legend">
+        <span class="track-negative"><i aria-hidden="true"></i>μ− · q = −e</span>
+        <span class="track-positive"><i aria-hidden="true"></i>μ+ · q = +e</span>
+        <span class="field-legend"><i aria-hidden="true">↑</i>B = +z</span>
+        <span class="material-legend"><i aria-hidden="true"></i>1 mm Si slab at s = 1 m</span>
+        <span class="field-scope-legend"><i aria-hidden="true"></i>Dashed: outside field region</span>
+        <span class="preview-scope">Predicted paths</span>
+    </div>
+    <div class="preview-metrics">
+        <div><span>TRANSVERSE MOMENTUM EACH</span><strong>@Model.MomentumGeV <small>GeV/c</small></strong></div>
+        <div><span>AXIAL FIELD INSIDE BORE</span><strong>@Model.FieldTesla <small>T · +z</small></strong></div>
+        <div><span>TRANSPORT MODEL</span><strong class="model-label">Uniform field · 1 mm Si slab</strong></div>
+    </div>
+    <p class="preview-limit">Geometry shows idealized cylindrical surfaces; the uniform axial field is zero outside the 3 m bore. No measured hits, full CMS field map, or detector calibration are represented.</p>
+    <figcaption id="preview-caption">
+        <span>Declared pair · fixed local result <span class="digest" title="Result SHA-256">@Model.ResultDigest[..10]</span><br /><span class="preview-geometry">Geometry: @Model.GeometryId</span></span>
+        <a href="/examples/analytic-muon-pair-event.html">Inspect event <lab-icon name="arrow-up-right" /></a>
+    </figcaption>
+</figure>

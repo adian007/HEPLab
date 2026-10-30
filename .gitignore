@@ -60,3 +60,5 @@ tmp_*
 web/node_modules/
 web/dist/
 web/tsconfig.tsbuildinfo
+web/HEPLab.Web/bin/
+web/HEPLab.Web/obj/

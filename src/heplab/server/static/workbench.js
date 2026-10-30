@@ -5,8 +5,9 @@ const inputIds = ['mode','backend','seed','events','momentum','field','thickness
 let token = '', capabilities = null, result = null, active = null, displayedJob = null;
 let detectorGeometry=null, calibrationReport=null, hiddenSurfaces=new Set();
 let cmsDisplay=null; const displayLayers=new Map(), displaySurfaces=new Map(), displayRemainders=new Map(), hiddenDisplay=new Set();
-let selected = null, projection = 'xy', zoom = 1, pan = [0,0], orbit = [-.65,.55];
-let drag = null, screenTracks = [], history = [], historyIndex = -1, sessionRuns = [];
+let selected = null, projection = 'xy-xz', zoom = 1, pan = [0,0], orbit = [-.65,.55];
+let curvatureConversion = null;
+let drag = null, pairDrag = null, screenTracks = [], history = [], historyIndex = -1, sessionRuns = [];
 let comparison = null;
 let roll=0,trackerShell=null;
 const layerOpacity=new Map();
@@ -15,6 +16,12 @@ try{const saved=JSON.parse(localStorage.getItem('heplab-display-opacity-v1')||'{
 const renderer = window.HEPLabGL?.create($('detector-gl')) || null;
 if (!renderer) $('detector-gl').hidden = true;
 const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+function announceRenderer(fallback=!renderer||renderer.lost){
+  const label=fallback?'Canvas 2D fallback renderer active.':'WebGL detector renderer active.';
+  if($('renderer-status').textContent!==label)$('renderer-status').textContent=label;
+  if(reducedMotion){const note='Reduced-motion preference is active; use the path slider to inspect positions.';if($('replay-status').textContent!==note)$('replay-status').textContent=note;}
+}
+announceRenderer();
 // Replay clock in metres of flight path; Infinity shows complete trajectories.
 const playback = {time: Infinity, playing: false, last: 0, max: 0, frame: 0};
 let trackPaths = [], syncedEvent = null, syncedMarkers = '', staticKey = '';
@@ -105,10 +112,19 @@ function config() {
     mass_min_gev:$('mode').value==='pythia'?Number($('mass-min').value):60,
     mass_max_gev:$('mode').value==='pythia'?Number($('mass-max').value):120};
 }
+function runConfigEnvelope(c=config(),display={}) {
+  const pick=keys=>Object.fromEntries(keys.map(key=>[key,c[key]]));
+  return {schema:'heplab-run-config-v2',run:pick(['mode','backend','seed','events']),
+    analytic:pick(['momentum_gev','bz_tesla','thickness_mm','noise_adc','threshold_adc','field_model','source_model']),
+    collision:pick(['response_model']),
+    display:{projection:display.projection||projection,region:display.region||$('detector-focus').value},
+    analysis:pick(['muon_pt_min_gev','muon_abs_eta_max','muon_iso_max','mass_min_gev','mass_max_gev'])};
+}
 // Inside the desktop app the CSP blocks fetch('/api/...'); the same requests go
 // through the shell's single validated command to the packaged worker.
 const desktop = window.__TAURI_INTERNALS__;
 function desktopRequest(path, body, extraHeaders) {
+  if(path==='data/library'&&body===undefined)return ['data.library',{}];
   if(path.startsWith('data/'))return ['data.'+path.slice(5),body||{}];
   const fixed = {session:'workbench.session', detector:'detector.geometry', calibration:'calibration.report', 'detector/display':'detector.display',runs:'runs.list'};
   let match;
@@ -123,6 +139,8 @@ function desktopRequest(path, body, extraHeaders) {
   if ((match = /^jobs\/([A-Za-z0-9]+)\/events\/(\d+)$/.exec(path)) && body === undefined) return ['jobs.event', {job_id:match[1], index:Number(match[2])}];
   if ((match = /^runs\/([A-Za-z0-9_.-]+)$/.exec(path)) && body === undefined) return ['runs.get', {run_id:match[1]}];
   if (path === 'preview' && body !== undefined) return ['workbench.preview', {request:body}];
+  if (path === 'lifetime' && body !== undefined) return ['workbench.lifetime', {config:body}];
+  if (path === 'export-html' && body !== undefined) return ['workbench.export-html', body];
   throw Error('not available in the desktop app: '+path);
 }
 async function api(path, body, extraHeaders={}) {
@@ -209,14 +227,31 @@ function updateCapabilities() {
       check('Event energy ledger',passed?'Passed':'Failed',`${residual.toExponential(3)} GeV residual; absolute gate 1e-9 GeV`,passed?'pass':'fail');}
   }
 }
+function updateModelPreflight() {
+  const panel=$('model-preflight');
+  if($('mode').value==='pythia'){
+    panel.textContent='Model IDs (v1): pythia8-delphes-dy-v1 + ideal-solenoid-helix-v1. PYTHIA8 Drell–Yan + DELPHES CMS card is fast simulation with no pileup. It is not Geant4 transport or measured CMS reconstruction; generator/card evidence is scoped to the recorded DY sample.';
+    return;
+  }
+  const field=$('field-model').value==='cms_tracker'
+    ?'Pinned CMS tracker OAE field reference (nominal 3.8 T; r < 1.15 m, |z| < 2.8 m; software parity only)'
+    :'Analytic uniform axial-field vacuum helix';
+  const source=$('source-model').value==='angular_sample'?'address-seeded angular muon test sample':'declared back-to-back muon test pair';
+  const response=$('response-model').value==='delphes_reference'
+    ?' Separate truth-to-object DY/DELPHES reference response; it does not alter the drawn trajectory.'
+    :'';
+  const sourceModelId=$('source-model').value==='angular_sample'?'angular-muon-sample-v1 v1':'declared-muon-pair-v1 v1';
+  const fieldModelId=$('field-model').value==='cms_tracker'?'cms-tracker-oae-3.8t-v1 v1':'ideal-solenoid-helix-v1 v1';
+  const responseModelId=$('response-model').value==='delphes_reference'?' · delphes-reference-response-v1 v1':'';
+  const modelIds=`${sourceModelId} · ${fieldModelId} · pdg-si-muon-loglinear-split-v1 v1 · thin-slab-highland-v1 v1 · deposit-electronics-v1 v1${responseModelId}`;
+  panel.textContent=`Model IDs: ${modelIds}. Source: ${source}. ${field}. PDG mean stopping table + one illustrative silicon slab / Highland Gaussian core; electronics illustrative. Domains and evidence are component-specific; the bench is educational and unvalidated.${response}`;
+}
 function updateMode() {
   const collision = $('mode').value === 'pythia';
   const angular = $('source-model').value==='angular_sample';
   const coarse = !collision&&$('response-model').value==='delphes_reference';
   const minimum=coarse?(angular?27.8:5):1;
   $('momentum').setCustomValidity(Number($('momentum').value)<minimum?`This response model requires momentum ≥ ${minimum} GeV/c.`:'');
-  $('configuration-error').hidden=!$('momentum').validationMessage;
-  $('configuration-error').textContent=$('momentum').validationMessage;
   const tracker=$('field-model').value==='cms_tracker';
   $('field').readOnly=tracker;if(tracker)$('field').value='3.8';
   $('propagation-model').textContent=tracker?'RK4 / tracker validity only':'Analytic vacuum helix';
@@ -231,6 +266,14 @@ function updateMode() {
   $('event-budget-row').hidden = !collision&&!angular;
   $('events').max=collision?'1000':'200';
   $('source-note').textContent=angular?'Isotropic directions within |η| < 2.4; fixed-momentum back-to-back pairs. Not collisions.':'One transverse back-to-back pair; seed changes scattering and electronics, not the input directions.';
+  const fields=collision
+    ?['seed','events','muon-pt-min','muon-eta-max','muon-iso-max','mass-min','mass-max']
+    :['seed',...(angular?['events']:[]),'momentum','field','thickness','noise','threshold'];
+  const firstInvalid=fields.map(id=>$(id)).find(input=>!input.disabled&&!input.checkValidity());
+  $('configuration-error').hidden=!firstInvalid;
+  $('configuration-error').textContent=firstInvalid
+    ?`${firstInvalid.labels?.[0]?.textContent?.trim()||'Parameter'}: ${firstInvalid.validationMessage}`
+    :'';
   $('backend').disabled = collision || !!active;
   $('document-title').textContent = window.currentWorkspace==='data'?'CMS data analysis':collision?'Drell–Yan collisions':angular?'Angular muon laboratory':'Single-pair bench';
   const unavailable=collision&&!capabilities?.simulation.available;
@@ -245,6 +288,7 @@ function updateMode() {
   if(capabilities)$('mode').options[1].textContent='Drell–Yan · PYTHIA8 / DELPHES'+(capabilities.simulation?.available?'':' (not installed)');
   document.querySelectorAll('[data-experiment]').forEach(b=>b.disabled=!token||!!active);
   $('next-seed').disabled=!token||!!active;
+  updateModelPreflight();
   updateCapabilities();
 }
 function changed(record=true) {
@@ -287,7 +331,68 @@ function saveJson(value,name) {
   const link=document.createElement('a'); link.href=url; link.download=name; link.click();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-$('save-setup').onclick=()=>saveJson({format:'heplab-workbench-config-v1',parameters:config()},'heplab-setup.json');
+let lifetimeResult=null;
+function updateLifetimePathFields(){
+  const altitude=$('life-path-mode').value==='altitude';
+  $('life-fixed-row').hidden=altitude;$('life-altitude-fields').hidden=!altitude;
+  $('life-path').disabled=altitude;
+  for(const id of ['life-production','life-detector','life-zenith'])$(id).disabled=!altitude;
+}
+function presentLifetime(value){
+  const s=value.summary,c=value.config,root=$('life-result');root.replaceChildren();
+  const table=document.createElement('table');
+  const entries=[
+    ['Mean decay path',`${s.mean_decay_path_m.toPrecision(5)} m`],
+    ['Analytic survival',s.expected_survival_probability.toPrecision(6)],
+    ['Seeded survival',`${s.observed_survival_probability.toPrecision(6)} (${s.observed_survivors}/${c.sample_size})`],
+    ['95% Wilson interval',s.survival_wilson_95_percent.map(x=>x.toPrecision(5)).join(' – ')],
+    ['Result digest',value.result_sha256]
+  ];
+  for(const [name,text] of entries){const row=document.createElement('tr'),head=document.createElement('th'),cell=document.createElement('td');head.scope='row';head.textContent=name;cell.textContent=text;row.append(head,cell);table.append(row);}
+  root.append(table);
+  const note=document.createElement('p');note.className='field-note';note.textContent=`${c.path_mode==='altitude'?'Plane-parallel altitude path':'Fixed path'} · ${c.momentum_gev_c} GeV/c · seed ${c.seed}. Constant momentum and vacuum decay law only; no atmospheric shower or detector calibration.`;root.append(note);
+  root.append(lifetimeProbabilityPlot(value));
+}
+function lifetimeProbabilityPlot(value){
+  const {config:c,summary:s}=value,mean=s.mean_decay_path_m;
+  const end=Math.max(c.path_length_m*1.15,mean*2,1),left=48,right=424,top=14,bottom=142;
+  const x=path=>left+(right-left)*path/end,y=probability=>bottom-(bottom-top)*probability;
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox','0 0 440 178');svg.setAttribute('role','img');
+  svg.setAttribute('aria-label','Analytic muon survival probability versus path length with the seeded survival estimate and 95 percent Wilson interval');
+  const add=(name,attrs,label)=>{const node=document.createElementNS(svg.namespaceURI,name);for(const [key,val]of Object.entries(attrs))node.setAttribute(key,String(val));if(label!==undefined)node.textContent=label;svg.append(node);return node;};
+  for(let i=0;i<=4;i++){const probability=i/4,py=y(probability);add('line',{x1:left,y1:py,x2:right,y2:py,stroke:'#dce3e8'});add('text',{x:left-7,y:py+4,'text-anchor':'end',fill:'#64717c','font-size':10},probability.toFixed(2));}
+  let path='';for(let i=0;i<=80;i++){const distance=end*i/80,px=x(distance),py=y(Math.exp(-distance/mean));path+=(i?'L':'M')+px.toFixed(2)+','+py.toFixed(2);}
+  add('path',{d:path,fill:'none',stroke:'#2464a0','stroke-width':2});
+  const observed=s.observed_survival_probability,interval=s.survival_wilson_95_percent,px=x(c.path_length_m),py=y(observed);
+  add('line',{x1:px,y1:y(interval[0]),x2:px,y2:y(interval[1]),stroke:'#b56a22','stroke-width':2});
+  add('line',{x1:px-5,y1:y(interval[0]),x2:px+5,y2:y(interval[0]),stroke:'#b56a22','stroke-width':2});
+  add('line',{x1:px-5,y1:y(interval[1]),x2:px+5,y2:y(interval[1]),stroke:'#b56a22','stroke-width':2});
+  add('circle',{cx:px,cy:py,r:4,fill:'#b56a22'});
+  add('text',{x:left,y:166,fill:'#64717c','font-size':10},'0 m');
+  add('text',{x:right,y:166,'text-anchor':'end',fill:'#64717c','font-size':10},`${Number(end.toPrecision(4))} m`);
+  add('text',{x:left,y:10,fill:'#354d60','font-size':10},'Survival probability');
+  const figure=document.createElement('figure');figure.className='survival-plot';
+  const caption=document.createElement('figcaption');caption.textContent=`Survival versus path · analytic exponential (blue) · seeded estimate with 95% Wilson interval (orange) · ${c.sample_size} trials; binomial denominator is all trials.`;
+  figure.append(caption,svg);return figure;
+}
+$('life-path-mode').addEventListener('change',updateLifetimePathFields);updateLifetimePathFields();
+$('lifetime-form').onsubmit=async event=>{
+  event.preventDefault();if(!$('lifetime-form').reportValidity())return;
+  $('life-run').disabled=true;$('life-result').textContent='Running seeded survival experiment…';
+  const config={path_mode:$('life-path-mode').value,momentum_gev_c:Number($('life-momentum').value),path_length_m:Number($('life-path').value),production_altitude_km:Number($('life-production').value),detector_altitude_km:Number($('life-detector').value),zenith_deg:Number($('life-zenith').value),seed:Number($('life-seed').value),sample_size:Number($('life-sample-size').value)};
+  try{lifetimeResult=await api('lifetime',config);presentLifetime(lifetimeResult);$('life-export').disabled=false;}
+  catch(error){lifetimeResult=null;$('life-export').disabled=true;$('life-result').textContent=`Lifetime experiment failed: ${error.message}`;}
+  finally{$('life-run').disabled=false;}
+};
+$('life-export').onclick=async()=>{
+  if(!lifetimeResult)return;
+  $('life-export').disabled=true;
+  try{const page=await api('export-html',{result:lifetimeResult});const url=URL.createObjectURL(new Blob([page.html],{type:'text/html;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download=`heplab-muon-survival-${lifetimeResult.result_sha256.slice(0,12)}.html`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  catch(error){$('life-result').append(document.createTextNode(` Export failed: ${error.message}`));}
+  finally{$('life-export').disabled=false;}
+};
+$('save-setup').onclick=()=>saveJson({format:'heplab-workbench-config-v2',parameters:runConfigEnvelope()},'heplab-setup.json');
 $('download').onclick=()=>{if(window.currentWorkspace==='data'&&window.exportCmsAnalysis){window.exportCmsAnalysis();return;}if(result) saveJson(result,`heplab-${displayedJob||'result'}-event-${result.event}.json`);};
 $('load-setup').onclick=()=>$('setup-file').click();
 $('setup-file').onchange=async()=>{
@@ -296,9 +401,18 @@ $('setup-file').onchange=async()=>{
     if(file.size>65536)throw Error('Setup must be smaller than 64 KiB.');
     const value=JSON.parse(await file.text());
     const version=/^heplab-workbench-config-v(\d+)$/.exec(value?.format??'');
-    if(version&&version[1]!=='1')throw Error(`This setup uses format v${version[1]}; this HEPLab version reads setup format v1 only. Open it with the HEPLab release that saved it.`);
+    if(version&&!['1','2'].includes(version[1]))throw Error(`This setup uses format v${version[1]}; this HEPLab version reads setup formats v1 and v2 only.`);
     if(!version||!value.parameters||typeof value.parameters!=='object')throw Error('Choose a HEPLab setup JSON file.');
-    const c=value.parameters;
+    let c=value.parameters,display=null;
+    if(version[1]==='2'){
+      const envelope=c,domains=['run','analytic','collision','display','analysis'];
+      if(envelope.schema!=='heplab-run-config-v2'||Object.keys(envelope).sort().join('|')!==['analysis','analytic','collision','display','run','schema'].sort().join('|'))throw Error('Setup has an invalid v2 configuration envelope.');
+      const allowed={run:['mode','backend','seed','events'],analytic:['momentum_gev','bz_tesla','thickness_mm','noise_adc','threshold_adc','field_model','source_model'],collision:['response_model'],display:['projection','region'],analysis:['muon_pt_min_gev','muon_abs_eta_max','muon_iso_max','mass_min_gev','mass_max_gev']};
+      for(const group of domains)if(!envelope[group]||typeof envelope[group]!=='object'||Array.isArray(envelope[group])||Object.keys(envelope[group]).some(key=>!allowed[group].includes(key)))throw Error(`Setup has an invalid ${group} group.`);
+      c={...envelope.run,...envelope.analytic,...envelope.collision,...envelope.analysis};display=envelope.display;
+      if(display.projection&&!['xy-xz','xy','xz','3d'].includes(display.projection))throw Error('Invalid display projection.');
+      if(display.region&&!['tracker','pixel','solenoid','cms'].includes(display.region))throw Error('Invalid display region.');
+    }
     const unknown=Object.keys(c).filter(key=>!(key in config()));
     if(unknown.length)throw Error('Setup contains parameters this version does not recognise: '+unknown.join(', '));
     const numeric={seed:[1,900000000],events:[1,1000],momentum_gev:[1,100],bz_tesla:[-8,8],thickness_mm:[.1,5],noise_adc:[0,10],threshold_adc:[0,100]};
@@ -308,7 +422,7 @@ $('setup-file').onchange=async()=>{
     const enums={mode:['analytic','pythia'],backend:['reference','rust','delphes'],response_model:['ideal','delphes_reference'],field_model:['ideal_bore','cms_tracker'],source_model:['transverse_pair','angular_sample']};
     for(const [key,allowed] of Object.entries(enums))if(c[key]!==undefined&&!allowed.includes(c[key]))throw Error('Invalid setup parameter: '+key);
     if(!c.mode||!c.backend)throw Error('Setup requires mode and backend.');
-    applyConfig(c);changed();activateTab('inspector','settings');log('Loaded setup: '+file.name);
+    applyConfig(c);if(display){if(display.projection)setProjection(display.projection);if(display.region)$('detector-focus').value=display.region;fit();}changed();activateTab('inspector','settings');log('Loaded setup: '+file.name);
   }catch(error){log(error.message);activateTab('results','diagnostics');}
   finally{$('setup-file').value='';}
 };
@@ -320,6 +434,7 @@ document.querySelectorAll('[data-section]').forEach(button=>button.onclick=()=>{
   document.querySelectorAll('#particle-rows tr[data-id]').forEach(r=>r.setAttribute('aria-selected','false'));draw();
   activateTab('inspector','settings'); $('selection-title').textContent=button.textContent.replace(/[↳▾◇]/g,'').trim();
   const section=document.querySelector(`[data-property="${button.dataset.section}"]`);
+  section.closest('details')?.setAttribute('open','');
   document.querySelectorAll('.property-section').forEach(e=>e.classList.remove('highlight'));
   section.classList.add('highlight'); section.scrollIntoView({block:'nearest'});
 });
@@ -500,12 +615,12 @@ function drawCanvas2D() {
   for(const track of objectTracks)line(visibleTrackPoints(track,time),track.color,1.5);
   screenTracks=[];
   for(const track of result?.tracks||[]) {
-    const isSelected=track.object_id===selected, color=track.charge<0?'#68b9ef':'#e7ae65';
+    const isSelected=track.object_id===selectedTrackId(), color=track.charge<0?'#68b9ef':'#e7ae65';
     const visible=visibleTrackPoints(track,time);
     line(visible,color,isSelected?2.5:1.5);
     const points=track.points.map(project),last=project(visible.at(-1));
     context.fillStyle=color;context.beginPath();context.arc(...last,isSelected?4:3,0,2*Math.PI);context.fill();
-    if(time>=trackPath(track.points).at(-1)){context.font='12px Segoe UI,sans-serif';context.fillText(`${track.charge<0?'μ−':'μ+'} #${track.object_id}`,last[0]+7,last[1]-7);}
+    if(time>=trackPath(track.points,track.trajectory?.path_m).at(-1)){context.font='12px Segoe UI,sans-serif';context.fillText(`${track.charge<0?'μ−':'μ+'} #${track.object_id}`,last[0]+7,last[1]-7);}
     screenTracks.push({id:track.object_id,points});
     for(const crossing of track.trajectory?.crossings||[]) {
       if(hiddenSurfaces.has(crossing.surface_id)||time<crossing.path_m)continue;
@@ -682,8 +797,8 @@ function syncEventGeometry() {
     objectLayers=objects.layers;
     if(gpu)for(const layer of objectLayers)renderer.setLayer(layer.key,layer.data,layer.mode);
     objectTracks=objects.tracks.filter(t=>!hiddenObjects.has(t.group));
-    const allTracks=[...tracks.map(t=>({id:t.object_id,points:t.points,color:trackColor(t)})),...objectTracks];
-    const paths=allTracks.map(t=>trackPath(t.points));
+    const allTracks=[...tracks.map(t=>({id:t.object_id,points:t.points,path_m:t.trajectory?.path_m,color:trackColor(t)})),...objectTracks];
+    const paths=allTracks.map(t=>trackPath(t.points,t.path_m));
     if(gpu)renderer.setTracks(allTracks);
     trackPaths=paths.slice(0,tracks.length);
     playback.max=Math.max(0,...paths.map(p=>p.at(-1)||0),objectLayers.length?2.5:0);
@@ -693,13 +808,14 @@ function syncEventGeometry() {
     if(!hiddenSurfaces.has(crossing.surface_id))markers.push({position:crossing.position_m,color:'#ffe08a',alpha:.95,at:crossing.path_m,size:7});
   if(renderer&&!renderer.lost)renderer.setMarkers(markers);syncedEvent=result;syncedMarkers=markerKey;
 }
-function trackPath(points){
+function trackPath(points,physicalPath){
+  if(Array.isArray(physicalPath)&&physicalPath.length===points.length&&physicalPath.every((value,index)=>Number.isFinite(value)&&value>=0&&(index===0||value>=physicalPath[index-1])))return physicalPath;
   const path=[0];
   for(let i=1;i<points.length;i++)path.push(path[i-1]+Math.hypot(...points[i].map((v,k)=>v-points[i-1][k])));
   return path;
 }
 function visibleTrackPoints(track,time){
-  const path=trackPath(track.points);
+  const path=trackPath(track.points,track.trajectory?.path_m);
   if(time>=path.at(-1))return track.points;
   return [...track.points.filter((_,i)=>path[i]<time),pointAt(track,path,time)];
 }
@@ -718,8 +834,72 @@ function drawTriadAndScale(width,height,extent,scale) {
   context.strokeStyle='#c4ccd5';context.lineWidth=1;context.beginPath();context.moveTo(x,y-3);context.lineTo(x,y+3);context.moveTo(x,y);context.lineTo(x+length*scale,y);context.lineTo(x+length*scale,y-3);context.stroke();
   context.fillStyle='#c4ccd5';context.font='11px Consolas,monospace';context.fillText(label,x,y-7);
 }
+function drawSynchronizedProjectionPair(){
+  syncEventGeometry();
+  const root=$('linked-projection-pair');root.hidden=false;root.replaceChildren();
+  $('detector').hidden=true;$('detector-gl').hidden=true;
+  const width=root.clientWidth,focus=$('detector-focus').value;
+  if(!width)return;
+  const extent={pixel:.5,tracker:3,solenoid:7,cms:14}[focus],time=Number.isFinite(playback.time)?playback.time:Infinity;
+  const views=[{name:'Transverse XY',a:0,b:1,axisA:'x',axisB:'y'},{name:'Longitudinal XZ',a:0,b:2,axisA:'x',axisB:'z'}];
+  for(const view of views){
+    const figure=document.createElement('figure');figure.className='linked-projection-pane';
+    const caption=document.createElement('figcaption');caption.textContent=`${view.name} · coordinates in m · shared path ${Number.isFinite(time)?time.toFixed(2)+' m':'complete'} · ${['cms','pythia'].includes(result?.mode)?'IP-assumed display extrapolation; not hits':'model path; not hits'}`;
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 500 320');svg.setAttribute('role','group');
+    svg.setAttribute('aria-label',`${view.name} synchronized projection. Click or keyboard-activate a muon path to select it. Axes in metres.`);
+    const add=(name,attrs,label)=>{const node=document.createElementNS(svg.namespaceURI,name);for(const [key,value]of Object.entries(attrs))node.setAttribute(key,String(value));if(label!==undefined)node.textContent=label;svg.append(node);return node;};
+    const scale=320*.42*zoom/extent,center=[250+pan[0],160+pan[1]];
+    const point=position=>[center[0]+position[view.a]*scale,center[1]-position[view.b]*scale];
+    const visibleExtent=extent/(.84*zoom);
+    const step=extent<=.5?.1:extent<=3?.5:extent<=7?1:2;
+    if($('show-grid').checked){
+      const low=Math.floor(-visibleExtent/step),high=Math.ceil(visibleExtent/step);
+      const world=(a,b)=>{const position=[0,0,0];position[view.a]=a;position[view.b]=b;return position;};
+      for(let index=low;index<=high;index++){
+        const value=index*step,p1=point(world(value,-visibleExtent)),p2=point(world(value,visibleExtent));
+        const q1=point(world(-visibleExtent,value)),q2=point(world(visibleExtent,value));
+        add('line',{x1:p1[0],y1:p1[1],x2:p2[0],y2:p2[1],stroke:index%5===0?'#46515d':'#333c47','stroke-width':1});
+        add('line',{x1:q1[0],y1:q1[1],x2:q2[0],y2:q2[1],stroke:index%5===0?'#46515d':'#333c47','stroke-width':1});
+      }
+    }
+    if($('show-guides').checked&&detectorGeometry?.surfaces){
+      for(const surface of detectorGeometry.surfaces){
+        if(hiddenSurfaces.has(surface.id))continue;
+        const color=SURFACE_COLORS[surface.subsystem]||'#66717e';
+        if(surface.kind==='cylinder'&&view.b===1){
+          const radius=surface.radius_m*scale;add('circle',{cx:center[0],cy:center[1],r:radius,fill:'none',stroke:color,'stroke-dasharray':'4 4','stroke-width':1});
+        }else if(surface.kind==='cylinder'&&view.b===2){
+          for(const side of [-1,1]){const p1=point([side*surface.radius_m,0,-surface.half_length_m]),p2=point([side*surface.radius_m,0,surface.half_length_m]);add('line',{x1:p1[0],y1:p1[1],x2:p2[0],y2:p2[1],stroke:color,'stroke-dasharray':'4 4','stroke-width':1});}
+        }else if(surface.kind==='disk'&&view.b===1){
+          for(const radius of [surface.inner_radius_m,surface.outer_radius_m])add('circle',{cx:center[0],cy:center[1],r:radius*scale,fill:'none',stroke:color,'stroke-dasharray':'4 4','stroke-width':1});
+        }else if(surface.kind==='disk'&&view.b===2){
+          for(const radius of [surface.inner_radius_m,surface.outer_radius_m]){const p1=point([-radius,0,surface.z_m]),p2=point([radius,0,surface.z_m]);add('line',{x1:p1[0],y1:p1[1],x2:p2[0],y2:p2[1],stroke:color,'stroke-dasharray':'4 4','stroke-width':1});}
+        }
+      }
+    }
+    const origin=point([0,0,0]),xEnd=point([visibleExtent,0,0]),verticalEnd=point(view.b===1?[0,visibleExtent,0]:[0,0,visibleExtent]);
+    add('line',{x1:origin[0],y1:origin[1],x2:xEnd[0],y2:xEnd[1],stroke:'#c98181','stroke-width':1.4});
+    add('line',{x1:origin[0],y1:origin[1],x2:verticalEnd[0],y2:verticalEnd[1],stroke:'#83acdf','stroke-width':1.4});
+    add('text',{x:476,y:304,'text-anchor':'end',class:'linked-projection-axis'},`${view.axisA} (m) ↔ ${view.axisB} (m)`);
+    add('circle',{cx:origin[0],cy:origin[1],r:3,fill:'#fff'});
+    for(let index=0;index<(result?.tracks||[]).length;index++){
+      const track=result.tracks[index],path=trackPaths[index]||[],points=time<path.at(-1)?visibleTrackPoints(track,time):track.points;
+      if(points.length<2)continue;
+      const projected=points.map(point).map(pair=>pair.map(value=>value.toFixed(2)).join(',')).join(' '),color=trackColor(track),isSelected=selectedTrackId()===track.object_id;
+      const line=add('polyline',{points:projected,fill:'none',stroke:color,'stroke-width':isSelected?3:1.8,'stroke-linejoin':'round','stroke-linecap':'round','data-track-id':track.object_id,'aria-pressed':String(isSelected),role:'button',tabindex:0,class:'linked-track','aria-label':`${track.charge<0?'Muon minus':'Muon plus'} ${track.object_id}; select in both projections`});
+      const title=document.createElementNS(svg.namespaceURI,'title');title.textContent=`${track.charge<0?'μ−':'μ+'} / ${track.object_id} · ${track.model_ids?.join(', ')||'model identity not recorded'} · select this shared object`;line.append(title);
+      const last=point(points.at(-1));add('circle',{cx:last[0],cy:last[1],r:isSelected?4:3,fill:color});
+      if(Number.isFinite(time)&&time<(path.at(-1)||0)){const head=point(pointAt(track,path,time));add('circle',{cx:head[0],cy:head[1],r:5,fill:'#fff',stroke:color,'stroke-width':2});}
+    }
+    figure.append(caption,svg);root.append(figure);
+  }
+}
 function draw() {
-  if(!renderer||renderer.lost){if(renderer)$('detector-gl').hidden=true;drawCanvas2D();return;}
+  if(projection==='xy-xz'){
+    drawSynchronizedProjectionPair();$('renderer-status').textContent='Synchronized vector projections active.';return;
+  }
+  $('linked-projection-pair').hidden=true;$('detector').hidden=false;
+  if(!renderer||renderer.lost){if(renderer)$('detector-gl').hidden=true;announceRenderer(true);drawCanvas2D();return;}
   const frame=viewFrame(),dpr=window.devicePixelRatio||1;
   if(!frame.width||!frame.height)return;
   const {width,height,extent,scale,project}=frame,focus=$('detector-focus').value;
@@ -742,14 +922,15 @@ function draw() {
     layers.push({key:layer.key,color:layer.color,alpha:layer.alpha,additive:layer.mode!=='triangles',overlay:true});
   if(focus!=='pixel'&&!shellVisible())layers.push({key:'axis-x',color:'#874f51',alpha:1,additive:false},{key:'axis-y',color:'#4c755b',alpha:1,additive:false},{key:'axis-z',color:'#4e6e9b',alpha:1,additive:false});
   const time=Number.isFinite(playback.time)?Math.max(0,playback.time):1e6;
-  if(renderer.render({width,height,dpr,view:viewMatrix(frame),depthScale:extent/50,cutaway,background:'#161b21',layers,fog:projection==='3d'?(focus==='pixel'?.25:.6):0,time,selected})===false){$('detector-gl').hidden=true;drawCanvas2D();return;}
+  if(renderer.render({width,height,dpr,view:viewMatrix(frame),depthScale:extent/50,cutaway,background:'#161b21',layers,fog:projection==='3d'?(focus==='pixel'?.25:.6):0,time,selected:selectedTrackId()})===false){$('detector-gl').hidden=true;announceRenderer(true);drawCanvas2D();return;}
+  announceRenderer(false);
   $('detector-gl').hidden=false;
   // Overlay: labels, moving particle heads, triad and scale stay crisp in 2D.
   canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
   context.setTransform(dpr,0,0,dpr,0,0);context.clearRect(0,0,width,height);
   screenTracks=[];
   (result?.tracks||[]).forEach((track,index)=>{
-    const path=trackPaths[index]||[],color=trackColor(track),isSelected=track.object_id===selected;
+    const path=trackPaths[index]||[],color=trackColor(track),isSelected=track.object_id===selectedTrackId();
     const points=track.points.map(project);screenTracks.push({id:track.object_id,points});
     const end=path.at(-1)||0;
     if(time<end){
@@ -769,14 +950,15 @@ function draw() {
   }
   if(Number.isFinite(playback.time)){
     context.fillStyle='#e7edf3';context.font='12px Consolas,monospace';
-    context.fillText(`flight path ${time.toFixed(2)} m · t ≈ s/c = ${(time/.299792458).toFixed(2)} ns`,15,22);
+    context.fillText(`displayed path ${time.toFixed(2)} m · accelerated visualization`,15,22);
   }
   drawTriadAndScale(width,height,extent,scale);
 }
 function updateTimeline(){
   const max=playback.max||0;$('timeline').disabled=!max;
   $('timeline').value=String(Number.isFinite(playback.time)&&max?Math.round(1000*playback.time/max):1000);
-  $('replay').textContent=playback.playing?'❚❚ Pause':'▶ Replay';
+  $('replay').textContent=playback.playing?'❚❚ Pause':'▶ Path replay';
+  $('replay').setAttribute('aria-label',playback.playing?'Pause accelerated path replay':'Start accelerated path replay (Space)');
   $('replay').setAttribute('aria-pressed',String(playback.playing));
 }
 function tick(now){
@@ -814,7 +996,7 @@ function liveLabels(){
   $('live-eta-out').textContent=live.eta.toFixed(2);
   $('live-phi-out').textContent=live.phi.toFixed(2)+' rad';
   const p=Number($('momentum').value),pt=p/Math.cosh(live.eta),b=Math.abs(Number($('field').value));
-  $('live-radius').textContent=b?`Helix radius ≈ pT/(0.3·B) = ${(pt/(.299792458*b)).toFixed(2)} m`:'No field: straight tracks';
+  $('live-radius').textContent=!b?'No field: straight tracks':Number.isFinite(curvatureConversion)?`Helix radius ≈ pT/(k·B), k=${curvatureConversion} GeV/(c·T·m) = ${(pt/(curvatureConversion*b)).toFixed(2)} m`:'Loading sourced curvature constant…';
 }
 function syncLiveSliders(){
   $('live-p').value=String(Math.round(100*Math.log10(Number($('momentum').value))));
@@ -859,11 +1041,14 @@ for(const [id,key] of [['live-eta','eta'],['live-phi','phi']])$(id).addEventList
 for(const id of [...Object.keys(liveInputs),'live-eta','live-phi'])$(id).addEventListener('change',()=>changed());
 $('live-replay').onclick=()=>replay(true);
 function setProjection(value) {
-  projection=value; for(const [id,name]of [['xy','xy'],['xz','xz'],['three-d','3d']])$(id).setAttribute('aria-pressed',String(value===name));
-  $('view-label').textContent=value==='3d'?'3D · orbit / orthographic':value.toUpperCase()+' · orthographic';
-  $('navigation-hint').textContent=value==='3d'?'Drag: orbit · Shift+drag: pan · wheel or +/−: zoom':'Drag: pan · wheel or +/−: zoom';draw();
+  projection=value; for(const [id,name]of [['xy-xz','xy-xz'],['xy','xy'],['xz','xz'],['three-d','3d']])$(id).setAttribute('aria-pressed',String(value===name));
+  $('view-label').textContent=value==='3d'?'3D · orbit / orthographic':value==='xy-xz'?'XY + XZ · synchronized orthographic':value.toUpperCase()+' · orthographic';
+  $('navigation-hint').textContent=value==='3d'?'Drag: orbit · Shift+drag: pan · wheel or +/−: zoom':value==='xy-xz'?'Both views share selection, path cursor, pan and zoom':'Drag: pan · wheel or +/−: zoom';
+  $('show-modules').disabled=value==='xy-xz';$('show-modules').parentElement.title=value==='xy-xz'?'Detailed CMS module overlays are available in the single projection and 3D views.':'Toggle available CMS display geometry.';
+  document.querySelector('.surface-tools').hidden=value==='xy-xz';
+  $('rotate-view').disabled=value==='xy-xz';draw();
 }
-$('xy').onclick=()=>setProjection('xy');$('xz').onclick=()=>setProjection('xz');$('three-d').onclick=()=>setProjection('3d');
+$('xy-xz').onclick=()=>setProjection('xy-xz');$('xy').onclick=()=>setProjection('xy');$('xz').onclick=()=>setProjection('xz');$('three-d').onclick=()=>setProjection('3d');
 function updateZoomControls(){
   $('zoom-level').value=`${Math.round(zoom*100)}%`;
   $('zoom-in').disabled=zoom>=128;$('zoom-out').disabled=zoom<=.1;
@@ -876,7 +1061,7 @@ function updateCutawayControls(){
 for(const id of ['detector-style','cutaway','cutaway-angle','cutaway-opening'])$(id).oninput=()=>{updateCutawayControls();draw();};
 updateCutawayControls();
 function changeZoom(factor,anchor){
-  const rect=canvas.getBoundingClientRect();
+  const rect=(projection==='xy-xz'?linkedViews:canvas).getBoundingClientRect();
   const next=Math.max(.1,Math.min(128,zoom*factor)),ratio=next/zoom;
   const point=anchor||[rect.width/2,rect.height/2];
   pan=[point[0]-rect.width/2-(point[0]-rect.width/2-pan[0])*ratio,
@@ -930,16 +1115,49 @@ canvas.addEventListener('pointerup',event=>{
     if(best!==null)selectTrack(best);
   }drag=null;
 });canvas.addEventListener('pointercancel',()=>drag=null);
+const linkedViews=$('linked-projection-pair');
+new ResizeObserver(draw).observe(linkedViews);window.addEventListener('resize',draw);
+linkedViews.addEventListener('click',event=>{
+  const track=event.target.closest('[data-track-id]');if(track)selectTrack(Number(track.dataset.trackId));
+});
+linkedViews.addEventListener('keydown',event=>{
+  if((event.key==='Enter'||event.key===' ')&&event.target.closest('[data-track-id]')){
+    event.preventDefault();selectTrack(Number(event.target.closest('[data-track-id]').dataset.trackId));
+  }
+});
+linkedViews.addEventListener('pointerdown',event=>{
+  if(projection!=='xy-xz'||event.target.closest('[data-track-id]'))return;
+  pairDrag={x:event.clientX,y:event.clientY,pan:[...pan]};linkedViews.setPointerCapture(event.pointerId);
+});
+linkedViews.addEventListener('pointermove',event=>{
+  if(!pairDrag)return;pan=[pairDrag.pan[0]+event.clientX-pairDrag.x,pairDrag.pan[1]+event.clientY-pairDrag.y];draw();
+});
+linkedViews.addEventListener('pointerup',()=>{pairDrag=null;});
+linkedViews.addEventListener('pointercancel',()=>{pairDrag=null;});
+linkedViews.addEventListener('wheel',event=>{
+  if(projection!=='xy-xz')return;event.preventDefault();changeZoom(event.deltaY>0?1/1.12:1.12);
+},{passive:false});
 
 function property(name,value){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=name;dd.textContent=value;$('properties').append(dt,dd);}
+function selectionEventId(){
+  if(!result)return null;
+  if(result.mode==='cms'&&result.identity)return `cms:${result.identity.run}:${result.identity.lumi}:${result.identity.event}`;
+  return `${displayedJob||'preview'}:${result.event??0}`;
+}
+function selectedTrackId(){return selected?.kind==='muon'?selected.object_id:null;}
 function selectTrack(id,{focus=true}={}) {
   document.querySelectorAll('[data-section]').forEach(b=>{b.classList.remove('selected');b.setAttribute('aria-selected','false');});
-  selected=id;const track=result?.tracks.find(t=>t.object_id===id);$('properties').replaceChildren();
+  document.querySelectorAll('#particle-rows tr[data-object-group]').forEach(row=>row.setAttribute('aria-selected','false'));
+  const track=result?.tracks.find(t=>t.object_id===id);
+  selected=track?{kind:'muon',event_id:selectionEventId(),object_id:id}:null;
+  $('properties').replaceChildren();
   document.querySelectorAll('#track-list button').forEach(b=>(b.setAttribute('aria-pressed',String(Number(b.dataset.id)===id)),b.setAttribute('aria-selected',String(Number(b.dataset.id)===id))));
   document.querySelectorAll('#particle-rows tr[data-id]').forEach(row=>row.setAttribute('aria-selected',String(Number(row.dataset.id)===id)));
   if(!track){$('selection-path').textContent='No particle selected';draw();return;}
   const name=track.charge<0?'μ−':'μ+';$('selection-title').textContent=name+' / '+id;
   $('selection-path').textContent=`Event ${result.event} / Muon / ${id}`;
+  property('Selection kind',selected.kind);property('Event identity',selected.event_id);
+  property('Model IDs',(track.model_ids||[]).join(', ')||'Not declared');
   property('PDG ID',track.pdg_id);property('Charge',track.charge+' e');
   if(['pythia','cms'].includes(result.mode)) {
     property('pT',track.detector.pt.toFixed(4)+' GeV/c');property('η',track.detector.eta.toFixed(5));
@@ -968,23 +1186,29 @@ function selectTrack(id,{focus=true}={}) {
     property('Momentum scale',response.parameters.momentum_scale.toFixed(7));
     property('Response scope',response.parameters.validation_scope);
   }
-  property('Validation',result.mode==='cms'?'Recorded momentum; ideal display extrapolation, no hit-level reconstruction':'Analytic trajectory; scoped reference calibration only');if(focus)activateTab('inspector','selection');draw();
+  property('Validation',result.mode==='cms'?'Recorded momentum; ideal display extrapolation, no hit-level reconstruction':'Educational analytic path; PDG mean-table reference only; slab, scattering and electronics unvalidated');if(focus)activateTab('inspector','selection');draw();
 }
 const OBJECT_ROWS=[['jets','Jet','NanoAOD jet'],['electrons','Electron','NanoAOD electron'],['photons','Photon','NanoAOD photon'],['taus','Tau','NanoAOD tau'],['isotracks','Isolated track','NanoAOD isolated track']];
 function selectObject(label,object,group){
-  selected=null;document.querySelectorAll('#particle-rows tr[data-id]').forEach(r=>r.setAttribute('aria-selected','false'));
+  selected={kind:`nanoaod:${group}`,event_id:selectionEventId(),object_id:object.index??'met'};
+  document.querySelectorAll('#track-list button').forEach(button=>{button.setAttribute('aria-pressed','false');button.setAttribute('aria-selected','false');});
+  document.querySelectorAll('#particle-rows tr').forEach(row=>row.setAttribute('aria-selected','false'));
+  const objectRow=group==='met'?document.querySelector('#particle-rows tr.object-row:last-of-type'):document.querySelector(`#particle-rows tr[data-object-group="${group}"][data-object-index="${object.index}"]`);
+  if(objectRow)objectRow.setAttribute('aria-selected','true');
   activateTab('inspector','selection');$('selection-title').textContent=label;
   $('selection-path').textContent=`Run ${result.identity.run} / event ${result.identity.event} / ${label}`;$('properties').replaceChildren();
+  property('Selection kind',selected.kind);property('Event identity',selected.event_id);
+  property('Model IDs',(result.display_model_spec?.components||result.model_spec?.components||[]).map(item=>`${item.id} v${item.version}`).join(', ')||'Not declared');
   for(const [key,value] of Object.entries(object)){if(key==='points'||key==='index')continue;property(key,typeof value==='number'&&!Number.isInteger(value)?value.toPrecision(5):String(value));}
   property('Source',`${result.objects.source.file} · record ${result.objects.source.record}`);
-  property('Display',group==='jets'?'Cone along jet axis to ECAL; towers split by PF EM/hadronic energy fraction (0.02 m/GeV)':group==='electrons'?'Ideal 3.8 T helix from the IP to the ECAL face; ECAL tower by energy':group==='met'?'Arrow in the transverse plane, 0.05 m/GeV':'Direction from stored η/φ; not a measured trajectory');
+  property('Display',group==='jets'?'Illustrative jet cone to ECAL; no measured charged-particle trajectory. Towers are schematic PF-fraction displays.':group==='electrons'?'Illustrative ideal 3.8 T path from the assumed IP; this is not a measured or fitted track. ECAL tower is schematic.':group==='met'?'Missing transverse momentum arrow; MET is not a particle trajectory.':'Direction from stored η/φ; not shown as a trajectory.');
   property('Validation','Reconstructed NanoAOD quantities; display geometry is illustrative, not hits or calibrated deposits');
   draw();
 }
 function appendObjectRows(){
   const objects=result?.objects;if(!objects)return;
   for(const [group,name,status] of OBJECT_ROWS)for(const object of objects[group]||[]){
-    const row=document.createElement('tr');row.tabIndex=0;row.className='object-row';
+    const row=document.createElement('tr');row.tabIndex=0;row.className='object-row';row.dataset.objectGroup=group;row.dataset.objectIndex=String(object.index);
     const p=object.pt*Math.cosh(object.eta),open=()=>selectObject(`${name} / ${object.index}`,object,group);
     row.onclick=open;row.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();open();}};
     cell(row,`${name} / ${object.index}`);cell(row,'—','number');cell(row,object.charge??'—','number');
@@ -1081,7 +1305,8 @@ function show(value,jobId=displayedJob) {
   if(isPreview){
     $('event-source').textContent='Live preview · '+result.backend+' · not saved';
     $('operation-status').textContent='Live preview';
-    selected=null;const keep=tracks.find(t=>t.object_id===previousSelection)??tracks[0];
+    selected=null;const previousTrackId=previousSelection?.kind==='muon'?previousSelection.object_id:null;
+    const keep=tracks.find(t=>t.object_id===previousTrackId)??tracks[0];
     if(keep)selectTrack(keep.object_id,{focus:false});else draw();
   }else{
     selected=null;if(tracks.length)selectTrack(tracks[0].object_id);else{$('properties').replaceChildren();$('selection-path').textContent='No reconstructed muons in this event';draw();}
@@ -1158,9 +1383,9 @@ async function reattach(){
 }
 $('run-form').onsubmit=async event=>{
   event.preventDefault();if(active||!$('run-form').reportValidity())return;
-  const submitted=config();$('run-button').disabled=true;lastFailure=null;
+  const submitted=config(),requestConfig=runConfigEnvelope(submitted);$('run-button').disabled=true;lastFailure=null;
   $('status').textContent='SUBMITTING';$('operation-status').textContent='Submitting run…';$('next-seed').disabled=true;
-  try{const job=await api('jobs',submitted,{'Idempotency-Key':crypto.randomUUID()});active=job.id;sessionRuns.push({...job,config:submitted,created_utc:new Date().toISOString()});busy(true);
+  try{const job=await api('jobs',requestConfig,{'Idempotency-Key':crypto.randomUUID()});active=job.id;sessionRuns.push({...job,config:submitted,created_utc:new Date().toISOString()});busy(true);
     log(`Submitted ${job.id}: ${submitted.mode}, seed ${submitted.seed}.`);activateTab('results','diagnostics');poll(job.id);
   }catch(error){lastFailure='rejected';log(error.message);$('status').textContent='FAILED';activateTab('results','diagnostics');changed(false);}
 };
@@ -1189,16 +1414,18 @@ document.addEventListener('keydown',event=>{
     if(['ArrowLeft','PageUp'].includes(event.key)&&!$('previous-event').disabled){event.preventDefault();loadEvent(result.event-1);}
     if(event.key===' '&&!['BUTTON','A'].includes(document.activeElement.tagName)){event.preventDefault();$('replay').click();}
   }
-  if(!editing&&!event.ctrlKey&&!event.metaKey&&window.currentWorkspace==='display'){if(event.key==='1')setProjection('xy');if(event.key==='2')setProjection('xz');if(event.key==='3')setProjection('3d');if(event.key.toLowerCase()==='f')fit();if(['+','=','-'].includes(event.key)){event.preventDefault();changeZoom(event.key==='-'?1/1.4:1.4);}}
+  if(!editing&&!event.ctrlKey&&!event.metaKey&&window.currentWorkspace==='display'){if(event.key==='0')setProjection('xy-xz');if(event.key==='1')setProjection('xy');if(event.key==='2')setProjection('xz');if(event.key==='3')setProjection('3d');if(event.key.toLowerCase()==='f')fit();if(['+','=','-'].includes(event.key)){event.preventDefault();changeZoom(event.key==='-'?1/1.4:1.4);}}
 });
 changed();
-setProjection('3d');
+setProjection('xy-xz');
 const sessionReady=api('session').then(session=>{
   token=session.token;capabilities=session;
+  curvatureConversion=session.constants?.values?.find(value=>value.name==='curvature_conversion')?.value??null;
   const rust=session.engine.rust_extension||session.engine.rust_executable_configured;
   $('backend').options[1].disabled=!rust;
   if(rust){$('backend').value='rust';changed();}
   $('connection').textContent='Local service connected';updateMode();
+  liveLabels();
   log('Local service connected. Capability report is available.');
   refreshRuns();reattach();
 }).catch(error=>{$('connection').textContent='Service unavailable';log(error.message);$('run-button').disabled=true;});
@@ -1260,8 +1487,13 @@ for(const [index,name] of ['data','analysis','display'].entries())$(name+'-tab')
 };
 document.querySelectorAll('[data-experiment]').forEach(button=>button.onclick=()=>{
   const kind=button.dataset.experiment;
+  if(kind==='lifetime'){
+    $('lifetime-lab').open=true;$('life-path-mode').value='altitude';updateLifetimePathFields();
+    $('life-momentum').focus();$('lifetime-lab').scrollIntoView({block:'nearest',behavior:reducedMotion?'instant':'smooth'});
+    activateTab('inspector','settings');$('operation-status').textContent='Muon survival experiment ready; fixed-momentum vacuum model.';return;
+  }
   applyConfig({mode:'analytic',backend:$('backend').value==='rust'?'rust':'reference',source_model:'angular_sample',seed:42,events:32,
-    momentum_gev:kind==='bending'?5:45,bz_tesla:3.8,field_model:'ideal_bore',thickness_mm:1,
+    momentum_gev:kind==='bending'?5:45,bz_tesla:3.8,field_model:kind==='field'?'cms_tracker':'ideal_bore',thickness_mm:1,
     noise_adc:kind==='electronics'?3:1,threshold_adc:kind==='electronics'?55:5,
     response_model:kind==='response'?'delphes_reference':'ideal'});
   changed();$('run-form').requestSubmit();
@@ -1294,6 +1526,22 @@ $('compare-run').onchange=async()=>{
   }
   renderAnalysis();
 };
+$('export-comparison').onclick=()=>{
+  const other=sessionRuns.find(run=>run.id===$('compare-run').value);
+  if(!other?.result||!result)return;
+  const describe=value=>({
+    run_id:value.artifact?.run_id??null,
+    result_sha256:value.artifact?.result_sha256??null,
+    seed:value.config?.seed??null,
+    config:value.config??null,
+    model_ids:value.model_spec?.components?.map(item=>`${item.id} v${item.version}`)??[],
+    source_kind:value.analysis?.kind??value.mode??null,
+    selection:value.analysis?.selection??null
+  });
+  const current=describe(result),reference=describe(other.result),keys=[...new Set([...Object.keys(current.config||{}),...Object.keys(reference.config||{})])];
+  const configuration_differences=Object.fromEntries(keys.filter(key=>JSON.stringify(current.config?.[key])!==JSON.stringify(reference.config?.[key])).map(key=>[key,{current:current.config?.[key]??null,comparison:reference.config?.[key]??null}]));
+  saveJson({schema:'heplab-run-comparison-v1',scope:'saved-run comparison; display overlays and summary statistics only',runs:{current,comparison:reference},configuration_differences,plot_method:'Common bins; raw counts or signed sum of weights; no normalization; event-level statistical errors where the analysis records them.',limits:['No inference of detector calibration or experimental agreement.','Result digests are null when the stored artifact has no recorded digest; this export does not create replacement hashes.','Systematic and cross-section uncertainties are not included in the visual overlays.']},`heplab-comparison-${current.run_id||'current'}-${reference.run_id||'comparison'}.json`);
+};
 function observables(value){
   if(value?.analysis)return value.analysis;
   if(value?.mode!=='analytic')return null;
@@ -1305,33 +1553,82 @@ function observables(value){
   });
   return {events:1,particles:samples.length,samples,pairs:[],scope:'Single saved event; aggregate distributions were not recorded in this older run.'};
 }
+function wilson95(successes,trials){
+  if(!trials)return null;
+  const z=1.959963984540054,p=successes/trials,d=1+z*z/trials;
+  const center=(p+z*z/(2*trials))/d,half=z*Math.sqrt(p*(1-p)/trials+z*z/(4*trials*trials))/d;
+  return [Math.max(0,center-half),Math.min(1,center+half)];
+}
 function plotHistogram(id,series){
   const target=$(id);target.replaceChildren();
-  series=series.map(s=>({...s,values:s.values.filter(Number.isFinite)}));
+  series=series.map(s=>{
+    const observations=s.values.map((value,index)=>({value,event:s.events?.[index]??`entry:${index}`}))
+      .filter(item=>Number.isFinite(item.value));
+    return {...s,values:observations.map(item=>item.value),events:observations.map(item=>item.event)};
+  });
   const values=series.flatMap(s=>s.values);
   if(!values.length){const p=document.createElement('p');p.className='plot-empty';p.textContent='No sampled entries. Enable the DY reference response to compare reconstructed kinematics.';target.append(p);return;}
   let low=Math.min(...values),high=Math.max(...values);
   if(high-low<Math.max(1e-9,Math.abs(low)*1e-8)){const pad=Math.max(Math.abs(low)*.025,.01);low-=pad;high+=pad;}
   const bins=14,width=(high-low)/bins;
-  const counts=series.map(s=>{const a=Array(bins).fill(0);s.values.forEach(v=>a[Math.min(bins-1,Math.max(0,Math.floor((v-low)/width)))]++);return a;});
-  const maximum=Math.max(1,...counts.flat()),svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  const histograms=series.map(s=>{
+    const counts=Array(bins).fill(0),clusterCounts=Array.from({length:bins},()=>new Map());
+    s.values.forEach((value,index)=>{
+      const bin=Math.min(bins-1,Math.max(0,Math.floor((value-low)/width)));
+      counts[bin]++;const event=s.events[index],group=clusterCounts[bin];group.set(event,(group.get(event)||0)+1);
+    });
+    const variance=clusterCounts.map(group=>[...group.values()].reduce((sum,n)=>sum+n*n,0));
+    return {counts,variance};
+  });
+  const maximum=Math.max(1,...histograms.flatMap(h=>h.counts.map((n,i)=>n+Math.sqrt(h.variance[i])))),svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
   svg.setAttribute('viewBox','0 0 440 172');svg.setAttribute('role','img');
-  svg.setAttribute('aria-label',series.map(s=>`${s.label}: ${s.values.length} entries`).join('; '));
+  svg.setAttribute('aria-label',series.map(s=>`${s.label}: ${s.values.length} entries; event-clustered statistical errors`).join('; '));
   const add=(name,attrs,text)=>{const el=document.createElementNS(svg.namespaceURI,name);for(const [key,value]of Object.entries(attrs))el.setAttribute(key,String(value));if(text!==undefined)el.textContent=text;svg.append(el);return el;};
   for(let i=0;i<=3;i++){
     const y=140-i*38;
     add('line',{x1:37,y1:y,x2:429,y2:y,stroke:'#dce3e8','stroke-width':1});
     add('text',{x:30,y:y+4,'text-anchor':'end',fill:'#64717c','font-size':10},String(Math.round(maximum*i/3)));
   }
-  series.forEach((s,index)=>counts[index].forEach((n,bin)=>{
+  series.forEach((s,index)=>histograms[index].counts.forEach((n,bin)=>{
+    const error=Math.sqrt(histograms[index].variance[bin]),center=38+(bin+.5)*390/bins;
     const rect=add('rect',{x:38+bin*390/bins,y:140-n/maximum*114,width:390/bins-1,height:n/maximum*114,
       fill:s.color,'fill-opacity':index===0?.28:.18,stroke:s.color,'stroke-width':index===0?1.2:1.5,'stroke-dasharray':index>1?'3 2':''});
-    const title=document.createElementNS(svg.namespaceURI,'title');title.textContent=`${s.label}: ${Number((low+bin*width).toPrecision(5))} to ${Number((low+(bin+1)*width).toPrecision(5))}: ${n} entries`;rect.append(title);
+    const upper=140-Math.min(maximum,n+error)/maximum*114,lower=140-Math.max(0,n-error)/maximum*114;
+    add('line',{x1:center,y1:upper,x2:center,y2:lower,stroke:s.color,'stroke-width':1.2});
+    add('line',{x1:center-2,y1:upper,x2:center+2,y2:upper,stroke:s.color,'stroke-width':1.2});
+    add('line',{x1:center-2,y1:lower,x2:center+2,y2:lower,stroke:s.color,'stroke-width':1.2});
+    const title=document.createElementNS(svg.namespaceURI,'title');title.textContent=`${s.label}: ${Number((low+bin*width).toPrecision(5))} to ${Number((low+(bin+1)*width).toPrecision(5))}: ${n} entries ± ${error.toPrecision(3)} event-clustered standard error`;rect.append(title);
   }));
   for(let i=0;i<=4;i++)add('text',{x:38+i*390/4,y:157,'text-anchor':i===0?'start':i===4?'end':'middle',fill:'#64717c','font-size':10},Number((low+(high-low)*i/4).toPrecision(4)).toString());
   target.append(svg);
   const legend=document.createElement('div');legend.className='plot-legend';
   series.forEach(s=>{const span=document.createElement('span');span.style.color=s.color;span.textContent=`● ${s.label} (${s.values.length})`;legend.append(span);});target.append(legend);
+}
+function plotResponseEfficiency(current,comparison){
+  const target=$('response-efficiency-plot');target.replaceChildren();
+  const bins=[[0,.8],[.8,1.6],[1.6,2.4]],datasets=[{label:'Current run',color:'#2464a0',value:current},...(comparison?[{label:'Comparison',color:'#207e75',value:comparison}]:[])];
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 440 180');svg.setAttribute('role','img');
+  svg.setAttribute('aria-label','Truth-to-object response efficiency in absolute pseudorapidity intervals, with 95 percent Wilson intervals');
+  const add=(name,attrs,label)=>{const node=document.createElementNS(svg.namespaceURI,name);for(const [key,val]of Object.entries(attrs))node.setAttribute(key,String(val));if(label!==undefined)node.textContent=label;svg.append(node);return node;};
+  const left=48,right=425,top=15,bottom=138,y=value=>bottom-(bottom-top)*value;
+  for(const value of [0,.5,1]){const py=y(value);add('line',{x1:left,y1:py,x2:right,y2:py,stroke:'#dce3e8'});add('text',{x:left-7,y:py+4,'text-anchor':'end',fill:'#64717c','font-size':10},value.toFixed(1));}
+  bins.forEach((interval,index)=>{
+    const center=left+(index+.5)*(right-left)/bins.length;
+    add('text',{x:center,y:157,'text-anchor':'middle',fill:'#64717c','font-size':10},`${interval[0]}–${interval[1]}`);
+    datasets.forEach((dataset,datasetIndex)=>{
+      const selected=dataset.value.samples.filter(sample=>sample.response_status!=='not_requested'&&Math.abs(sample.eta)>=interval[0]&&(index===bins.length-1?Math.abs(sample.eta)<=interval[1]:Math.abs(sample.eta)<interval[1]));
+      const accepted=selected.filter(sample=>sample.response_status==='accepted'&&Number.isFinite(sample.response_pt_gev)).length;
+      const bounds=wilson95(accepted,selected.length);if(!bounds)return;
+      const px=center+(datasetIndex-(datasets.length-1)/2)*12,efficiency=accepted/selected.length;
+      add('line',{x1:px,y1:y(bounds[0]),x2:px,y2:y(bounds[1]),stroke:dataset.color,'stroke-width':2});
+      add('line',{x1:px-3,y1:y(bounds[0]),x2:px+3,y2:y(bounds[0]),stroke:dataset.color});
+      add('line',{x1:px-3,y1:y(bounds[1]),x2:px+3,y2:y(bounds[1]),stroke:dataset.color});
+      add('circle',{cx:px,cy:y(efficiency),r:4,fill:dataset.color});
+      const title=document.createElementNS(svg.namespaceURI,'title');title.textContent=`${dataset.label}, |η| ${interval[0]}–${interval[1]}: ${accepted}/${selected.length} accepted; Wilson 95% ${bounds[0].toFixed(4)}–${bounds[1].toFixed(4)}`;svg.lastChild.append(title);
+    });
+  });
+  target.append(svg);const legend=document.createElement('div');legend.className='plot-legend';
+  datasets.forEach(dataset=>{const span=document.createElement('span');span.style.color=dataset.color;span.textContent='● '+dataset.label;legend.append(span);});target.append(legend);
 }
 function renderAnalysis(){
   const a=observables(result);let b=$('compare-run').value?observables(comparison):null;
@@ -1340,9 +1637,11 @@ function renderAnalysis(){
   $('collision-results').hidden=!collision;$('export-events').hidden=!collision;
   $('signal-metric').hidden=collision;
   $('signal-plot-title').textContent=collision?'Missing transverse momentum / GeV':'Material / electronics';
+  $('export-comparison').hidden=!$('compare-run').value;
   $('pt-plot-units').textContent=collision?'GeV/c · Σw':'GeV/c · counts';
   $('mass-plot-units').textContent=collision?'GeV/c² · Σw':'GeV/c² · counts';
   $('eta-plot-units').textContent=collision?'η · Σw':'η · counts';
+  $('response-plots').hidden=true;
   if(!a)return;
   if(collision){renderCollisionAnalysis(a,b?.kind==='collision'?b:null);return;}
   if(b?.kind==='collision')b=null;
@@ -1350,25 +1649,39 @@ function renderAnalysis(){
   $('analysis-scope').textContent=`${result.backend} · seed ${result.config.seed} · ${result.config.momentum_gev} GeV/c input · ${a.scope}. Histograms show raw counts; losses are not renormalized.`;
   const matched=a.samples.filter(s=>s.response_status==='accepted').length;
   const requested=a.samples.some(s=>s.response_status!=='not_requested');
+  $('response-plots').hidden=!requested;
   $('analysis-metrics').replaceChildren();
   for(const [label,value]of [['Events',a.events],['Truth muons',a.particles],['Sampled tracks',requested?`${matched} / ${a.particles}`:'Ideal only'],['Channels accepted',`${a.samples.filter(s=>s.digit_accepted).length} / ${a.particles}`]]){
     const box=document.createElement('div'),dt=document.createElement('span'),dd=document.createElement('strong');dt.textContent=label;dd.textContent=value;box.append(dt,dd);$('analysis-metrics').append(box);
   }
   const color={truth:'#2464a0',response:'#b56a22',compare:'#207e75'};
-  const series=(key,responseKey)=>{
-    const items=[{label:'Truth',color:color.truth,values:a.samples.map(s=>s[key]).filter(v=>v!==null)}];
-    if(responseKey&&requested)items.push({label:'Sampled response',color:color.response,values:a.samples.map(s=>s[responseKey]).filter(v=>v!==null)});
-    if(b)items.push({label:'Comparison truth',color:color.compare,values:b.samples.map(s=>s[key]).filter(v=>v!==null)});
+  const observations=(samples,key)=>samples.filter(s=>Number.isFinite(s[key])).map(s=>({value:s[key],event:s.event}));
+  const makeSeries=(label,color,samples,key)=>{const rows=observations(samples,key);return {label,color,values:rows.map(row=>row.value),events:rows.map(row=>row.event)};};
+  const series=(key,responseKey,include=()=>true)=>{
+    const items=[makeSeries('Truth',color.truth,a.samples.filter(include),key)];
+    if(responseKey&&requested)items.push(makeSeries('Sampled response',color.response,a.samples.filter(include),responseKey));
+    if(b)items.push(makeSeries('Comparison truth',color.compare,b.samples.filter(include),key));
     return items;
   };
   plotHistogram('plot-pt',series('pt_gev','response_pt_gev'));
-  const mass=[{label:'Truth pairs',color:color.truth,values:a.pairs.map(p=>p.truth_mass_gev)}];
-  if(requested)mass.push({label:'Both tracks sampled',color:color.response,values:a.pairs.map(p=>p.response_mass_gev).filter(v=>v!==null)});
-  if(b)mass.push({label:'Comparison truth',color:color.compare,values:b.pairs.map(p=>p.truth_mass_gev)});
+  const mass=[makeSeries('Truth pairs',color.truth,a.pairs,'truth_mass_gev')];
+  if(requested)mass.push(makeSeries('Both tracks sampled',color.response,a.pairs,'response_mass_gev'));
+  if(b)mass.push(makeSeries('Comparison truth',color.compare,b.pairs,'truth_mass_gev'));
   plotHistogram('plot-mass',mass);plotHistogram('plot-eta',series('eta'));
-  const metric=$('signal-metric').value,signal=series(metric);signal[0].label=metric==='adc'?'Accepted channels':'Ionization deposits';
+  const metric=$('signal-metric').value,signal=series(metric,null,metric==='adc'?sample=>sample.digit_accepted:()=>true);signal[0].label=metric==='adc'?'Accepted channels':'Ionization deposits';
   plotHistogram('plot-signal',signal);
-  $('comparison-note').textContent=b?'Overlays use the same bins and raw counts. Different sample sizes are not normalized.':'';
+  if(requested){
+    plotResponseEfficiency(a,b?.samples?.some(sample=>sample.response_status!=='not_requested')?b:null);
+    const residuals=value=>value.samples.filter(sample=>sample.response_status==='accepted'&&Number.isFinite(sample.response_pt_gev)).map(sample=>({value:(sample.response_pt_gev-sample.pt_gev)/sample.pt_gev,event:sample.event}));
+    const responseSeries=[{label:'Current run',color:color.response,values:residuals(a).map(item=>item.value),events:residuals(a).map(item=>item.event)}];
+    if(b){const other=residuals(b);if(other.length)responseSeries.push({label:'Comparison',color:color.compare,values:other.map(item=>item.value),events:other.map(item=>item.event)});}
+    plotHistogram('response-resolution-plot',responseSeries);
+  }
+  const countDefinition=`${a.events} generated events; 14 equal-width bins on the combined displayed range; raw counts, not normalized. Whiskers use √(Σ event-bin count²), clustering objects within each event. These are statistical sampling errors only; no systematic uncertainty.`;
+  for(const id of ['pt','eta'])$(`${id}-plot-definition`).textContent=`Population: ${a.particles} truth muons; response overlays include matched objects only. ${countDefinition}`;
+  $('mass-plot-definition').textContent=`Population: one truth pair per event; the sampled pair denominator includes events with both tracks accepted. ${countDefinition}`;
+  $('signal-plot-definition').textContent=`Population: ${metric==='adc'?'accepted digitized channels only':'all truth muons with a mean silicon deposit'}. ${countDefinition} Electronics response is illustrative and not calibrated.`;
+  $('comparison-note').textContent=b?'Overlays use the same combined bins and raw counts. Different sample sizes are not normalized; whiskers are event-clustered statistical errors only.':'';
   const mean=xs=>xs.length?xs.reduce((x,y)=>x+y,0)/xs.length:null;
   const metrics=value=>[
     mean(value.samples.map(s=>s.pt_gev)),mean(value.samples.map(s=>s.response_pt_gev).filter(x=>x!==null)),
@@ -1380,7 +1693,27 @@ function renderAnalysis(){
   ['Mean truth pT / GeV','Mean sampled pT / GeV','Mean deposit / MeV','Mean sampled pair mass / GeV','Max |energy residual| / GeV'].forEach((name,i)=>{
     const row=document.createElement('tr');cell(row,name);cell(row,fmt(first[i]),'number');
     if(b){cell(row,fmt(second[i]),'number');cell(row,fmt(first[i]!==null&&second[i]!==null?first[i]-second[i]:null),'number');}table.append(row);
-  });$('comparison-table').replaceChildren(table);
+  });
+  const responseDiagnostics=value=>{
+    const requestedRows=value.samples.filter(sample=>sample.response_status!=='not_requested');
+    const matched=requestedRows.filter(sample=>sample.response_status==='accepted'&&Number.isFinite(sample.response_pt_gev));
+    const residuals=matched.map(sample=>(sample.response_pt_gev-sample.pt_gev)/sample.pt_gev);
+    const interval=wilson95(matched.length,requestedRows.length);
+    return requestedRows.length?{
+      efficiency:`${matched.length}/${requestedRows.length} = ${(matched.length/requestedRows.length*100).toFixed(2)}%; Wilson 95% ${(interval[0]*100).toFixed(2)}–${(interval[1]*100).toFixed(2)}%`,
+      bias:residuals.length?`${(100*residuals.reduce((sum,x)=>sum+x,0)/residuals.length).toFixed(3)}% (n=${residuals.length})`:'No matched objects',
+      rms:residuals.length?`${(100*Math.sqrt(residuals.reduce((sum,x)=>sum+x*x,0)/residuals.length)).toFixed(3)}% (n=${residuals.length})`:'No matched objects'
+    }:null;
+  };
+  const currentDiagnostics=responseDiagnostics(a),comparisonDiagnostics=b?responseDiagnostics(b):null;
+  if(currentDiagnostics){
+    for(const [name,key]of [['Illustrative response efficiency (truth-muon denominator)', 'efficiency'],['Matched relative pT bias (mean residual)', 'bias'],['Matched relative pT RMS residual (resolution proxy)', 'rms']]){
+      const row=document.createElement('tr');cell(row,name);cell(row,currentDiagnostics[key]);
+      if(b){cell(row,comparisonDiagnostics?.[key]||'No response sample');cell(row,'—');}table.append(row);
+    }
+  }
+  $('comparison-table').replaceChildren(table);
+  if(currentDiagnostics)$('comparison-table').append(Object.assign(document.createElement('p'),{className:'plot-definition',textContent:'Response diagnostics use matched objects only for bias/RMS and all truth muons requested for efficiency. The Wilson interval treats each muon trial as Bernoulli; these values describe the illustrative truth-to-object branch, not detector calibration or DELPHES performance.'}));
 }
 function plotWeighted(id,items){
   const target=$(id);target.replaceChildren();
@@ -1420,6 +1753,11 @@ function renderCollisionAnalysis(a,b){
   }
   const specs=[['plot-pt','pt'],['plot-mass','mass'],['plot-eta','eta'],['plot-signal','met']];
   for(const [id,key]of specs){const items=[{label:'DELPHES reconstructed',color:'#2464a0',histogram:a.histograms[key]}];if(b)items.push({label:'Comparison',color:'#207e75',histogram:b.histograms[key]});plotWeighted(id,items);}
+  const bins=a.histograms.pt.edges.length-1,base=`${bins} fixed bins; y-axis is signed Σw, not normalized. Whiskers are √(Σ per-event bin weight²), statistical only; trigger, correction, pileup and detector systematics are omitted.`;
+  $('pt-plot-definition').textContent=`Population: reconstructed muons in all ${a.events} generated events. ${base}`;
+  $('mass-plot-definition').textContent=`Population: one highest-scalar-pT opposite-sign isolated pair per event before the mass cut; the denominator is the pre-mass selected pair population. ${base}`;
+  $('eta-plot-definition').textContent=`Population: reconstructed muons in all ${a.events} generated events. ${base}`;
+  $('signal-plot-definition').textContent=`Population: missing transverse momentum, one value per generated event; no particle-count denominator. ${base}`;
   const s=a.selection;
   $('selection-description').textContent=`Muon pT ≥ ${s.muon_pt_min_gev} GeV/c, |η| < ${s.muon_abs_eta_max}, DELPHES isolation ≤ ${s.muon_iso_max}; opposite charge; ${s.mass_min_gev} ≤ mμμ < ${s.mass_max_gev} GeV/c². Highest scalar-pT pair selected before mass cut. No measured CMS ID or detector calibration claim.`;
   const table=document.createElement('table'),head=document.createElement('tr');

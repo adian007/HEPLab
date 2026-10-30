@@ -1,0 +1,59 @@
+{
+  "assets": [
+    {
+      "file": "vendor/bootstrap/5.3.8/bootstrap.min.css",
+      "package": "bootstrap-5.3.8",
+      "sha256": "d85327d99c7a3ee1f9b5d0500d1370acea3ad2db39c163c2f51f232baedbdede"
+    },
+    {
+      "file": "vendor/bootstrap/5.3.8/bootstrap.bundle.min.js",
+      "package": "bootstrap-5.3.8",
+      "sha256": "e4fd49181388c48ec5040bd3fe66f57c29c8e67fcd8502b3354b96ec7ab47cc7"
+    },
+    {
+      "file": "vendor/bootstrap/5.3.8/bootstrap.min.css.map",
+      "package": "bootstrap-5.3.8",
+      "sha256": "48144faf6aa0fb3cd2ce748d9730238f888f4ab715f05dabd1c9af2c5671988a"
+    },
+    {
+      "file": "vendor/bootstrap/5.3.8/bootstrap.bundle.min.js.map",
+      "package": "bootstrap-5.3.8",
+      "sha256": "c61123e58cc0a4b65d737ba070c485911b3dbec6d7b802bdf6628395abd9c08b"
+    },
+    {
+      "file": "vendor/bootstrap/5.3.8/LICENSE",
+      "package": "bootstrap-5.3.8",
+      "sha256": "4620c84ad5ce8602ff65640ed6b7c8b78ebb9e036584f0ebc1ccc88206a4bb51"
+    },
+    {
+      "file": "vendor/fonts/IBMPlexSans-Regular.woff2",
+      "package": "ibm-plex-sans-1.1.0",
+      "sha256": "ba711a3085ff9f27440b6b9c4550cfc47c97bf36591d5da958b975bb3add8c1a"
+    },
+    {
+      "file": "vendor/fonts/IBMPlexSans-Medium.woff2",
+      "package": "ibm-plex-sans-1.1.0",
+      "sha256": "5660f8a658f8bb50dbc005232f885eadffd2bc1c235c4f6fbb63469d1f9cde6d"
+    },
+    {
+      "file": "vendor/fonts/IBMPlexSans-SemiBold.woff2",
+      "package": "ibm-plex-sans-1.1.0",
+      "sha256": "f78048030eab62e860efa39a0df79e2e5581bf122eb95b9bc42c0b8a4988d205"
+    },
+    {
+      "file": "vendor/fonts/IBM-Plex-sans-LICENSE.txt",
+      "package": "ibm-plex-sans-1.1.0",
+      "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da"
+    },
+    {
+      "file": "vendor/fonts/IBMPlexMono-Regular.woff2",
+      "package": "ibm-plex-mono-1.1.0",
+      "sha256": "49ce58b41a0e1cb921c0f58d9a5b8b96a2cc21437c7066f3ba4f24873076d131"
+    },
+    {
+      "file": "vendor/fonts/IBM-Plex-mono-LICENSE.txt",
+      "package": "ibm-plex-mono-1.1.0",
+      "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da"
+    }
+  ]
+}

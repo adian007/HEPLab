@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Iterable
+from hashlib import sha256
 
 import numpy as np
 from scipy.optimize import minimize
@@ -15,6 +16,36 @@ RESONANCES = {
     "upsilon_2s": {"mass_gev": 10.023260, "window_gev": [9.72, 10.25]},
     "upsilon_3s": {"mass_gev": 10.3552, "window_gev": [10.25, 10.85]},
 }
+
+EVENT_SPLIT_ALGORITHM = "sha256-run-lumi-event-mod5-v1"
+HELDOUT_MODULUS = 5
+
+
+def select_candidate_index(transverse_momenta: Iterable[tuple[float, float]]) -> int | None:
+    """Choose the pair with the largest scalar pT sum, independent of its mass.
+
+    Pair order is the deterministic tie breaker. The function deliberately
+    accepts no mass, resonance label, or reference value.
+    """
+    candidates = tuple(tuple(pair) for pair in transverse_momenta)
+    if not candidates:
+        return None
+    if any(
+        len(pair) != 2 or any(not math.isfinite(value) or value < 0 for value in pair)
+        for pair in candidates
+    ):
+        raise ValueError("candidate pT values must be finite and nonnegative")
+    return max(range(len(candidates)), key=lambda index: (sum(candidates[index]), -index))
+
+
+def event_split(run: int, luminosity_block: int, event: int) -> str:
+    """Return a stable event-level holdout label from identifiers alone."""
+    values = (run, luminosity_block, event)
+    if any(type(value) is not int or value < 0 for value in values):
+        raise ValueError("event identity fields must be nonnegative integers")
+    key = f"{run}:{luminosity_block}:{event}".encode("ascii")
+    bucket = int.from_bytes(sha256(key).digest()[:8], "big") % HELDOUT_MODULUS
+    return "heldout" if bucket == 0 else "training"
 
 
 def _normal_pdf(values: np.ndarray, mean: float, sigma: float) -> np.ndarray:

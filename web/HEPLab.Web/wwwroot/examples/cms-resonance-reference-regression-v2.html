@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Low-mass resonance reference regression · HEPLab example</title>
+  <style>
+    :root { color-scheme: light dark; font: 16px/1.55 system-ui, sans-serif; }
+    body { max-width: 920px; margin: 0 auto; padding: 2rem 1.2rem 4rem; }
+    main { display: grid; gap: 1rem; }
+    .eyebrow { color: #187078; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+    .notice { border: 2px solid #a76200; border-radius: .65rem; padding: 1rem; }
+    .panel { border: 1px solid #8886; border-radius: .65rem; padding: 1rem; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    th, td { text-align: right; padding: .4rem .55rem; border-bottom: 1px solid #8885; }
+    th:first-child, td:first-child { text-align: left; }
+    code { overflow-wrap: anywhere; }
+    a { color: #16707b; }
+    .back { display: inline-block; margin-bottom: 1.2rem; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+  <a class="back" href="/gallery/">← Back to the HEPLab examples gallery</a>
+  <main>
+    <header><div class="eyebrow">Recorded CMS Open Data · failed gate</div><h1>Low-mass resonance reference regression</h1></header>
+    <section class="notice"><strong>Recorded CMS Open Data regression; overall gate: FAILED.</strong>
+      The low-mass candidate is chosen by maximum scalar pT sum and does not use a PDG target mass. Events are split by a deterministic run/lumi/event hash before mass fitting. This is a disjoint holdout from one Run2016G file, not an independent dataset, detector calibration, or validation of HEPLab's simulation.</section>
+    <section class="panel"><h2>Frozen held-out peak checks</h2>
+      <p>Candidate selection is independent of target resonance mass. The Υ(2S) held-out residual is -0.049300 GeV against a predeclared ±0.030 GeV gate, so the report correctly fails overall.</p>
+      <table><thead><tr><th>Sample</th><th>Held-out fitted mean (GeV)</th><th>Residual (GeV)</th><th>Allowed (GeV)</th><th>Gate</th></tr></thead><tbody><tr><td>J/ψ</td><td>3.090790</td><td>-0.006110</td><td>0.020</td><td>PASS</td></tr><tr><td>Υ(1S)</td><td>9.452308</td><td>-0.007992</td><td>0.030</td><td>PASS</td></tr><tr><td>Υ(2S)</td><td>9.974000</td><td>-0.049300</td><td>0.030</td><td>FAIL</td></tr><tr><td>Υ(3S)</td><td>10.359664</td><td>+0.004464</td><td>0.030</td><td>PASS</td></tr></tbody></table>
+      <p>The fit uncertainty is a Gaussian Fisher approximation and omits background uncertainty. Trigger and offline kinematic selections define the sample acceptance; no trigger-object matching, acceptance correction, or per-muon momentum correction is applied.</p>
+    </section>
+    <section class="panel"><h2>Sample and split</h2><ul>
+      <li>Recorded data: CMS Run2016G DoubleMuon NanoAOD; entries [100000, 300000) from one file.</li>
+      <li>Selected opposite-charge muons: pT ≥ 2 GeV and |η| &lt; 2.4; one pair/event maximizing scalar pT sum.</li>
+      <li>Split: <code>sha256-run-lumi-event-mod5-v1</code>, held-out fraction 20%.</li>
+      <li>Candidate pairs: J/ψ 6,348; Υ 2,517.</li>
+    </ul></section>
+    <section class="panel"><h2>Provenance and scope</h2><ul>
+      <li>Original file: <a href="https://opendata.cern.ch/eos/opendata/cms/Run2016G/DoubleMuon/NANOAOD/UL2016_MiniAODv2_NanoAODv9-v2/2430000/05DD095C-F6C3-9A4F-9FB3-348A5A6403D5.root">CERN Open Data NanoAOD</a>; record <a href="https://opendata.cern.ch/record/30522">30522</a>.</li>
+      <li>Source file Adler-32: <code>71602056</code> (verified during input retrieval).</li>
+      <li>Dataset manifest SHA-256: <code>d3bb5b7a7d3ae06cb5bbc3e6b3b1eb94396be2e52edbcabe0eb64bc139c01aa8</code>.</li>
+      <li>Selected-pair fixture SHA-256: <code>3160ed06d1d29cc647b922d42d85bb6058327292d8d18fd782c0a859642c26de</code> (declared 3160ed06d1d29cc647b922d42d85bb6058327292d8d18fd782c0a859642c26de).</li>
+      <li>Report file SHA-256: <code>3c534dbab4bcb6c5968e2a6a30909cfe9f5254e6a6dda97049bea0135023a5b8</code>; deterministic result digest <code>e8c28b2965d210d5464435c1c7c1acea39e74b000bb2d2302080f2b6ce32f7ff</code>.</li>
+      <li>Full scope, fit diagnostics, and known limitations: <a href="cms-resonance-data-report-v2.json">download the versioned report JSON</a> and read the <a href="/validation/evidence/">evidence guide</a>.</li>
+    </ul></section>
+    <p><a href="/validation/evidence/">Read how HEPLab classifies evidence</a> · <a href="/simulation/models/">Model definitions and limits</a></p>
+  </main>
+</body>
+</html>

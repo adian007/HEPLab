@@ -1,13 +1,14 @@
 # Website backend boundary
 
-## Static project guide
+## Public guide
 
-The Astro/Starlight guide is static documentation. It does not call FastAPI,
-submit jobs, read local events, or inspect artifacts. Build it with
-`pnpm --dir web build` and host the generated `web/dist/` directory. Visitors
-must run the simulator locally to access the workbench.
+The public guide runs as an ASP.NET Core app. It renders documentation and
+serves its search index and static examples. It does not call FastAPI, submit
+simulation jobs, inspect a visitor's files, or expose the local simulator API.
+Run the app with `dotnet run --project web/HEPLab.Web`; publish it to an
+ASP.NET Core 10 host.
 
-## Simulator service
+## Local simulator service
 
 The separate local simulator stack uses Python, FastAPI, Pydantic, and HEPLab
 application services. It serves the workbench and local APIs for capabilities,
@@ -21,7 +22,7 @@ project guide. Contracts and security controls are documented in
 ## Topology
 
 ```text
-Static host: Astro/Starlight pages ── documentation only
+Public host: ASP.NET Core guide ── documentation and search
 
 Local machine: workbench UI ── FastAPI adapter ── Python services ── engines
 ```

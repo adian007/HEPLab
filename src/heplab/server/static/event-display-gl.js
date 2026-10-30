@@ -243,8 +243,10 @@ window.HEPLabGL = (() => {
       for (const item of tracks) gl.deleteBuffer(item.buffer);
       tracks = list.map(item => {
         const pts = item.points, data = new Float32Array(Math.max(0, pts.length - 1) * 6 * 9);
-        const path = [0];
-        for (let i = 1; i < pts.length; i++) path.push(path[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1], pts[i][2] - pts[i - 1][2]));
+        const candidate = item.path_m;
+        const validPath = Array.isArray(candidate) && candidate.length === pts.length && candidate.every((value, index) => Number.isFinite(value) && value >= 0 && (index === 0 || value >= candidate[index - 1]));
+        const path = validPath ? candidate : [0];
+        if (!validPath) for (let i = 1; i < pts.length; i++) path.push(path[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1], pts[i][2] - pts[i - 1][2]));
         let o = 0;
         for (let i = 0; i + 1 < pts.length; i++) {
           const a = pts[i], b = pts[i + 1];

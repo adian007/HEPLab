@@ -3,7 +3,7 @@
   "title": "Rediscover the Z boson",
   "audience": "First-year university courses and International Masterclasses",
   "duration_minutes": 60,
-  "summary": "Select muon pairs, compute their invariant mass, find the resonance and measure its mass, the way the Z boson was confirmed in 1983 and is still calibrated at the LHC today.",
+  "summary": "Use a fixed synthetic teaching sample to select muon pairs, compute the invariant mass and fit a dimuon peak. Compare the fitted value with the published Z mass; this is an educational exercise, not a CMS measurement or detector calibration.",
   "reference": {
     "quantity": "Z boson mass",
     "value_gev": 91.1876,
@@ -56,8 +56,8 @@
     },
     {
       "id": "fit",
-      "title": "Measure the Z mass",
-      "task": "Fit the peak and report the fitted mass and its uncertainty.",
+      "title": "Fit the synthetic Z peak",
+      "task": "Fit the teaching sample's peak and compare the fitted mass and uncertainty with the published reference value.",
       "answer": "the result of heplab.fit_peak(result), or a (mass, uncertainty) pair in GeV",
       "hints": [
         "fit = heplab.fit_peak(result, window=(70, 110))",

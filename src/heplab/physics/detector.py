@@ -10,6 +10,7 @@ import math
 from dataclasses import asdict
 
 from ..io.provenance import config_hash
+from .constants import CURVATURE_GEV_T_METRES, SPEED_OF_LIGHT_M_PER_NS
 from .reference import TrackState, propagate_uniform_bz
 
 
@@ -53,7 +54,9 @@ def tracker_trajectory(state: TrackState, max_path: float, backend: str = "refer
                         "path_m": path,
                         "position_m": [a[i] + distance * direction[i] for i in range(3)],
                         "time_ns": state.time_ns
-                        + path * state.momentum.energy / (state.momentum.momentum * 0.299792458),
+                        + path
+                        * state.momentum.energy
+                        / (state.momentum.momentum * SPEED_OF_LIGHT_M_PER_NS),
                     }
                 )
     crossings.sort(key=lambda item: item["path_m"])
@@ -172,7 +175,7 @@ def surface_paths(state: TrackState, surface: dict, bz: float, max_path: float) 
     radius, half = surface["radius_m"], surface["half_length_m"]
     if not all(math.isfinite(v) and v > 0 for v in (radius, half)):
         raise ValueError("invalid finite cylinder")
-    omega = -0.299792458 * state.charge * bz / p
+    omega = -CURVATURE_GEV_T_METRES * state.charge * bz / p
     candidates = []
     if abs(omega) * max_path < 1e-8:
         a, b, c = ux * ux + uy * uy, 2 * (x * ux + y * uy), x * x + y * y - radius * radius

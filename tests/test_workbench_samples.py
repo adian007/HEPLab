@@ -27,6 +27,8 @@ def test_seeded_angular_events_have_varied_directions_and_correct_pair_kinematic
     assert events[2] == bench(config, threading.Event(), 2)
     assert events[0]["tracks"][0]["truth"] != events[1]["tracks"][0]["truth"]
     for event in events:
+        expected_models = {item["id"] for item in event["model_spec"]["components"]}
+        assert set(event["tracks"][0]["model_ids"]) == expected_models
         first, second = [FourVector(**t["truth"]["momentum"]) for t in event["tracks"]]
         assert first.momentum == pytest.approx(45)
         assert (first.px + second.px, first.py + second.py, first.pz + second.pz) == (0, 0, 0)
@@ -48,11 +50,18 @@ def test_sample_events_and_observables_survive_a_worker_restart(tmp_path):
         assert len(result["analysis"]["samples"]) == 8
         assert len(result["analysis"]["pairs"]) == 4
         assert result["artifact"]["run_id"] == identity
+        assert result["artifact"]["schema"] == "heplab-run-artifact-v1"
+        assert result["artifact"]["scope"] == "full_run"
+        assert len(result["artifact"]["result_sha256"]) == 64
         assert all(s["pt_gev"] != 45 for s in result["analysis"]["samples"])
         third = jobs.event(identity, 2)
         assert third["event"] == 2 and third["events"] == 4
         assert third["tracks"] != result["tracks"]
         assert third["analysis"] == result["analysis"]
+        assert third["artifact"]["schema"] == "heplab-event-view-v1"
+        assert third["artifact"]["scope"] == "selected_event_view"
+        assert third["artifact"]["parent_run_sha256"] == result["artifact"]["result_sha256"]
+        assert third["artifact"]["event_index"] == 2
     finally:
         jobs.close()
     restarted = Jobs(tmp_path)

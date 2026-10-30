@@ -1,7 +1,8 @@
 # Site maintenance
 
-The public guide now uses Astro and Starlight. Keep future work focused on
-documenting implemented product behavior and keeping the pages easy to navigate.
+The public guide uses ASP.NET Core Razor Pages and Markdig. Keep future work
+focused on documenting implemented product behavior and keeping the pages easy
+to navigate.
 
 Possible follow-up work, when supported by project needs:
 

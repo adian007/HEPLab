@@ -9,6 +9,7 @@ import os
 import subprocess
 from functools import lru_cache
 
+from .constants import MUON_MASS_GEV
 from .reference import (
     FourVector,
     TrackState,
@@ -29,14 +30,14 @@ def _rust_binding() -> tuple[bool, str | None]:
                 json.dumps(
                     {
                         "op": "mass",
-                        "first": [45, 0, 0, 0.10565839],
-                        "second": [45, 0, math.pi, 0.10565839],
+                        "first": [45, 0, 0, MUON_MASS_GEV],
+                        "second": [45, 0, math.pi, MUON_MASS_GEV],
                     }
                 )
             )
         )
         if not isinstance(result, int | float) or not math.isclose(
-            result, 90.000248082, abs_tol=1e-6
+            result, 2 * math.hypot(45.0, MUON_MASS_GEV), abs_tol=1e-6
         ):
             return False, "Native Rust binding failed its startup numerical check"
         return True, None

@@ -107,7 +107,14 @@ function cmsShow(report){
   $('data-plots').replaceChildren();
   for(const [key,title,units]of [['mass','Dimuon invariant mass','GeV/c²'],['leading_pt','Leading muon transverse momentum','GeV/c'],['leading_eta','Leading muon pseudorapidity','η'],['pair_pt','Dimuon transverse momentum','GeV/c']]){
     const figure=document.createElement('figure'),caption=document.createElement('figcaption'),actions=document.createElement('span');actions.className='data-plot-actions';caption.append(document.createTextNode(title),actions);
-    const svg=cmsPlot(report,key,title,units);figure.append(caption,svg);$('data-plots').append(figure);
+    const histogram=report.populations.data.histograms[key],binCount=histogram.edges.length-1;
+    const population=Object.entries(report.populations).map(([role,value])=>
+      `${role==='data'?'recorded data':'simulation'} “${value.dataset.name}”: ${value.selected_events}/${value.events} events selected`
+    ).join('; ');
+    const definition=document.createElement('p');definition.className='plot-definition';
+    definition.textContent=`Source and population: ${population}. Selection: Legacy2016 certification, named trigger/ID and cuts shown above; all plots use the selected mass window. ${binCount} bins in ${units} from ${histogram.edges[0]} to ${histogram.edges.at(-1)}; each regular-bin height is Σw in that bin divided by the selected signed-weight sum including under/overflow. Whiskers are √(diagonal normalized-bin covariance), statistical only. No luminosity scaling, efficiency or pileup corrections, background model, or systematic uncertainties; shape overlays do not establish detector calibration.`;
+    if(key==='mass'&&report.populations.mc)definition.textContent+=' The data/MC ratio uses independent statistical covariance propagation and is undefined for empty or nonpositive MC bins.';
+    const svg=cmsPlot(report,key,title,units);figure.append(caption,svg,definition);$('data-plots').append(figure);
     for(const format of ['svg','png']){const b=document.createElement('button');b.textContent=format.toUpperCase();b.setAttribute('aria-label',`Export ${key} ${format.toUpperCase()}`);b.onclick=()=>cmsAction(()=>cmsExportPlot(svg,key,format));actions.append(b);}
   }
   const table=document.createElement('table'),head=document.createElement('tr');

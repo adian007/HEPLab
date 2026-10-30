@@ -4,38 +4,36 @@
 
 | Layer | Choice | Purpose |
 |---|---|---|
-| Site framework | Astro | Builds static pages for direct hosting. |
-| Documentation | Astro Starlight | Markdown and MDX pages, navigation, search, responsive layout, and theme controls. |
-| Type checking | TypeScript and `@astrojs/check` | Checks Astro configuration and content integration. |
-| Package manager | pnpm | Exact dependency versions and lockfile in `pnpm-lock.yaml`. |
+| Web framework | ASP.NET Core Razor Pages on .NET 10 | Server-rendered guide pages, route handling, and hosting. |
+| Markdown | Markdig | Render authored Markdown/MDX guide content into HTML. |
+| UI library | Bootstrap 5.3.8, locally vendored | Responsive grid, buttons, forms, progress, and focus-managed mobile offcanvas navigation. |
+| Components | C# Tag Helpers and Razor partials | Shared icons, navigation, fixture preview, lab, gallery, and page layout. |
+| Typography | Local IBM Plex Sans/Mono 1.1.0 packages | Body/interface typography and technical labels; SIL OFL licenses included. |
+| Browser behavior | Bootstrap bundle and focused JavaScript | Keyboard search, theme selection, clipboard actions, lab checkpoints, and gallery filters. |
+| Static assets | ASP.NET Core static web assets | Serve the logo, CSS, scripts, and self-contained HTML examples. |
 
-The site has no React application, client API adapter, simulator controls,
-tracking, analytics, or required runtime JavaScript. Starlight provides its
-search index during a static build. The local simulator remains a separate
-Python application.
+The web app does not call the local FastAPI service or run simulations. The
+Python workbench remains a separate local application.
 
 ## Commands
 
 Run from the repository root:
 
 ```powershell
-pnpm --dir web install
-pnpm --dir web dev
-pnpm --dir web check
-pnpm --dir web build
-pnpm --dir web preview
+dotnet run --project web/HEPLab.Web
+dotnet build web/HEPLab.Web/HEPLab.Web.csproj
+dotnet publish web/HEPLab.Web/HEPLab.Web.csproj --configuration Release
 ```
 
-Astro prints the development URL. The build writes static files to `web/dist/`;
-deploy that directory to a static host. The website does not depend on the
-FastAPI service. Start the local simulator separately with `heplab gui` or
-`tools/start_workbench.ps1`.
+`dotnet run` prints the local URL. Publishing creates an ASP.NET Core app for a
+.NET 10 host; the site is not a static directory anymore.
 
 ## Source layout
 
-- `astro.config.mjs`: Starlight identity, navigation, edit links and CSS.
-- `src/content/docs/`: site pages and guides, organized by section.
-- `src/content.config.ts`: Starlight's documentation collection.
-- `src/styles/site.css`: small set of site-level Starlight theme adjustments.
-- `public/`: logo and favicon copied to the static output.
-- `dist/`: generated site; do not edit by hand.
+- `HEPLab.Web/Program.cs`: service registration, static assets, pages, and search endpoint.
+- `HEPLab.Web/Pages/`: home, documentation route, and shared Razor layout.
+- `HEPLab.Web/Services/SiteContentService.cs`: content loading, Markdown rendering, curated navigation, and search data.
+- `HEPLab.Web/Services/ExperimentPreviewService.cs`: projects the fixed synthetic fixture into SVG without running a simulation.
+- `HEPLab.Web/Content/Docs/`: page source with YAML front matter.
+- `HEPLab.Web/wwwroot/`: branding, styles, JavaScript, and offline examples.
+- `docs/`: maintainer notes for design, writing, and review.

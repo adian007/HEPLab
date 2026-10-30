@@ -15,8 +15,9 @@ import sys
 from bisect import bisect_right
 from dataclasses import dataclass
 
-C_METRES_PER_NS = 0.299792458
-CURVATURE_GEV_T_METRES = 0.299792458
+from .constants import CURVATURE_GEV_T_METRES, SPEED_OF_LIGHT_M_PER_NS
+
+C_METRES_PER_NS = SPEED_OF_LIGHT_M_PER_NS
 RNG_VERSION = "heplab-sha256-address-v1"
 
 

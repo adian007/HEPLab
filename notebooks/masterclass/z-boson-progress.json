@@ -1,0 +1,48 @@
+{
+  "schema": "heplab-lab-progress-v1",
+  "lab": "z-boson",
+  "title": "Rediscover the Z boson",
+  "completed": 2,
+  "steps": 6,
+  "results": {
+    "load": {
+      "step": "load",
+      "passed": true,
+      "message": "Loaded 4000 events; 4000 have at least two muons.",
+      "details": {
+        "events": 4000,
+        "with_two_muons": 4000
+      }
+    },
+    "select": {
+      "step": "select",
+      "passed": true,
+      "message": "Good selection: pT \u2265 20 GeV, isolation \u2264 0.15, opposite charge.",
+      "details": {}
+    }
+  },
+  "context": {
+    "events": 4000,
+    "config": {
+      "selection": {
+        "muons": {
+          "min_pt": 20,
+          "max_rel_iso": 0.15
+        },
+        "pairs": {
+          "require_opposite_charge": true
+        }
+      },
+      "binning": {
+        "dimuon_mass": {
+          "range": [
+            40,
+            140
+          ],
+          "bins": 100
+        }
+      }
+    }
+  },
+  "events_sha256": "8423dd44f1dcf123e96facb6b96de4433399742bc9284f8f81f14337ec29c4bb"
+}

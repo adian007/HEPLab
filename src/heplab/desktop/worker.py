@@ -200,6 +200,7 @@ def operations(root: Path, closers: list | None = None) -> dict[str, Callable[..
         return engine["jobs"]
 
     def workbench_session():
+        from ..physics.constants import constants_record
         from ..physics.engine import capabilities
         from ..sim.pipeline import capabilities as simulation_capabilities
 
@@ -207,7 +208,12 @@ def operations(root: Path, closers: list | None = None) -> dict[str, Callable[..
         # The workbench enables Run only once it holds a session token. Over
         # desktop IPC the channel itself is the authority, so this is a fixed
         # marker that is never checked or sent anywhere.
-        return {"token": "desktop-ipc", "engine": capabilities(), "simulation": simulation}
+        return {
+            "token": "desktop-ipc",
+            "engine": capabilities(),
+            "simulation": simulation,
+            "constants": constants_record(),
+        }
 
     def detector_display():
         from ..physics.cms_sources import display_manifest
@@ -253,6 +259,24 @@ def operations(root: Path, closers: list | None = None) -> dict[str, Callable[..
         except (ValidationError, ValueError) as exc:
             raise RequestError("invalid_arguments", str(exc)) from exc
 
+    def workbench_lifetime(config: dict):
+        from pydantic import ValidationError
+
+        from ..server.workbench import lifetime_experiment
+
+        try:
+            return lifetime_experiment(config)
+        except (ValidationError, ValueError) as exc:
+            raise RequestError("invalid_arguments", str(exc)) from exc
+
+    def workbench_export_html(result: dict):
+        from ..export.web_page import render
+
+        try:
+            return {"html": render(result)}
+        except ValueError as exc:
+            raise RequestError("invalid_arguments", str(exc)) from exc
+
     def job_cancel(job_id: str):
         try:
             jobs().cancel(job_id)
@@ -272,6 +296,8 @@ def operations(root: Path, closers: list | None = None) -> dict[str, Callable[..
         "detector.display": detector_display,
         "jobs.submit": job_submit,
         "workbench.preview": workbench_preview,
+        "workbench.lifetime": workbench_lifetime,
+        "workbench.export-html": workbench_export_html,
         "jobs.get": known(lambda job_id: jobs().get(job_id)),
         "jobs.list": lambda: jobs().list(),
         "jobs.cancel": known(job_cancel),

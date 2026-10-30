@@ -15,7 +15,7 @@ are. It is a documentation site. It does not run simulations or access user data
 
 ## Navigation
 
-The Starlight sidebar groups pages by the questions visitors are likely to ask:
+The guide sidebar groups pages by the questions visitors are likely to ask:
 
 | Section | Pages | Visitor question |
 |---|---|---|
@@ -34,4 +34,4 @@ contracts, algorithms, and validation records.
 - A reader can find local setup and the analysis workflow.
 - A reader can find supporting evidence and understand its limits.
 - A contributor can find the repository's development guidance.
-- The guide remains useful as a static site without a running simulator service.
+- The guide remains useful without a running simulator service.

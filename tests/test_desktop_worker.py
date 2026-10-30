@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from desktop.build_worker import validate_library
 
 from heplab.desktop import worker
 from heplab.lab import daq
@@ -197,3 +198,13 @@ def test_worker_module_runs_as_subprocess_without_a_shell(tmp_path):
     )
     hello, reply = (json.loads(line) for line in process.stdout.splitlines())
     assert hello["protocol"] == worker.PROTOCOL and reply["ok"] is True
+
+
+def test_packaged_worker_allows_only_samples_present_in_build():
+    validate_library({"ok": True, "result": []}, set())
+    validate_library(
+        {"ok": True, "result": [{"id": "cms-run2016g"}, {"id": "cms-dy-ul16"}]},
+        {"cms-run2016g", "cms-dy-ul16"},
+    )
+    with pytest.raises(SystemExit, match="packaged CMS datasets are unavailable"):
+        validate_library({"ok": True, "result": []}, {"cms-run2016g"})

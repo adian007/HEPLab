@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "heplab"
 version = "0.1.0.dev0"
-description = "Reproducible LHC analysis and simulation on CERN Open Data — one tool for real data and your own Monte Carlo."
+description = "Educational high-energy physics analysis and scoped particle simulation with CERN Open Data."
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.12"
