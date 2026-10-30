@@ -67,7 +67,10 @@ def fetch(url: str, encoding: str = "identity") -> tuple[str, bytes]:
 
 
 def check(base: str, asset_sources: dict[str, str]) -> tuple[int, int]:
-    assets = {"/assets/z-boson-demo.json"}
+    assets = {
+        "/assets/z-boson-demo.json",
+        "/examples/analytic-muon-pair-result-v1.json",
+    }
     _, index_body = fetch(base + "/search-index.json")
     search_index = json.loads(index_body)
     routes = tuple(dict.fromkeys(["/", *(page["url"] for page in search_index)]))
@@ -190,6 +193,38 @@ def check_preview(html: str) -> None:
             "position"
         ):
             raise AssertionError("fixture must declare the field exit and material-slab location")
+        exit_index = next(
+            i
+            for i, path in enumerate(trajectory["path_m"])
+            if path >= trajectory["field_exit_path_m"]
+        )
+        exit_point = trajectory["points"][exit_index]
+        if not math.isclose(math.hypot(*exit_point[:2]), 3.0, abs_tol=1e-9):
+            raise AssertionError("fixture's field exit must be on its declared 3 m bore")
+        bore_crossing = next(
+            crossing
+            for crossing in trajectory["crossings"]
+            if crossing["surface_id"] == "solenoid-bore"
+        )
+        if not math.isclose(
+            bore_crossing["path_m"], trajectory["field_exit_path_m"], abs_tol=1e-12
+        ):
+            raise AssertionError("field exit path must match the declared bore crossing")
+        slab_point = track["material"]["state"]["position"]
+        if slab_point not in trajectory["points"]:
+            raise AssertionError("the slab marker must match a stored trajectory point")
+        outside = trajectory["points"][exit_index:]
+        direction = [outside[-1][i] - outside[0][i] for i in range(3)]
+        direction_norm = math.sqrt(sum(value * value for value in direction))
+        for point in outside:
+            displacement = [point[i] - outside[0][i] for i in range(3)]
+            cross = (
+                displacement[1] * direction[2] - displacement[2] * direction[1],
+                displacement[2] * direction[0] - displacement[0] * direction[2],
+                displacement[0] * direction[1] - displacement[1] * direction[0],
+            )
+            if math.sqrt(sum(value * value for value in cross)) / direction_norm > 1e-8:
+                raise AssertionError("fixture path outside the ideal bore must be straight")
         truth_px = track["truth"]["momentum"]["px"]
         first_y = next(y for _, y, _ in trajectory["points"][1:] if abs(y) > 1e-10)
         expected_y_sign = -track["charge"] * math.copysign(1, truth_px * bz)

@@ -11,6 +11,7 @@ public sealed class ExperimentPreviewService
     public string MomentumGeV { get; }
     public string ResultDigest { get; }
     public string GeometryId { get; }
+    public string GeometryEra { get; }
     public int EventIndex { get; }
 
     private static string Number(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
@@ -29,5 +30,6 @@ public sealed class ExperimentPreviewService
         EventIndex = root.GetProperty("event").GetInt32();
         ResultDigest = root.GetProperty("artifact").GetProperty("result_sha256").GetString()!;
         GeometryId = root.GetProperty("geometry").GetProperty("id").GetString()!;
+        GeometryEra = root.GetProperty("geometry").GetProperty("era").GetString()!;
     }
 }

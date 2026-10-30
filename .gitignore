@@ -29,6 +29,8 @@ src/heplab/data/*
 !src/heplab/data/reference/**
 !src/heplab/data/cms-display/
 !src/heplab/data/cms-display/**
+!web/HEPLab.Web/Content/Docs/data/
+!web/HEPLab.Web/Content/Docs/data/open-data.md
 *.parquet
 *.root
 !tests/golden/*.root

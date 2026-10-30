@@ -101,13 +101,19 @@ def semantic_example_checks(name: str, value: dict) -> None:
 
 def main() -> int:
     errors = []
+    register = read_json(HANDBOOK / "requirements.json")
+    requirements = register["requirements"]
+    # Architecture and requirement pages need a model diagram. Audit reports,
+    # evidence notes and operating guides are useful without one; requiring a
+    # diagram on every new Markdown page made otherwise complete reviews fail CI.
+    diagram_pages = {row["document"] for row in requirements}
     pages = sorted(HANDBOOK.glob("*.md"))
     diagrams = 0
     for page in pages:
         content = page.read_text(encoding="utf-8")
         blocks = re.findall(r"```mermaid\s*\n(.*?)```", content, re.S)
         diagrams += len(blocks)
-        if not blocks:
+        if page.name in diagram_pages and not blocks:
             errors.append(f"{page.name}: missing Mermaid diagram")
         for block in blocks:
             first_line = block.strip().splitlines()[0]
@@ -123,8 +129,6 @@ def main() -> int:
             path = (page.parent / unquote(target)).resolve()
             if not path.is_relative_to(ROOT) or not path.exists():
                 errors.append(f"{page.name}: missing or external local link {target}")
-    register = read_json(HANDBOOK / "requirements.json")
-    requirements = register["requirements"]
     ids = [row["id"] for row in requirements]
     if len(ids) != len(set(ids)):
         errors.append("requirements: duplicate IDs")

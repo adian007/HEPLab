@@ -10,6 +10,7 @@ let curvatureConversion = null;
 let drag = null, pairDrag = null, screenTracks = [], history = [], historyIndex = -1, sessionRuns = [];
 let comparison = null;
 let roll=0,trackerShell=null;
+let eventFocusSnapshot=null;
 const layerOpacity=new Map();
 try{const saved=JSON.parse(localStorage.getItem('heplab-display-opacity-v1')||'{}');for(const id of ['pixel','strips','ecal','hcal','dt','csc','rpc','shell'])if(typeof saved[id]==='number'&&Number.isFinite(saved[id]))layerOpacity.set(id,Math.max(0,Math.min(1,saved[id])));}catch{}
 // GPU path for the viewport; null keeps the Canvas2D renderer below.
@@ -627,6 +628,8 @@ function drawCanvas2D() {
       const point=project(crossing.position_m);context.strokeStyle=color;context.lineWidth=1;
       context.strokeRect(point[0]-3,point[1]-3,6,6);
     }
+    if(result?.mode==='analytic'&&track.material?.state?.position&&time>=1)
+      drawMaterialMarker(project,track.material.state.position,track.object_id===0||isSelected);
   }
   // Stable orientation triad uses the same world-to-screen projection as tracks.
   const triad=[width-58,height-65];context.font='12px Segoe UI,sans-serif';
@@ -824,6 +827,12 @@ function pointAt(track,path,s){
   for(let i=1;i<p.length;i++)if(path[i]>=s){const f=(s-path[i-1])/Math.max(1e-12,path[i]-path[i-1]);return p[i-1].map((v,k)=>v+f*(p[i][k]-v));}
   return p.at(-1);
 }
+function drawMaterialMarker(project,position,label=false){
+  const [x,y]=project(position);context.save();context.translate(x,y);context.rotate(Math.PI/4);
+  context.fillStyle='#f4c45e';context.strokeStyle='#20252c';context.lineWidth=1.5;
+  context.fillRect(-4,-4,8,8);context.strokeRect(-4,-4,8,8);context.restore();
+  if(label){context.fillStyle='#ffe4a0';context.font='11px Segoe UI,sans-serif';context.fillText('illustrative slab · 1 m',x+8,y-8);}
+}
 function drawTriadAndScale(width,height,extent,scale) {
   const triad=[width-58,height-65];context.font='12px Segoe UI,sans-serif';
   for (const [vector,label,color] of [[[1,0,0],'X','#f17b7b'],[[0,1,0],'Y','#81c48b'],[[0,0,1],'Z','#7ca9ed']]) {
@@ -890,6 +899,11 @@ function drawSynchronizedProjectionPair(){
       const title=document.createElementNS(svg.namespaceURI,'title');title.textContent=`${track.charge<0?'μ−':'μ+'} / ${track.object_id} · ${track.model_ids?.join(', ')||'model identity not recorded'} · select this shared object`;line.append(title);
       const last=point(points.at(-1));add('circle',{cx:last[0],cy:last[1],r:isSelected?4:3,fill:color});
       if(Number.isFinite(time)&&time<(path.at(-1)||0)){const head=point(pointAt(track,path,time));add('circle',{cx:head[0],cy:head[1],r:5,fill:'#fff',stroke:color,'stroke-width':2});}
+      if(result?.mode==='analytic'&&track.material?.state?.position&&time>=1){
+        const marker=point(track.material.state.position);
+        add('rect',{x:marker[0]-3,y:marker[1]-3,width:6,height:6,transform:`rotate(45 ${marker[0]} ${marker[1]})`,fill:'#f4c45e',stroke:'#20252c','stroke-width':1});
+        if(track.object_id===0||isSelected)add('text',{x:marker[0]+8,y:marker[1]-8,class:'material-marker-label'},'illustrative slab · 1 m');
+      }
     }
     figure.append(caption,svg);root.append(figure);
   }
@@ -942,6 +956,8 @@ function draw() {
       context.fillStyle=color;context.beginPath();context.arc(...last,isSelected?4:3,0,2*Math.PI);context.fill();
       context.font='12px Segoe UI,sans-serif';context.fillText(`${track.charge<0?'μ−':'μ+'} #${track.object_id}`,last[0]+7,last[1]-7);
     }
+    if(result?.mode==='analytic'&&track.material?.state?.position&&time>=1)
+      drawMaterialMarker(project,track.material.state.position,track.object_id===0||isSelected);
   });
   if(result?.tracks?.length&&time<.8){
     const ip=project([0,0,0]),r=6+time*40;
@@ -1074,13 +1090,31 @@ $('reset-opacity').onclick=()=>{for(const id of ['pixel','strips','ecal','hcal',
 $('shell-opacity-controls').append(opacityControl('shell','Tracker shell'));
 $('show-envelope').onchange=draw;
 $('event-focus').onclick=()=>{
+  const button=$('event-focus');
+  if(eventFocusSnapshot){
+    const saved=eventFocusSnapshot;eventFocusSnapshot=null;
+    $('detector-focus').value=saved.region;$('detector-style').value=saved.style;
+    for(const [id,value]of Object.entries(saved.checkboxes))$(id).checked=value;
+    hiddenDisplay.clear();for(const id of saved.hiddenDisplay)hiddenDisplay.add(id);
+    document.querySelectorAll('[data-display-layer]').forEach(input=>input.checked=!hiddenDisplay.has(input.dataset.displayLayer));
+    for(const id of ['pixel','strips','ecal','hcal','dt','csc','rpc','shell'])setOpacity(id,saved.opacity[id]??(id==='shell'?.2:1));
+    zoom=saved.zoom;pan=saved.pan;orbit=saved.orbit;roll=saved.roll;
+    button.textContent='Event focus';button.title='Show the tracker with the event path, then restore your previous display settings';button.setAttribute('aria-pressed','false');
+    updateZoomControls();updateCutawayControls();setProjection(saved.projection);return;
+  }
+  eventFocusSnapshot={
+    region:$('detector-focus').value,style:$('detector-style').value,
+    checkboxes:Object.fromEntries(['cutaway','show-grid','show-guides','show-modules','show-envelope'].map(id=>[id,$(id).checked])),
+    opacity:Object.fromEntries(layerOpacity),hiddenDisplay:[...hiddenDisplay],projection,zoom,pan:[...pan],orbit:[...orbit],roll
+  };
   $('detector-focus').value='tracker';$('detector-style').value='solid';$('cutaway').checked=false;
   $('show-grid').checked=false;$('show-guides').checked=false;$('show-modules').checked=true;$('show-envelope').checked=true;
   for(const id of ['pixel','strips','ecal','hcal','dt','csc','rpc'])setOpacity(id,id==='pixel'?.15:id==='strips'?.03:.05);
   setOpacity('shell',.2);
   for(const id of ['pixel','strips'])hiddenDisplay.delete(id);
   document.querySelectorAll('[data-display-layer]').forEach(input=>input.checked=!hiddenDisplay.has(input.dataset.displayLayer));
-  zoom=1;pan=[0,0];orbit=[-.65,.25];roll=Math.PI/2;updateZoomControls();updateCutawayControls();setProjection('3d');draw();
+  zoom=1;pan=[0,0];orbit=[-.65,.25];roll=Math.PI/2;updateZoomControls();updateCutawayControls();
+  button.textContent='Restore view';button.title='Restore the display settings from before Event focus';button.setAttribute('aria-pressed','true');setProjection('3d');draw();
 };
 $('zoom-in').onclick=()=>changeZoom(1.4);
 $('zoom-out').onclick=()=>changeZoom(1/1.4);

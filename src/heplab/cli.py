@@ -276,8 +276,7 @@ def cmd_reproduce(args: argparse.Namespace) -> int:
             raise ValueError("recorded local input is missing or has changed")
     cert_path = recipe.get("certification_path")
     if cert_path and (
-        not Path(cert_path).is_file()
-        or file_hash(cert_path) != recipe["certification_sha256"]
+        not Path(cert_path).is_file() or file_hash(cert_path) != recipe["certification_sha256"]
     ):
         raise ValueError("recorded certification file is missing or has changed")
     with tempfile.TemporaryDirectory(prefix="heplab-reproduce-") as temporary:

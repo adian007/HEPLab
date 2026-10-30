@@ -23,7 +23,7 @@ function harness(renderer=null){
     result:{mode:'cms',objects,tracks:[{object_id:0,charge:-1,points:[[0,0,0],[2,0,0]],trajectory:{crossings:[{surface_id:'pixel',path_m:1,position_m:[1,0,0]}]}}]},
     projection:'xy',orbit:[0,0],roll:0,trackerShell:null,layerOpacity:new Map(),zoom:1,pan:[0,0],selected:null,screenTracks:[],detectorGeometry:null,
     displayLayers:new Map(),displaySurfaces:new Map(),displayRemainders:new Map(),DISPLAY_COLORS:{pixel:'#d68c9a',strips:'#75ad98'},hiddenDisplay:new Set(),hiddenSurfaces:new Set(),syncedEvent:null,syncedMarkers:'',
-    trackPaths:[],playback:{time:Infinity,max:0},trackColor:()=> '#68b9ef'};
+    trackPaths:[],playback:{time:Infinity,max:0},eventFocusSnapshot:null,trackColor:()=> '#68b9ef',selectedTrackId:()=>null,announceRenderer(){}};
   vm.createContext(sandbox);
   vm.runInContext(section('function rotate(', 'const DISPLAY_COLORS=')+
     section('const OBJECT_GROUPS=', 'function drawTriadAndScale(')+
@@ -142,6 +142,35 @@ test('core preset restores pixel modules even when outlines were hidden',()=>{
   assert.equal(h.run("hiddenDisplay.has('pixel')"),false);
   assert.equal(h.sandbox.zoom,1);
   assert.ok(h.sandbox.pan.every(v=>v===0));
+});
+
+test('event focus can restore the previous region, camera, layers and opacity',()=>{
+  const h=harness();
+  h.sandbox.document.querySelectorAll=()=>[];
+  h.sandbox.document.querySelector=()=>({hidden:false});
+  h.sandbox.localStorage={setItem(){}};
+  h.sandbox.draw=()=>{};
+  h.sandbox.setProjection=value=>{h.sandbox.projection=value;};
+  h.sandbox.updateZoomControls=()=>{};h.sandbox.updateCutawayControls=()=>{};
+  h.run(section("$('event-focus').onclick=", "$('zoom-in').onclick="));
+  Object.assign(h.sandbox,{
+    projection:'xz',zoom:2.5,pan:[17,-9],orbit:[.2,.4],roll:.7
+  });
+  h.$('detector-focus').value='cms';h.$('detector-style').value='edges';
+  for(const id of ['cutaway','show-grid','show-guides','show-envelope'])h.$(id).checked=true;
+  h.$('show-modules').checked=false;h.sandbox.hiddenDisplay.add('pixel');
+  h.run("setOpacity('pixel',.65)");
+  h.$('event-focus').onclick();
+  assert.equal(h.$('event-focus').textContent,'Restore view');
+  assert.equal(h.sandbox.projection,'3d');
+  h.$('event-focus').onclick();
+  assert.equal(h.$('event-focus').textContent,'Event focus');
+  assert.equal(h.$('detector-focus').value,'cms');assert.equal(h.$('detector-style').value,'edges');
+  assert.deepEqual(['cutaway','show-grid','show-guides','show-envelope'].map(id=>h.$(id).checked),[true,true,true,true]);
+  assert.equal(h.$('show-modules').checked,false);assert.ok(h.sandbox.hiddenDisplay.has('pixel'));
+  assert.equal(h.sandbox.layerOpacity.get('pixel'),.65);
+  assert.equal(h.sandbox.zoom,2.5);assert.deepEqual(Array.from(h.sandbox.pan),[17,-9]);
+  assert.deepEqual(Array.from(h.sandbox.orbit),[.2,.4]);assert.equal(h.sandbox.roll,.7);
 });
 
 test('wheel handles line deltas but leaves live panel scrolling alone',()=>{

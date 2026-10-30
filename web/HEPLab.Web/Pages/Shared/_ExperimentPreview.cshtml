@@ -20,12 +20,13 @@
         <button type="button" class="detector-control is-active" data-view-preset="perspective" aria-pressed="true">3D view</button>
         <button type="button" class="detector-control" data-view-preset="transverse" aria-pressed="false">Transverse x–y</button>
         <button type="button" class="detector-control" data-view-preset="longitudinal" aria-pressed="false">Longitudinal x–z</button>
-        <span class="detector-hint">Drag to orbit · scroll to zoom</span>
+        <span class="detector-hint">Drag / arrows to orbit · scroll / ± to zoom</span>
     </div>
     <div class="preview-track-legend" aria-label="Legend">
         <span class="track-negative"><i aria-hidden="true"></i>μ− · q = −e</span>
         <span class="track-positive"><i aria-hidden="true"></i>μ+ · q = +e</span>
         <span class="field-legend"><i aria-hidden="true">↑</i>B = +z</span>
+        <span class="field-solid-legend"><i aria-hidden="true"></i>Solid: within field</span>
         <span class="material-legend"><i aria-hidden="true"></i>1 mm Si slab at s = 1 m</span>
         <span class="field-scope-legend"><i aria-hidden="true"></i>Dashed: beyond 3 m bore · B = 0</span>
         <span class="preview-scope">Predicted paths</span>
@@ -33,11 +34,11 @@
     <div class="preview-metrics">
         <div><span>TRANSVERSE MOMENTUM EACH</span><strong>@Model.MomentumGeV <small>GeV/c</small></strong></div>
         <div><span>AXIAL FIELD INSIDE BORE</span><strong>@Model.FieldTesla <small>T · +z</small></strong></div>
-        <div><span>TRANSPORT MODEL</span><strong class="model-label">Uniform field · 1 mm Si slab</strong></div>
+        <div><span>TRANSPORT MODEL</span><strong class="model-label">Ideal helix · slab loss/scatter</strong></div>
     </div>
     <p class="preview-limit">Geometry shows idealized cylindrical surfaces; the uniform axial field is zero outside the 3 m bore. The single-slab material response is illustrative. No measured hits, full CMS field map, or detector calibration are represented.</p>
     <figcaption id="preview-caption">
-        <span>Declared pair · fixed local result <span class="digest" title="Result SHA-256">@Model.ResultDigest[..10]</span><br /><span class="preview-geometry">Geometry: @Model.GeometryId</span></span>
+        <span>Declared pair · fixed local result <span class="digest" title="First 10 hex characters of the result SHA-256">@Model.ResultDigest[..10]</span><br /><span class="preview-geometry">@Model.GeometryEra · @Model.GeometryId</span></span>
         <a href="/examples/analytic-muon-pair-event.html">Inspect event <lab-icon name="arrow-up-right" /></a>
     </figcaption>
 </figure>

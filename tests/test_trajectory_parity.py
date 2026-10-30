@@ -31,7 +31,7 @@ def _close(a, b):
         return len(a) == len(b) and all(_close(x, y) for x, y in zip(a, b, strict=True))
     if isinstance(a, bool) or isinstance(b, bool):
         return a is b
-    if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+    if isinstance(a, int | float) and isinstance(b, int | float):
         return math.isclose(a, b, rel_tol=REL_TOL, abs_tol=ABS_TOL)
     return a == b
 

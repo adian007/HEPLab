@@ -73,7 +73,7 @@
     "git_dirty": true,
     "container_digest": null,
     "execution_environment": "Windows-11-10.0.26300-SP0",
-    "selected_pairs_sha256": "3160ed06d1d29cc647b922d42d85bb6058327292d8d18fd782c0a859642c26de"
+    "selected_pairs_sha256": "29eadbb853b3c9acd48aba263ac7f77880525cba11ce8f55dac0155710fb7266"
   },
   "selection": {
     "event": "entries [100000, 300000) from one Run2016G DoubleMuon NanoAOD file; certified run/lumi subset",
@@ -492,7 +492,7 @@
   ],
   "passed": false,
   "interpretation": "A passing status means only that this frozen held-out event sample meets the predeclared reference regression gates. It does not establish detector calibration or validate the HEPLab simulator.",
-  "deterministic_result_sha256": "e8c28b2965d210d5464435c1c7c1acea39e74b000bb2d2302080f2b6ce32f7ff",
+  "deterministic_result_sha256": "e9eb987047385f1513b5522d48ce8b04621effec4f385447ad3b6518960b19a7",
   "validation_environment": {
     "python": "3.13.14",
     "numpy": "2.4.6",

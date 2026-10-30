@@ -80,15 +80,14 @@ def metadata(result: dict, *, title: str | None = None, include_raw: bool = Fals
     kind_ = kind(result)
     content = _public_result(result, include_raw=include_raw)
     digest = result.get("result_sha256") or config_hash(finite(content))
-    artifact = result.get("artifact") if isinstance(result.get("artifact"), dict) else {}
-    model_spec = result.get("model_spec") if isinstance(result.get("model_spec"), dict) else {}
+    artifact = result.get("artifact")
+    artifact = artifact if isinstance(artifact, dict) else {}
+    model_spec = result.get("model_spec")
+    model_spec = model_spec if isinstance(model_spec, dict) else {}
     if not model_spec and isinstance(result.get("display_model_spec"), dict):
         model_spec = result["display_model_spec"]
-    source = (
-        result.get("source")
-        if isinstance(result.get("source"), dict)
-        else artifact.get("source", {})
-    )
+    source = result.get("source")
+    source = source if isinstance(source, dict) else artifact.get("source", {})
     source = source if isinstance(source, dict) else {}
     components = model_spec.get("components", [])
     manifest = {
@@ -113,10 +112,10 @@ def metadata(result: dict, *, title: str | None = None, include_raw: bool = Fals
         },
         "software": {
             "heplab": __version__,
-            "python": (result.get("artifact") or {}).get("python"),
+            "python": artifact.get("python"),
             "backend": result.get("backend"),
-            "generator": (result.get("artifact") or {}).get("generator"),
-            "delphes_card_sha256": (result.get("artifact") or {}).get("delphes_card_sha256"),
+            "generator": artifact.get("generator"),
+            "delphes_card_sha256": artifact.get("delphes_card_sha256"),
         },
         "evidence": {
             "status": result.get("validation"),
@@ -278,7 +277,10 @@ def _gallery_preview(value: dict, kind_: str) -> str:
             for track in tracks
             for point in (track.get("trajectory", {}).get("points") or track.get("points") or [])
         ]
-        extent = max((max(abs(p[0]), abs(p[1])) for p in points if len(p) >= 2), default=1) or 1
+        extent = (
+            max((max(abs(float(p[0])), abs(float(p[1]))) for p in points if len(p) >= 2), default=1)
+            or 1
+        )
         for index, track in enumerate(tracks):
             samples = track.get("trajectory", {}).get("points") or track.get("points") or []
             coords = [

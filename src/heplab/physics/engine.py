@@ -25,6 +25,8 @@ def _rust_binding() -> tuple[bool, str | None]:
     try:
         import heplab_kernels
 
+        if not callable(getattr(heplab_kernels, "run_json", None)):
+            return False, "Native Rust binding is incompatible: run_json is missing"
         result = json.loads(
             heplab_kernels.run_json(
                 json.dumps(
@@ -298,7 +300,7 @@ def execute(request: dict, *, backend="reference"):
             or set(state) != {"position", "momentum", "charge", "time_ns"}
             or not isinstance(state["momentum"], dict)
             or set(state["momentum"]) != {"energy", "px", "py", "pz"}
-            or not isinstance(state["position"], (list, tuple))
+            or not isinstance(state["position"], list | tuple)
             or len(state["position"]) != 3
         ):
             raise ValueError("missing or unknown trajectory state fields")

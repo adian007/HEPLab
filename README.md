@@ -109,6 +109,29 @@ P0 Foundations (this skeleton) → P1 Data Foundation → P2 First Analyses → 
 
 Apache-2.0 — see [LICENSE](LICENSE). CERN Open Data is consumed per-record terms (predominantly CC0/public domain), always cited via DOI.
 
+## Which HEPLab app should I open?
+
+HEPLab has one physics workbench with two launch surfaces, plus a separate
+project guide. The desktop shell packages the workbench; it does not implement a
+second simulator.
+
+| If you want to… | Open / run | What it is |
+| --- | --- | --- |
+| Run and inspect physics events | `heplab gui --open-browser` | The Python workbench. Its UI source is `src/heplab/server/static`; the local server and simulations live under `src/heplab`. |
+| Use the installed desktop app | Launch **HEPLab Workbench** | Tauri shell in `desktop/src-tauri`, which prepares a copy of the same UI from `src/heplab/server/static`. |
+| Read the project guide and evidence | `dotnet run --project web/HEPLab.Web` | The ASP.NET Core guide. Its embedded event view uses a fixed teaching fixture and does not run workbench simulations. |
+| Build the engineering handbook | `mkdocs build --strict` | The handbook is authored under `docs/engineering`; `site/` is generated output. |
+| Inspect the earlier project-site version | `legacy/web-vite/README.md` | Archived React + Vite source, preserved for reference and separate from both active apps. |
+
+The former React + Vite project site is preserved under `legacy/web-vite` for
+reference. The active project guide is `web/HEPLab.Web`; it is separate from the
+Python/Tauri workbench. Existing `web/.astro`, `web/dist`, and `web/node_modules`
+directories are generated leftovers, not the source of either active app.
+The workbench and Python worker identify as `0.1.0.dev0`; Tauri uses the
+cross-platform SemVer `0.1.0+dev.0`, with a numeric `0.1.0.0` Windows MSI
+version. Desktop CI artifacts remain marked as
+development builds and are not published releases.
+
 ## Simulator workspace
 
 Install `pip install -e '.[analysis,serve]'`, then run `heplab gui --open-browser`.

@@ -53,4 +53,5 @@ All interface assets are served locally. Bootstrap, fonts, licenses, and SHA-256
 records are under `wwwroot/vendor`. Razor asset helpers use the .NET fingerprint
 manifest; styles and scripts receive new URLs when their bytes change. Production
 runtime checks cover built and published hosts, every indexed guide page, local
-links and anchors, fonts, asset bytes, and the fixture projection.
+links and anchors, fonts, asset bytes, exact fixture delivery, and the field and
+curvature conventions used by the home 3D perspective view.

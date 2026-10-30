@@ -32,11 +32,12 @@ The local Production preview exposed a missing build asset manifest: HTML loaded
 while CSS and JavaScript returned empty HTTP 200 responses. `Program.cs` now loads
 static web assets explicitly for built-DLL previews. The Production runtime check
 in [`tools/check_site_runtime.py`](../../tools/check_site_runtime.py) passes for
-both Release build and publish output, covering all 19 indexed pages, 15 assets with
+both Release build and publish output, covering all 19 indexed pages, 17 assets with
 exact source bytes and MIME types under identity/gzip requests, and search JSON.
 CI runs both checks. This verifies local delivery, not public deployment or a WCAG
 audit; rendered browser review is also required. Local links, anchors, duplicate
-IDs, page headings, font delivery, vendor hashes, and fixture projection are checked.
+IDs, page headings, font delivery, vendor hashes, fixture provenance, and the
+Lorentz curvature convention are checked.
 
 The site now uses locally vendored Bootstrap 5.3.8, IBM Plex typography, shared C#
 Tag Helpers and Razor components, and a redesigned home/guide/lab/gallery interface.

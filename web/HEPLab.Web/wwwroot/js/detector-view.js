@@ -15,9 +15,9 @@
     return;
   }
   const presets = {
-    perspective: { azimuth: 0.82, elevation: 0.48, distance: 17, label: '3D perspective' },
-    transverse: { azimuth: 0, elevation: 1.48, distance: 17, label: 'Transverse x–y' },
-    longitudinal: { azimuth: Math.PI / 2, elevation: 0.03, distance: 17, label: 'Longitudinal x–z' },
+    perspective: { azimuth: 0.82, elevation: 0.48, distance: 15, label: '3D perspective' },
+    transverse: { azimuth: 0, elevation: 1.48, distance: 15, label: 'Transverse x–y' },
+    longitudinal: { azimuth: Math.PI / 2, elevation: 0.03, distance: 15, label: 'Longitudinal x–z' },
   };
   let camera = { ...presets.perspective };
   let scene = null;
@@ -135,20 +135,52 @@
 
   function drawField() {
     const color = colors.blue;
-    for (const [x, y] of [[0, 0], [-1.55, 0], [1.55, 0], [0, -1.55], [0, 1.55]]) {
-      arrow([x, y, -0.32], [x, y, 0.32], color, 1.05, 3.5);
+    for (const [x, y] of [[-1.3, 0], [1.3, 0], [0, -1.3], [0, 1.3]]) {
+      const lowZ = scene.bz >= 0 ? -0.42 : 0.42;
+      const highZ = -lowZ;
+      arrow([x, y, lowZ], [x, y, highZ], color, 1.2, 4);
     }
-    labelAt('Bz = +3.8 T', [0, 0, 0.48], color, 9, -7);
   }
 
   function drawAxes() {
-    const origin = [0, 0, 0];
-    arrow(origin, [1.35, 0, 0], colors.amber, 1.15, 5);
-    arrow(origin, [0, 1.35, 0], colors.accent, 1.15, 5);
-    arrow(origin, [0, 0, 1.35], colors.blue, 1.15, 5);
-    labelAt('x [m]', [1.35, 0, 0], colors.amber, 4, 12);
-    labelAt('y [m]', [0, 1.35, 0], colors.accent, 4, 12);
-    labelAt('z [m]', [0, 0, 1.35], colors.blue, 4, -5);
+    const az = camera.azimuth;
+    const el = camera.elevation;
+    const right = [-Math.sin(az), Math.cos(az), 0];
+    const up = [-Math.sin(el) * Math.cos(az), -Math.sin(el) * Math.sin(az), Math.cos(el)];
+    const origin = { x: 35, y: cssHeight - 34 };
+    const axisLength = 24;
+    const basis = [
+      { name: 'x', axis: [1, 0, 0], color: colors.amber },
+      { name: 'y', axis: [0, 1, 0], color: colors.accent },
+      { name: 'z', axis: [0, 0, 1], color: colors.blue },
+    ];
+    for (const item of basis) {
+      const dx = (item.axis[0] * right[0] + item.axis[1] * right[1] + item.axis[2] * right[2]) * axisLength;
+      const dy = -(item.axis[0] * up[0] + item.axis[1] * up[1] + item.axis[2] * up[2]) * axisLength;
+      const end = { x: origin.x + dx, y: origin.y + dy };
+      context.beginPath(); context.moveTo(origin.x, origin.y); context.lineTo(end.x, end.y);
+      context.strokeStyle = item.color; context.lineWidth = 1.45; context.stroke();
+      const angle = Math.atan2(dy, dx);
+      context.beginPath(); context.moveTo(end.x, end.y);
+      context.lineTo(end.x - 4 * Math.cos(angle - 0.45), end.y - 4 * Math.sin(angle - 0.45));
+      context.lineTo(end.x - 4 * Math.cos(angle + 0.45), end.y - 4 * Math.sin(angle + 0.45));
+      context.closePath(); context.fillStyle = item.color; context.fill();
+      context.fillStyle = item.color; context.font = '10px "Plex Mono", monospace';
+      context.fillText(item.name, end.x + Math.sign(dx || 1) * 3, end.y + (dy < 0 ? -4 : 12));
+    }
+    context.fillStyle = colors.blue;
+    context.font = '10px "Plex Mono", monospace';
+    const fieldSign = scene.bz >= 0 ? '+' : '−';
+    context.fillText(`Bz = ${fieldSign}${Math.abs(scene.bz)} T · ${fieldSign}z`, 12, 20);
+    const bar = Math.min(cssWidth, cssHeight) * 1.02 / camera.distance;
+    const barX = cssWidth - bar - 18;
+    const barY = cssHeight - 22;
+    context.strokeStyle = colors.muted || colors.subtle;
+    context.lineWidth = 1.4;
+    context.beginPath(); context.moveTo(barX, barY); context.lineTo(barX + bar, barY); context.stroke();
+    context.beginPath(); context.moveTo(barX, barY - 3); context.lineTo(barX, barY + 3); context.moveTo(barX + bar, barY - 3); context.lineTo(barX + bar, barY + 3); context.stroke();
+    context.fillStyle = colors.subtle;
+    context.fillText('1 m', barX + bar * 0.5 - 8, barY - 6);
   }
 
   function drawTracks() {
@@ -171,7 +203,6 @@
         context.beginPath(); context.arc(marker.x, marker.y, 4.2, 0, Math.PI * 2);
         context.fillStyle = colors.surface; context.fill();
         context.strokeStyle = colors.amber; context.lineWidth = 1.6; context.stroke();
-        if (track.object_id === 0) labelAt('1 mm Si · s = 1 m', track.materialPoint, colors.amber, 7, -9);
       }
       const end = coordinates.at(-1);
       if (end) {
@@ -193,6 +224,7 @@
     colors = {
       ink: style.getPropertyValue('--ink').trim(),
       surface: style.getPropertyValue('--surface').trim(),
+      muted: style.getPropertyValue('--muted').trim(),
       subtle: style.getPropertyValue('--subtle').trim(),
       line: style.getPropertyValue('--line').trim(),
       accent: style.getPropertyValue('--accent').trim(),
@@ -264,7 +296,7 @@
     button.addEventListener('click', () => setPreset(button.dataset.viewPreset));
   });
   window.addEventListener('resize', resize);
-  window.addEventListener('heplab:themechange', render);
+  document.addEventListener('heplab:theme', render);
   new ResizeObserver(resize).observe(host);
 
   fetch(fixtureUrl, { headers: { Accept: 'application/json' } })
@@ -287,7 +319,7 @@
       if (tracks.some((track) => track.points.length !== track.path_m.length || !track.field_exit_path_m)) {
         throw new Error('Trajectory points and path coordinates are incomplete.');
       }
-      scene = { tracks, geometry: fixture.geometry };
+      scene = { tracks, geometry: fixture.geometry, bz: fixture.geometry.field.nominal_bz_t };
       setStatus('Fixture loaded. Drag to orbit the scene.', 'ready');
       resize();
     })

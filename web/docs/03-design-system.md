@@ -10,10 +10,13 @@ hierarchy. IBM Plex Sans is the body/interface face; IBM Plex Mono distinguishes
 technical labels, units, and code. The light theme uses pale paper surfaces and
 dark green text. Both fonts are hosted locally with their licenses.
 
-The home event display is a C# projection of the checked-in synthetic fixture.
-Its tracks, cylindrical envelopes, event index, and digest come from that fixture.
-Gallery thumbnails are explicitly schematic. Preserve these labels and never
-imply that a rendered trajectory is a measurement.
+The home page places its introduction above a separate, centered event display so
+the explanatory copy and detector view read as distinct sections. The interactive
+Canvas 2D renderer projects the checked-in synthetic fixture's 3D points and
+declared cylindrical/disk surfaces; it runs no simulation. The C# preview service
+supplies fixture settings and provenance. Keep the synthetic label, field-region
+style, units, and limitations visible. Gallery thumbnails are explicitly schematic.
+Never imply that a rendered trajectory is a measurement.
 
 ## Theme adjustments
 

@@ -163,7 +163,11 @@ def test_shell_configuration_matches_worker_and_stays_locked_down():
     main_rs = (desktop / "src/main.rs").read_text(encoding="utf-8")
     assert f'EXPECTED_WORKER_VERSION: &str = "{worker.__version__}"' in main_rs
     conf = json.loads((desktop / "tauri.conf.json").read_text(encoding="utf-8"))
-    assert conf["version"].replace("-dev.", ".dev") == worker.__version__
+    # Installer-safe Tauri version is separate from the Python worker's PEP 440
+    # development version. The window reports the worker version to users.
+    assert conf["version"] == "0.1.0+dev.0"
+    assert conf["bundle"]["windows"]["wix"]["version"] == "0.1.0.0"
+    assert worker.__version__ == "0.1.0.dev0"
     # One-dir worker shipped as a resource (no one-file temp unpacking).
     assert "externalBin" not in conf["bundle"]
     assert conf["bundle"]["resources"] == {"worker/": "worker/"}

@@ -8,13 +8,14 @@ import os
 import subprocess
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Any
 
 
 def sha256_hex(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def config_hash(mapping: dict) -> str:
+def config_hash(mapping: Any) -> str:
     """Stable hash of a (possibly nested) configuration mapping.
 
     Canonical JSON (sorted keys, compact separators) makes the hash independent
