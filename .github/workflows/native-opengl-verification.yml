@@ -15,7 +15,7 @@ jobs:
       - name: Install Qt X11 and Mesa runtime libraries
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libglx-mesa0 \
+          sudo apt-get install -y xvfb xauth libegl1 libegl-mesa0 libopengl0 libgl1-mesa-dri libglx-mesa0 \
             libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
             libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0
       - name: Install native viewport test dependencies
