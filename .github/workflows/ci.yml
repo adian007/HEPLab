@@ -89,9 +89,9 @@ jobs:
           HEPLAB_REQUIRE_OPENGL: "1"
           PYTHONPATH: src
         run: >-
-          xvfb-run -a python -m pytest -v -s
-          'tests/test_native_event_display.py::test_rpc_outline_fade_keeps_perimeter_and_reverses_with_zoom[perspective]'
-          'tests/test_native_event_display.py::test_rpc_outline_fade_keeps_perimeter_and_reverses_with_zoom[orthographic]'
+          xvfb-run -a python -m pytest -o addopts= -v -s
+          'tests/test_native_rpc_fade.py::test_rpc_outline_fade_keeps_perimeter_and_reverses_with_zoom[perspective]'
+          'tests/test_native_rpc_fade.py::test_rpc_outline_fade_keeps_perimeter_and_reverses_with_zoom[orthographic]'
 
   documentation:
     runs-on: ubuntu-latest
