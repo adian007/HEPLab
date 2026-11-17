@@ -1,0 +1,30 @@
+name: Native OpenGL verification
+on:
+  push:
+    branches: [codex/native-opengl-rpc-verification]
+permissions:
+  contents: read
+jobs:
+  native-opengl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Qt X11 and Mesa runtime libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libglx-mesa0 \
+            libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
+            libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0
+      - run: python -m pip install ".[native-desktop]" "pytest>=8"
+      - name: Verify perspective and orthographic RPC fades
+        env:
+          QT_QPA_PLATFORM: xcb
+          LIBGL_ALWAYS_SOFTWARE: "1"
+          HEPLAB_REQUIRE_OPENGL: "1"
+        run: >-
+          xvfb-run -a python -m pytest -v
+          'tests/test_native_event_display.py::test_rpc_outline_fade_keeps_perimeter_and_reverses_with_zoom[perspective]'
+          'tests/test_native_event_display.py::test_rpc_outline_fade_keeps_perimeter_and_reverses_with_zoom[orthographic]'
