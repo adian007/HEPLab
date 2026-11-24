@@ -1026,13 +1026,8 @@
       "title": "Packaged worker independence",
       "document": "completion-plan.md",
       "verification": "App starts without system Python; only bundled version-checked workers launch and terminate with the app.",
-      "status": "implemented",
-      "evidence": [
-        {
-          "record": "desktop-evidence.json",
-          "scope": "Frozen worker starts without system Python on Windows and Linux x86-64; strict version/protocol/operation handshake; only the sidecar next to the shell executable is launched; the whole worker tree is killed on shutdown, cancellation, timeout and protocol errors, and with the app on Windows via Job Object. macOS pending CI"
-        }
-      ]
+      "status": "specified",
+      "evidence": []
     },
     {
       "id": "DESKTOP-003",
@@ -1042,8 +1037,8 @@
       "status": "implemented",
       "evidence": [
         {
-          "record": "desktop-evidence.json",
-          "scope": "Unknown commands, malformed messages, shell-style arguments, oversized requests/responses and path escapes reject in shell core and worker, including from the live Windows webview; Tauri permission check refuses unlisted commands; cancellation, grandchild cleanup and crash restart tested"
+          "record": "native-desktop-rebuild-evidence.json",
+          "scope": "Native Qt WorkerClient handshake and JSON-lines tests pass for invalid configuration, successful artifact creation and cancellation. Existing worker rejection and framing tests pass 20 Python cases."
         }
       ]
     },

@@ -1,6 +1,8 @@
 # Education, sharing and notebooks
 
-Three user-facing features built on the [Python API](python-api.md). Pages are plain
+Learning and sharing features built on the [Python API](python-api.md). The
+[learning platform design](learning-platform.md) documents the website-to-Workbench-to-Jupyter
+handoff and its offline acceptance steps. Result pages are plain
 HTML. The notebook uses optional ipywidgets (`heplab[notebook]`) with an HTML fallback.
 
 ```mermaid
@@ -107,6 +109,6 @@ Without ipywidgets, both retain a plain HTML/IPython fallback.
 
 ## Not yet built
 
-- Labs inside the desktop and web workbench. Today they run in notebooks and the CLI.
+- Additional labs in the desktop and local browser Workbench.
 - A hosted public gallery service. Galleries are static folders the user publishes.
 - More labs (J/ψ and Υ, W → μν with missing energy, H → 4ℓ).

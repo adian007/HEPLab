@@ -35,6 +35,14 @@ A **four-tier compute strategy**. The Python API and `pip install heplab` promis
 **Tier 1 — Rust kernel layer** (`heplab-kernels` crate via PyO3 + maturin) for *profiled* hot paths only:
 - ingest transcoding + streaming checksums (memory-safe over untrusted byte streams, no GIL, true parallel chunks);
 - jagged combinatorics kernels where numba is clumsy or slow;
+
+**Current status:** the shipped Python/Rust implementations are parity-tested
+reference backends. The Python FFI currently serializes each operation through
+JSON and no general speedup is claimed; callers with per-track loops should use
+the Python reference backend until a batched payload API is implemented and
+benchmarked. The Rust code remains useful for independent numerical validation
+and for the composite trajectory operation, whose batching avoids per-crossing
+round trips.
 - toy-smearing / generation vectorization.
 Users never see Rust: maturin wheels install transparently; missing wheel ⇒ numba path.
 

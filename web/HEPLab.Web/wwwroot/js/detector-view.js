@@ -185,10 +185,11 @@
 
   function drawTracks() {
     for (const track of scene.tracks) {
-      const coordinates = track.points
-        .filter((point) => Math.hypot(point[0], point[1]) <= 3.72)
-        .map((point) => point);
-      const split = coordinates.findIndex((_, i) => track.path_m[i] > track.field_exit_path_m);
+      const visiblePoints = track.points
+        .map((point, index) => ({ point, index }))
+        .filter(({ point }) => Math.hypot(point[0], point[1]) <= 3.72);
+      const coordinates = visiblePoints.map(({ point }) => point);
+      const split = visiblePoints.findIndex(({ index }) => track.path_m[index] > track.field_exit_path_m);
       const cut = split < 0 ? coordinates.length : split;
       const color = track.charge < 0 ? colors.accent : colors.amber;
       line(coordinates.slice(0, Math.max(cut + 1, 2)), color, 2.35, [], 1);

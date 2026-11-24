@@ -4,6 +4,7 @@ This module provides analytic primitives, not a calibrated detector simulator.
 It is independent of the current legacy event readers and analysis contracts.
 """
 
+from .kinematics import invariant_mass
 from .reference import (
     FourVector,
     NumericalDomainError,
@@ -17,6 +18,7 @@ from .reference import (
 
 __all__ = [
     "FourVector",
+    "invariant_mass",
     "NumericalDomainError",
     "TrackState",
     "WeightedHistogram",

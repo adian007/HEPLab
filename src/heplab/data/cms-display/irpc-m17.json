@@ -1,0 +1,76 @@
+{
+  "schema": "heplab-irpc-display-geometry-v1",
+  "scope": "display-only schematic envelopes; not transport, reconstruction, or lab-device geometry",
+  "coordinate_system": "right-handed XYZ, beam along +z; metres and radians",
+  "source": {
+    "repository": "https://github.com/cms-sw/cmssw",
+    "commit": "425d0527d18dcc895b4b55035a0568d6a4d5d3fa",
+    "files": {
+      "rpc": "Geometry/MuonCommonData/data/rpcf/2030/v6/rpcf.xml",
+      "muon_framework": "Geometry/MuonCommonData/data/mf/2030/v8/mf.xml",
+      "rotations": "Geometry/CMSCommonData/data/rotations.xml",
+      "placement_algorithm": "Geometry/MuonCommonData/plugins/DDMuonAngular.cc"
+    }
+  },
+  "placement": {
+    "chambers_per_station_endcap": 18,
+    "sector_step_deg": {"value": 40, "unit": "deg", "confidence": "source", "source": "rpc.xml DDMuonAngular stepAngle"},
+    "base_rotation_deg": {"value": 5, "unit": "deg", "confidence": "source", "source": "rotations.xml R005"},
+    "stagger_m": {"value": 0.022, "unit": "m", "confidence": "source", "source": "rpc.xml DDMuonAngular zoffset ±2.2 cm"},
+    "endcap_transform": "negative endcap uses the MEP/MEN 180D rotation: phi_world = pi - phi_local and z_world = -z_local",
+    "stations": [
+      {
+        "station": "RE3/1",
+        "ring": 1,
+        "values": {
+          "radial_center_m": {"value": 2.38, "unit": "m", "confidence": "source", "source": "rpc.xml RT3G -> RFGX Translation x=2.38*m"},
+          "length_m": {"value": 1.691, "unit": "m", "confidence": "derived", "source": "rpc.xml RFGX Trd1 dz=84.55 cm; full length=2*dz"},
+          "inner_width_m": {"value": 0.54, "unit": "m", "confidence": "derived", "source": "rpc.xml RFGX Trd1 dx1=27 cm; full width=2*dx1"},
+          "outer_width_m": {"value": 1.13694, "unit": "m", "confidence": "derived", "source": "rpc.xml RFGX Trd1 dx2=56.847 cm; full width=2*dx2"},
+          "depth_m": {"value": 0.011, "unit": "m", "confidence": "source", "source": "rpc.xml RFGX Trd1 dy1=dy2=5.5 mm; full envelope depth=2*dy"},
+          "z_center_m": {"value": 9.667, "unit": "m", "confidence": "derived", "source": "mf.xml ME3RingP/N z=9.4475 m + rpc.xml RR3XXP/N z=21.95 cm"},
+          "odd_copy_start_deg": {"positive": 0, "negative": 10, "unit": "deg", "confidence": "source", "source": "rpc.xml RR3XXP odd startAngle=0 deg; RR3XXN odd startAngle=10 deg"},
+          "even_copy_start_deg": {"positive": 20, "negative": 30, "unit": "deg", "confidence": "source", "source": "rpc.xml RR3XXP even startAngle=20 deg; RR3XXN even startAngle=30 deg"},
+          "odd_copy_zoffset_m": {"value": -0.022, "unit": "m", "confidence": "source", "source": "rpc.xml odd-copy DDMuonAngular zoffset=-2.2 cm"},
+          "even_copy_zoffset_m": {"value": 0.022, "unit": "m", "confidence": "source", "source": "rpc.xml even-copy DDMuonAngular zoffset=+2.2 cm"}
+        }
+      },
+      {
+        "station": "RE4/1",
+        "ring": 1,
+        "values": {
+          "radial_center_m": {"value": 2.515, "unit": "m", "confidence": "source", "source": "rpc.xml RT4H -> RFHX Translation x=2.515*m"},
+          "length_m": {"value": 1.45, "unit": "m", "confidence": "derived", "source": "rpc.xml RFHX Trd1 dz=72.5 cm; full length=2*dz"},
+          "inner_width_m": {"value": 0.6312, "unit": "m", "confidence": "derived", "source": "rpc.xml RFHX Trd1 dx1=31.56 cm; full width=2*dx1"},
+          "outer_width_m": {"value": 1.1426, "unit": "m", "confidence": "derived", "source": "rpc.xml RFHX Trd1 dx2=57.13 cm; full width=2*dx2"},
+          "depth_m": {"value": 0.011, "unit": "m", "confidence": "source", "source": "rpc.xml RFHX Trd1 dy1=dy2=5.5 mm; full envelope depth=2*dy"},
+          "z_center_m": {"value": 10.57655, "unit": "m", "confidence": "derived", "source": "mf.xml ME4RingP/N z=10.3432 m + 0.46 cm; rpc.xml RR4XXP/N z=22.875 cm"},
+          "odd_copy_start_deg": {"positive": 0, "negative": 10, "unit": "deg", "confidence": "source", "source": "rpc.xml RR4XXP odd startAngle=0 deg; RR4XXN odd startAngle=10 deg"},
+          "even_copy_start_deg": {"positive": 20, "negative": 30, "unit": "deg", "confidence": "source", "source": "rpc.xml RR4XXP even startAngle=20 deg; RR4XXN even startAngle=30 deg"},
+          "odd_copy_zoffset_m": {"value": -0.022, "unit": "m", "confidence": "source", "source": "rpc.xml odd-copy DDMuonAngular zoffset=-2.2 cm"},
+          "even_copy_zoffset_m": {"value": 0.022, "unit": "m", "confidence": "source", "source": "rpc.xml even-copy DDMuonAngular zoffset=+2.2 cm"}
+        }
+      }
+    ]
+  },
+  "stack": {
+    "status": "schematic_only",
+    "ordering": "negative-z face to positive-z face",
+    "dimension_limits": "The pinned M17 geometry supplies an 11 mm frame envelope. Published iRPC design sources report four 1.4 mm HPL electrodes and two 1.4 mm gas gaps; an earlier electronics report describes a 0.6 mm readout PCB. These dimensions total 9 mm. The remaining 2 mm is an unallocated display margin, not a modeled component or production claim.",
+    "source_urls": [
+      "https://cds.cern.ch/record/2924323/files/document.pdf",
+      "https://cds.cern.ch/record/2792677/files/CR2020_098.pdf",
+      "https://cds.cern.ch/record/2283189/files/CMS-TDR-016.pdf"
+    ],
+    "schematic_rule": "Place the sourced 9 mm stack at the center of the 11 mm M17 frame envelope. Leave the 1 mm margin on each side unmodeled; do not infer its construction.",
+    "components": [
+      {"component": "HPL 1", "material": "hpl", "depth_m": 0.0014, "confidence": "published_design_parameter", "source": "Improved RPC for CMS data taking in HL-LHC, https://cds.cern.ch/record/2924323/files/document.pdf"},
+      {"component": "Gas gap 1", "material": "gas", "depth_m": 0.0014, "confidence": "published_design_parameter", "source": "Improved RPC for CMS data taking in HL-LHC, https://cds.cern.ch/record/2924323/files/document.pdf"},
+      {"component": "HPL 2", "material": "hpl", "depth_m": 0.0014, "confidence": "published_design_parameter", "source": "Improved RPC for CMS data taking in HL-LHC, https://cds.cern.ch/record/2924323/files/document.pdf"},
+      {"component": "Central readout PCB", "material": "readout", "depth_m": 0.0006, "confidence": "earlier_reported_design", "source": "Front-End electronics for CMS iRPC detectors, https://cds.cern.ch/record/2792677/files/CR2020_098.pdf"},
+      {"component": "HPL 3", "material": "hpl", "depth_m": 0.0014, "confidence": "published_design_parameter", "source": "Improved RPC for CMS data taking in HL-LHC, https://cds.cern.ch/record/2924323/files/document.pdf"},
+      {"component": "Gas gap 2", "material": "gas", "depth_m": 0.0014, "confidence": "published_design_parameter", "source": "Improved RPC for CMS data taking in HL-LHC, https://cds.cern.ch/record/2924323/files/document.pdf"},
+      {"component": "HPL 4", "material": "hpl", "depth_m": 0.0014, "confidence": "published_design_parameter", "source": "Improved RPC for CMS data taking in HL-LHC, https://cds.cern.ch/record/2924323/files/document.pdf"}
+    ]
+  }
+}

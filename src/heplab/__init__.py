@@ -18,6 +18,7 @@ __all__ = [
     "notebook",
     "read",
     "run",
+    "training",
 ]
 
 

@@ -1,8 +1,6 @@
 # Workbench display
 
-The interactive event display belongs to the local Python workbench, not the
-ASP.NET Core project guide. Start it with `heplab gui` or the supported
-Windows launcher at `tools/start_workbench.ps1`.
+The native Qt Workbench contains the interactive event display. On Windows, launch it with `tools/start_workbench.ps1`.
 
 The project guide may show sourced screenshots or diagrams that explain the
 workbench. Such images must name their source and version and make clear whether

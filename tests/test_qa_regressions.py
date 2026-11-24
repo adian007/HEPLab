@@ -96,7 +96,7 @@ def test_stale_upload_no_longer_blocks_imports(tmp_path, monkeypatch):
         workspace.import_begin(dict(name="b.root", kind="data", size=4))
     with pytest.raises(ValueError, match="upload id"):
         workspace.import_chunk(dict(id=["x"], offset=0, base64="cm9vdA=="))
-    monkeypatch.setattr(data_workspace, "UPLOAD_IDLE_S", 0.0)
+    monkeypatch.setattr(data_workspace, "UPLOAD_IDLE_S", -1.0)
     fresh = workspace.import_begin(dict(name="b.root", kind="data", size=4))["id"]
     assert fresh != abandoned and abandoned not in workspace.uploads
     assert not (workspace.root / "imports" / (abandoned + ".part")).exists()

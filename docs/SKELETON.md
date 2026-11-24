@@ -82,7 +82,7 @@ flowchart TB
     end
 
     API -->|"optional wheels, numba fallback"| T1
-    API -->|"pip install heplab[gpu]"| T2
+    API -.->|"future optional backend; not packaged"| T2
     T1 -.->|"oracle rule: golden-tested against"| T0
     T2 -.->|"oracle rule"| T0
     CPP -->|"readers → schema v1"| API
@@ -156,14 +156,14 @@ flowchart LR
 | `io/cache.py` cache keys | Python | ✅ working (store = P1) | P0→P1 | 0002 |
 | `io/xrootd.py` URL builder | Python | ✅ working (fetch = P1) | P0→P1 | 0002 |
 | `cli.py` version/catalog/roadmap | Python | ✅ working | P0 | — |
-| readers (nanoaod/aod/delphes) | Python | ◌ contracts fixed | P1/P3/P4-5 | 0003 |
+| readers (nanoaod/aod/delphes) | Python | ✅ NanoAOD and DELPHES; NanoAOD emits columnar batches | P1/P3/P4-5 | 0003 |
 | processors + coffea/Dask | Python + numba | ◌ protocol fixed | P2 | 0001/0006 |
 | `analyses/dimuon` | Python + YAML | ◌ config + proposal | P2 | — |
-| stats (zfit/iminuit + JAX) | Python + JAX | ◌ backend enum | P2/P4 | 0007/0010 |
+| stats (SciPy/iminuit) | Python | ✅ CPU fit paths; zfit/JAX remain proposals | P2/P4 | 0007/0010 |
 | sim glue (PYTHIA8/DELPHES) | Python ↔ C++ container | ◌ wrappers | P3 | 0004/0005 |
-| `kernels/` Rust crate | Rust (PyO3) | ⚠️ scaffolded, uncompiled (no cargo locally) | P2–P3 | 0010 |
-| dashboard | FastAPI + JS/Plotly | ◌ endpoints specified | P4 | 0009 |
-| tests (14 cases, stdlib-only) | Python | ✅ passing | P0 | 0008 |
+| `kernels/` Rust crate | Rust (PyO3) | ✅ compiled and parity-tested reference backend | P2–P3 | 0010 |
+| dashboard/workbench | FastAPI + JavaScript | ✅ local routes, jobs, data workspace and 3D event display | P4 | 0009 |
+| tests | Python + Rust + JavaScript | ✅ numeric oracles, kernel parity and component checks | P0 | 0008 |
 | CI (lint/type/test/docker) | YAML | ✅ defined | P0 | 0008 |
 | heplab-base image | Dockerfile | ✅ defined | P0 | 0008 |
 

@@ -7,15 +7,7 @@ from bisect import bisect_right
 from itertools import combinations
 
 from ...io.provenance import config_hash
-from ...physics import FourVector, WeightedHistogram
-
-
-def invariant_mass(first: dict, second: dict) -> float:
-    vectors = [
-        FourVector.from_pt_eta_phi_mass(*(float(obj[k]) for k in ("pt", "eta", "phi", "mass")))
-        for obj in (first, second)
-    ]
-    return (vectors[0] + vectors[1]).physical_mass
+from ...physics import WeightedHistogram, invariant_mass
 
 
 def _finite_number(value, name):

@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Self
+from typing import Any, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -64,6 +64,90 @@ def muon_display(muons, event=0, *, model_ids=None):
         "display": (
             "IP-assumed ideal-solenoid extrapolation of reconstructed muons; "
             "crossings are predictions, not measured hits"
+        ),
+    }
+
+
+def collision_display(native: dict, event: int, *, model_ids: list[str]) -> dict:
+    """Display stable generated particles and reconstructed DELPHES objects separately."""
+
+    def finite(value):
+        return isinstance(value, (float, int)) and math.isfinite(value)
+
+    stable = sorted(
+        (
+            particle for particle in native.get("Truth") or []
+            if particle["status"] == 1
+            and finite(particle["pt"])
+            and particle["pt"] >= 0.5
+        ),
+        key=lambda particle: (-particle["pt"], particle["object_id"]),
+    )
+    tracks = []
+    charged_tracks = 0
+    for particle in stable:
+        components = [particle.get(key) for key in ("energy", "px", "py", "pz")]
+        charge = particle.get("charge")
+        if not all(finite(value) for value in components) or not finite(charge):
+            continue
+        if len(tracks) >= 128:
+            break
+        momentum = FourVector(*components)
+        vertex_mm = [particle.get(f"{axis}_mm") for axis in "xyz"]
+        vertex_known = all(finite(coordinate) for coordinate in vertex_mm)
+        position = tuple(coordinate / 1000 for coordinate in vertex_mm) if vertex_known else (0.0, 0.0, 0.0)
+        path = {"model": "none"}
+        in_bore = math.hypot(*position[:2]) < 3 and abs(position[2]) < 6.25
+        if charge and charged_tracks < 96 and in_bore:
+            # DELPHES stores E and momentum components at finite precision.
+            # Construct the display state on shell with the native generated mass,
+            # while keeping the original four-vector in the truth record.
+            mass = particle.get("mass")
+            if not finite(mass) or mass < 0:
+                mass2 = momentum.mass_squared
+                tolerance = 1e-6 * max(momentum.energy**2, momentum.momentum**2, 1.0)
+                mass = math.sqrt(max(0.0, mass2)) if mass2 >= -tolerance else None
+            if mass is not None:
+                on_shell = FourVector(math.hypot(momentum.momentum, mass), momentum.px, momentum.py, momentum.pz)
+                path = trajectory(TrackState(position, on_shell, charge, 0.0), max_path=8, step=0.1)
+                if not vertex_known:
+                    path["model"] += " (assumed interaction point)"
+                charged_tracks += 1
+        tracks.append({
+            "object_id": len(tracks), "object_kind": "generated", "pdg_id": particle["pdg_id"],
+            "charge": charge, "model_ids": model_ids,
+            "truth": {
+                "source_object_id": particle["object_id"],
+                "position": position,
+                "momentum": {
+                    "energy": momentum.energy, "px": momentum.px,
+                    "py": momentum.py, "pz": momentum.pz,
+                },
+            },
+            "points": path.pop("points", []), "trajectory": path,
+        })
+    for collection, pdg_id in (("Muon", 13), ("Electron", 11), ("Photon", 22), ("Jet", 0)):
+        objects = sorted(
+            (item for item in native.get(collection) or [] if finite(item["pt"])),
+            key=lambda item: (-item["pt"], item["object_id"]),
+        )
+        for item in objects[:24]:
+            charge = item.get("charge")
+            charge = charge if finite(charge) else 0
+            tracks.append({
+                "object_id": len(tracks), "object_kind": "reconstructed",
+                "pdg_id": -pdg_id if pdg_id in (11, 13) and charge > 0 else pdg_id,
+                "charge": charge, "model_ids": model_ids, "points": [],
+                "detector": {**item, "collection": collection}, "trajectory": {"model": "none"},
+            })
+    return {
+        "event": event,
+        "tracks": tracks,
+        "geometry": geometry(),
+        "display": (
+            "PYTHIA8 stable particles above 0.5 GeV/c pT, up to 128 displayed, with up to 96 charged "
+            "ideal-solenoid trajectories. DELPHES muons, electrons, photons and jets are listed "
+            "separately (up to 24 per collection). Trajectories and crossings are model predictions."
         ),
     }
 
@@ -545,6 +629,7 @@ def analyze_events(events: list[dict]) -> dict:
                     "pt_gev": pt,
                     "eta": math.asinh(p.pz / pt),
                     "deposit_mev": track["material"]["deposit_gev"] * 1000,
+                    "analog_adc": track["digit"]["analog_adc"],
                     "adc": track["digit"]["adc"],
                     "digit_accepted": track["digit"]["accepted"],
                     "response_pt_gev": math.hypot(measured.px, measured.py) if measured else None,
@@ -641,6 +726,31 @@ def run_summaries(root: Path, limit: int = 200) -> list[dict]:
     return rows
 
 
+class ZBosonRunConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False)
+
+    mode: Literal["z-boson"]
+    preset: dict
+    min_pt_gev: float = Field(ge=0, le=100)
+    max_rel_iso: float = Field(ge=0, le=2)
+    require_opposite_charge: bool
+    mass_gev: float | None = Field(default=None, ge=0, le=1000)
+    width_answer: Literal["a", "b", "c", "d"] | None = None
+
+    @model_validator(mode="after")
+    def known_preset(self) -> Self:
+        from ..labs.z_boson import preview
+
+        preview(self.preset)
+        return self
+
+
+def parse_job_config(body: dict) -> RunConfig | ZBosonRunConfig:
+    if body.get("mode") == "z-boson":
+        return ZBosonRunConfig.model_validate(body)
+    return RunConfig.model_validate(body)
+
+
 class Jobs:
     """Durable FIFO simulator queue: one run executes at a time, others wait.
 
@@ -711,7 +821,7 @@ class Jobs:
                         )
                     continue
                 try:
-                    config = RunConfig.model_validate(row["config"])
+                    config = parse_job_config(row["config"])
                 except ValueError as exc:
                     if self.store.claim(row["id"], owner, crashed=crashed):
                         self.store.update(row["id"], status="failed", error=str(exc)[:2000])
@@ -720,7 +830,9 @@ class Jobs:
                     self.cancels[row["id"]] = threading.Event()
                     self.pool.submit(self._run, row["id"], config)
 
-    def submit(self, config: RunConfig, idempotency_key: str | None = None) -> str:
+    def submit(
+        self, config: RunConfig | ZBosonRunConfig, idempotency_key: str | None = None
+    ) -> str:
         fingerprint = config_hash(config.model_dump())
         with self.lock:
             if idempotency_key is not None:
@@ -770,6 +882,10 @@ class Jobs:
             value = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:
             raise KeyError(identity) from exc
+        if isinstance(value, dict) and value.get("schema") == "heplab-z-boson-result-v1":
+            if job is None or job.get("config", {}).get("mode") != "z-boson":
+                raise KeyError(identity)
+            return {**job, "result": value}
         if (
             not isinstance(value, dict)
             or value.get("mode") not in {"analytic", "pythia"}
@@ -788,6 +904,26 @@ class Jobs:
         """Recent jobs without results, newest first, so a reloaded UI can reattach."""
         with self.lock:
             return [self._view(row) for row in self.store.recent(limit)]
+
+    def lab_report(self, identity: str) -> dict:
+        from ..export.web_page import render
+
+        artifact = self.lab_result(identity)
+        analysis = dict(artifact["analysis"])
+        analysis["lab"] = {
+            key: artifact[key] for key in ("scope", "sample", "fit", "fit_error", "progress")
+        }
+        return {"html": render(analysis, title="Rediscover the Z boson · Synthetic practice")}
+
+    def lab_result(self, identity: str) -> dict:
+        artifact = self.get(identity).get("result", {})
+        if artifact.get("mode") != "z-boson":
+            raise KeyError(identity)
+        return artifact
+
+    def lab_download(self, identity: str) -> dict:
+        # Preserve Python's JSON number spellings for the canonical payload digest.
+        return {"json": json.dumps(self.lab_result(identity), indent=2, allow_nan=False)}
 
     def cancel(self, identity):
         with self.lock:
@@ -835,6 +971,8 @@ class Jobs:
         if job["status"] != "completed" or not 0 <= index < 1000:
             raise ValueError("event unavailable")
         result = job["result"]
+        if result["mode"] == "z-boson":
+            raise ValueError("use the lab preview for its practice event")
         if result["mode"] == "analytic":
             if not 0 <= index < result.get("events", 1):
                 raise ValueError("event outside bench range")
@@ -850,14 +988,14 @@ class Jobs:
             )
         if index >= result["summary"]["events"]:
             raise ValueError("event outside generated range")
-        from ..readers.delphes import read
+        from ..readers.delphes import read_events
 
         native = next(
-            read(
+            read_events(
                 self.root / (identity + "-simulation") / "events.root",
                 entry_start=index,
                 entry_stop=index + 1,
-                include_truth=False,
+                include_truth=True,
             )
         )
         info = next(
@@ -872,8 +1010,8 @@ class Jobs:
             result,
             index,
             {
-                **muon_display(
-                    native["Muon"],
+                **collision_display(
+                    native,
                     index,
                     model_ids=[item["id"] for item in result["model_spec"]["components"]],
                 ),
@@ -894,10 +1032,37 @@ class Jobs:
                 return
             self.store.update(identity, status="running")
         try:
+            if isinstance(config, ZBosonRunConfig):
+                from ..labs.z_boson import analyze as analyze_z_boson
+                from ..labs.z_boson import reopen
+
+                path = self.root / f"{identity}.json"
+                if path.is_file() and not path.is_symlink():
+                    reopen(path)
+                    with self.lock:
+                        self._finish(identity, status="completed")
+                    return
+
+                def lab_progress(completed: int, total: int) -> None:
+                    if cancel.is_set():
+                        raise RuntimeError("run cancelled")
+                    self._progress(identity, completed, total)
+
+                self._phase(identity, "Selecting synthetic dimuon events and fitting the peak")
+                result = analyze_z_boson(
+                    **config.model_dump(exclude={"mode"}), progress=lab_progress
+                )
+                with self.lock:
+                    if cancel.is_set():
+                        self._finish(identity, status="queued" if self.closing else "cancelled")
+                    else:
+                        publish(path, result)
+                        self._finish(identity, status="completed")
+                return
             run_model_spec = model_spec_for_run(config)
             if config.mode == "pythia":
                 from ..analyses.collision import analyze
-                from ..readers.delphes import read
+                from ..readers.delphes import read_events
                 from ..sim.pipeline import run_chain
 
                 self._phase(identity, "Generating PYTHIA8 / DELPHES collisions")
@@ -924,19 +1089,17 @@ class Jobs:
                     self._progress(identity, completed, config.events)
 
                 result["analysis"] = analyze(
-                    read(destination / "events.root", include_truth=False),
+                    read_events(destination / "events.root", include_truth=False),
                     config,
                     progress=progress,
                 )
                 result["output_directory"] = str(destination)
-                preview = json.loads((destination / "preview.json").read_text(encoding="utf8"))
-                result.update(
-                    muon_display(
-                        preview["muons"],
-                        preview["event"],
-                        model_ids=[component["id"] for component in run_model_spec["components"]],
-                    )
-                )
+                result["events"] = result["analysis"]["events"]
+                first = next(read_events(destination / "events.root", entry_stop=1))
+                result.update(collision_display(
+                    first, 0,
+                    model_ids=[component["id"] for component in run_model_spec["components"]],
+                ))
                 result["event_info"] = result["analysis"]["event_rows"][0]
             else:
                 count = config.events if config.source_model == "angular_sample" else 1
@@ -975,9 +1138,8 @@ class Jobs:
                 if key not in {"artifact", "output_directory"}
             }
             result_digest = config_hash(digest_payload)
-            previous_artifact = (
-                result.get("artifact") if isinstance(result.get("artifact"), dict) else {}
-            )
+            previous = result.get("artifact")
+            previous_artifact = previous if isinstance(previous, dict) else {}
             result["artifact"] = {
                 **previous_artifact,
                 "format": "heplab-workbench-result-v2",

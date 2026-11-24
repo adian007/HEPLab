@@ -1,0 +1,611 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=24mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!40!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!40!black,
+  pdftitle={HEPLab Project Documentation},
+  pdfauthor={HEPLab Project}
+}
+\urlstyle{tt}
+\setlist{itemsep=2pt,topsep=4pt}
+\setcounter{tocdepth}{2}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  columns=fullflexible,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{black!20},
+  backgroundcolor=\color{black!3},
+  showstringspaces=false,
+  keepspaces=true
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{HEPLab}
+\rhead{Project documentation}
+\cfoot{\thepage}
+\setlength{\headheight}{14pt}
+
+\title{\textbf{HEPLab}\\[4pt]\large Project Documentation}
+\author{Project overview, architecture, scientific scope, and current status}
+\date{23 November 2026}
+
+\begin{document}
+\maketitle
+
+\begin{quote}
+\textbf{Status and scope.} This document summarizes the HEPLab repository as
+reviewed on 23 November 2026. It is a guide to the project and its current
+evidence, not a claim that every planned component is complete or that the
+whole application is a validated detector simulation. For detailed algorithms
+and release gates, use the engineering handbook cited at the end.
+\end{quote}
+
+\tableofcontents
+\clearpage
+
+\section{Executive overview}
+
+HEPLab is an open-source educational high-energy physics (HEP) workbench. It
+brings together selected workflows for reading CMS Open Data, performing
+dimuon analyses, running a fast Monte Carlo simulation chain, exploring
+relativistic particle motion, and teaching analysis concepts through notebooks
+and an offline Z-boson lesson.
+
+The project has three scientific paths that must be kept distinct:
+
+\begin{enumerate}
+  \item \textbf{Recorded CMS data:} real NanoAOD inputs and analyses with
+  source, certification, selection, and fit provenance.
+  \item \textbf{External fast simulation:} generated events passed through a
+  configured PYTHIA8 and DELPHES chain. Its predictions depend on the exact
+  process and detector card.
+  \item \textbf{Analytic educational models:} controlled calculations such as
+  four-vector operations, ideal-field trajectories, and simplified material
+  response.
+\end{enumerate}
+
+These paths can support useful teaching and software comparisons, but they do
+not make HEPLab a globally validated CMS detector model. A plot, a successful
+software check, or a comparison with one reference sample establishes only the
+specific behavior and domain checked.
+
+\subsection{Project purpose}
+
+HEPLab aims to make particle-physics workflows easier to inspect and reproduce.
+A learner or analyst should be able to follow a result from its input dataset
+or simulation settings through object selection and statistical summaries to
+the saved output and its provenance. The platform is intended for students,
+educators, analysts, and open-source contributors.
+
+\subsection{Current maturity}
+
+The repository describes the product as an early implementation. It contains a
+Python analysis and workbench core, a parity-checked Rust numerical backend, a
+PYTHIA8/DELPHES integration path, educational physics models, a web guide, and
+an evolving native desktop application. Important validation, calibration,
+integration, accessibility, and release tasks remain open. In particular,
+the project does not claim that any requirement has reached a general
+\emph{physics-validated} state.
+
+\section{Goals and boundaries}
+
+\subsection{Goals}
+
+The project is organized around the following goals:
+
+\begin{itemize}
+  \item Provide a practical route from a dataset catalog and event input to
+  analysis outputs such as cutflows, histograms, fits, and plots.
+  \item Give users a clear way to distinguish measured input, generated
+  simulation, educational fixtures, model predictions, and validation
+  evidence.
+  \item Keep data and simulation workflows inspectable through versioned
+  manifests, explicit event contracts, reproducible configuration, and
+  preserved outputs.
+  \item Teach core ideas in HEP analysis and detector response without
+  presenting simplified models as complete experimental software.
+  \item Support a local-first workflow that can be developed and demonstrated
+  without a hosted multi-user service.
+\end{itemize}
+
+\subsection{Boundaries}
+
+The following are outside the project's current validated scope:
+
+\begin{itemize}
+  \item A full CMS reconstruction chain or a faithful simulation of every CMS
+  subsystem and data-taking condition.
+  \item A general-purpose Geant4 transport replacement, a complete atmospheric
+  muon shower simulation, or detector response calibrated across all species,
+  energies, and geometries.
+  \item Quantum-state, spin, entanglement, or weak-decay-amplitude simulation.
+  \item A new precision measurement or a claim of new physics.
+  \item A production hosted service, signed cross-platform desktop release, or
+  complete native desktop integration.
+  \item General support for experiments other than CMS.
+\end{itemize}
+
+\section{Product workflows}
+
+\subsection{CMS Open Data analysis}
+
+The data workflow starts from a named dataset and a frozen input selection.
+Readers normalize NanoAOD records into the project's event representation;
+the analysis applies its declared object and event selections; and outputs
+include analysis products and provenance. The repository includes a catalog
+entry for the 2016G DoubleMuon sample and a verified 100-event remote-read
+demonstration. Its NanoAOD path supports chunked reads, source checks, cached
+data, and certification support.
+
+The principal analysis path is the dimuon spectrum. Opposite-charge muons are
+selected according to an explicit policy, their invariant mass is calculated,
+and the workflow produces cutflows, histogram data, selected-pair information,
+and fit or plot outputs as supported by the selected command. A run must be
+interpreted in the context of its input coverage, trigger policy, cuts,
+weights, corrections, and fit model.
+
+\subsection{Generation and fast detector simulation}
+
+A separate simulation path uses PYTHIA8 for event generation and DELPHES for
+fast detector simulation. The integration is available through a registered
+runtime adapter and has been smoke-tested in Linux/WSL environments. A
+generator process, tune, PDF, cuts, detector card, normalization, and software
+versions all affect its output.
+
+This is a fast-simulation reference path. It is not the same as full CMS
+detector transport and does not by itself validate agreement with recorded
+data. General process coverage, pileup, a complete correction inventory,
+matched reference samples, and independent cross-section and detector-response
+validation remain delivery work.
+
+\subsection{Analytic educational workbench}
+
+The educational physics path provides selected, bounded calculations. These
+include relativistic four-vectors, ideal-solenoid motion, selected geometry
+crossings, and simplified material or electronics response. Users can inspect
+predicted trajectories and model outputs as teaching aids.
+
+The displayed crossings are model predictions, not measured detector hits.
+The material examples do not constitute complete material transport. A
+separate fixed-momentum vacuum muon-survival exercise is not coupled to the
+track simulation and does not model atmospheric production or shower
+development.
+
+\subsection{Learning and event visualization}
+
+The project includes an offline Z-boson learning workflow and a gallery of
+notebooks. Exercises guide users through event inspection and analysis while
+identifying synthetic fixtures and the limits of each result. Training
+materials and replay-oriented laboratory modules extend the educational
+workflow.
+
+Event displays are intended to help users inspect a selected event and its
+model context. The project can export event views as vendor-neutral OpenUSD
+stages for offline use in compatible viewers. An event display is a
+visualization, not a substitute for the analysis artifact, selection record,
+or scientific validation.
+
+\section{Architecture}
+
+\subsection{System outline}
+
+The repository is a multi-component project. Python provides most current
+analysis and application services; Rust provides selected numerical kernels;
+C++ and Qt are being used for the native desktop rebuild; and external
+generator and detector packages provide a separate fast-simulation route.
+
+\begin{center}
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabularx}{\textwidth}{P{0.24\textwidth} Y Y}
+\toprule
+\textbf{Component} & \textbf{Role} & \textbf{Current boundary} \\
+\midrule
+Python package &
+Event readers, analysis, physics reference code, CLI, local service, and
+workbench operations. &
+The main integration layer; optional analysis dependencies are installed
+separately. \\
+Rust numerical core &
+Selected physics kernels, exposed to Python through PyO3. &
+Reference and parity backend for a bounded scope; no general speedup claim. \\
+PYTHIA8 and DELPHES &
+External event generation and fast detector simulation. &
+Card- and process-specific; overall physics validation is incomplete. \\
+Native desktop &
+C++20 and Qt 6 Workbench rebuild with a native application shell. &
+Work in progress; the shell is not yet fully integrated with all scientific
+services or release targets. \\
+ASP.NET Core site &
+Public project guide and educational website, using Razor Pages and .NET 10. &
+Separate from the local scientific workbench. \\
+FastAPI local surface &
+Compatibility GUI and local service operations for selected workflows. &
+Not the native Qt application and not a hosted collaboration service. \\
+Jupyter and MkDocs &
+Notebook learning material and the engineering handbook. &
+Documentation and educational assets; generated site output is not the
+canonical source. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Repository map}
+
+\begin{longtable}{P{0.28\textwidth} P{0.64\textwidth}}
+\toprule
+\textbf{Path} & \textbf{Contents} \\
+\midrule
+\endhead
+\path{src/heplab/} & Python package: physics, readers, analyses, simulation,
+I/O, schemas, server, laboratory replay, and exports. \\
+\path{kernels/} & Rust numerical core and Python bindings. \\
+\path{desktop/} & Native desktop application sources and build configuration. \\
+\path{web/HEPLab.Web/} & ASP.NET Core project guide and learning website. \\
+\path{notebooks/} & Guided notebooks, including the Z-boson masterclass and
+gallery. \\
+\path{docs/engineering/} & Engineering handbook, requirements, implementation
+evidence, and delivery plans. \\
+\path{docs/scientific-review/} & Scientific scope, verification, review,
+and presentation guidance. \\
+\path{contracts/} & JSON schemas and example data contracts. \\
+\path{manifests/} & Dataset and laboratory input manifests. \\
+\path{tests/} & Python and integration-level regression tests and fixtures. \\
+\path{tools/} & Data acquisition, build helpers, verification tools, and
+documentation checks. \\
+\path{artifacts/} & Preserved example and run outputs; artifacts should be
+interpreted with their accompanying provenance. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Typical data flow}
+
+\begin{center}
+\fbox{\parbox{0.92\textwidth}{\centering
+Dataset manifest or simulation configuration
+$\rightarrow$ verified input and provenance
+$\rightarrow$ reader and event contract
+$\rightarrow$ selection and analysis
+$\rightarrow$ histogram, fit, or event view
+$\rightarrow$ saved result and evidence status}}
+\end{center}
+
+The same high-level analysis concepts can be applied to different event
+sources, but shared field names do not guarantee that the source objects have
+equivalent meanings. For example, an isolation value or trigger decision must
+retain its definition and availability. Incompatible inputs should be rejected
+or handled through an explicitly reviewed mapping.
+
+\section{Data and analysis methods}
+
+\subsection{Inputs and contracts}
+
+The current project uses schema-v1 event normalization in its established
+reader paths. Contracts under \path{contracts/} define additional and
+proposed interfaces, including dataset, detector, run-plan, and event-chunk
+structures. The proposed event schema v2 is a target for a versioned
+migration; it should not be described as the schema used by every existing
+artifact.
+
+The CMS data path uses dataset manifests, file identities, source entry ranges,
+and certified-luminosity information where configured. NanoAOD is read in
+chunks so that processing need not hold an entire large dataset in memory.
+Cached event content and the analysis configuration should remain associated
+with the exact input and selection used.
+
+\subsection{Analysis and statistics}
+
+The dimuon workflow covers candidate selection, mass calculation, weighted
+histograms or cutflows where configured, and fit operations using the available
+CPU statistics stack, including SciPy and iminuit. The interpretation of a fit
+depends on its range, background and signal model, normalization, candidate
+policy, and uncertainty treatment.
+
+A simulated sample's normalization is tied to its cross section, integrated
+luminosity, filter efficiency, and generator-weight convention. Negative
+generator weights must be preserved where present. Data and simulation should
+not be compared as though they were interchangeable: era, object definitions,
+triggers, weights, and correction compatibility all matter.
+
+The data-analysis workflow is useful for reproducible exploration and
+teaching. Precision efficiency, trigger, momentum-scale, and systematic
+uncertainties require further sourced inputs, matched samples, and review
+before supporting measurement claims.
+
+\subsection{Provenance and saved results}
+
+A useful result should identify its input dataset or simulation settings, event
+range or sample scope, relevant configuration, software/model versions,
+selection and fit choices, and validation status. The project's engineering
+direction favors content-addressed inputs and immutable result artifacts.
+Current workflows provide provenance features, but the engineering handbook
+records further work needed to capture a complete source snapshot, all
+correction payloads, random state, runtime details, and output identity in a
+fully preserved bundle.
+
+\section{Scientific models and evidence}
+
+\subsection{Model domains}
+
+\begin{longtable}{P{0.24\textwidth} P{0.36\textwidth} P{0.32\textwidth}}
+\toprule
+\textbf{Model or workflow} & \textbf{Evidence available} & \textbf{Limit of the claim} \\
+\midrule
+\endhead
+Four-vector and kinematics &
+Analytic reference calculations with selected independent checks and Rust
+parity evidence. &
+Applies to the checked primitives and their stated numeric domains; it does not
+validate a detector model. \\
+Uniform-field motion &
+Closed-form ideal-solenoid trajectories and comparisons for selected
+field-translation calculations. &
+Idealized or bounded field models; crossings are predictions, not measured
+tracks. \\
+Geometry and surfaces &
+Selected cylinders, disks, and sourced display geometry are implemented. &
+Not complete CMS geometry, alignment, conditions, or material navigation. \\
+Silicon energy loss &
+A sourced mean-stopping table fit has a held-out table check. &
+A mean response check is not full stochastic transport or detector
+calibration. \\
+Material and electronics &
+Educational thin-slab response and deposit-to-ADC examples. &
+Simplified validity domain; full stochastic interactions, pileup, and calibrated
+electronics response remain open. \\
+Muon response transfer &
+A coarse DELPHES-based transfer model has bounded reference checks. &
+Not an experimental CMS calibration or a universally valid muon response. \\
+PYTHIA8--DELPHES &
+A runtime adapter and smoke-tested fast-simulation chain. &
+Results depend on the process and card; this is not full CMS simulation or
+general closure evidence. \\
+CMS resonance regression &
+A mass-independent candidate policy and event-disjoint split are used in the
+current low-mass regression. &
+The split is from one source file, and the frozen aggregate gate fails at
+$\Upsilon(2S)$. It is not independent-dataset validation. \\
+Muon survival lesson &
+An isolated fixed-momentum vacuum survival calculation is available. &
+Not an atmospheric muon, air-shower, or coupled detector-transport model. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Fidelity language}
+
+The engineering handbook distinguishes analytic/toy calculations, calibrated
+parametric detector response, DELPHES fast simulation, and optional detailed
+transport such as Geant4. These levels answer different questions. A model may
+be helpful at one level and still lack evidence at another. In particular:
+
+\begin{itemize}
+  \item An analytic formula can be verified against a closed form without
+  establishing that its assumptions describe the CMS detector.
+  \item A software-reference comparison can show agreement with a pinned
+  implementation without establishing agreement with experimental data.
+  \item A data regression can check a named sample and selection without
+  validating a general simulation or a full reconstruction chain.
+  \item Passing software tests establishes behavior covered by those tests; it
+  does not prove physical accuracy outside the checked cases.
+\end{itemize}
+
+\subsection{Current scientific assessment}
+
+The defensible description is an educational simulator with specific checked
+submodels and an early-stage HEP data-analysis workflow. Some kinematic,
+ideal-field, material-table, and field-reference calculations have bounded
+evidence. The analytic detector is not a complete transport or reconstruction
+model.
+
+The current low-mass CMS regression corrects a prior target-dependent
+candidate-selection problem and splits events before fitting. Its aggregate
+reference gate still fails at the $\Upsilon(2S)$ peak, and its training and
+held-out events come from the same source file. The data result is therefore
+exploratory and must not be described as independent experimental calibration.
+
+\section{Verification and release practice}
+
+HEPLab maintains a traceability approach connecting requirements, contracts,
+implementations, acceptance cases, and evidence artifacts. Verification may
+include structural contract checks, analytic numerical references, statistical
+checks, reader fixtures, integration cases, fault recovery, packaging, and
+physics comparisons. These evidence types are complementary rather than
+interchangeable.
+
+A release claim should identify:
+\begin{itemize}
+  \item the exact model, software version, configuration, and valid domain;
+  \item the data or simulation identity and event coverage;
+  \item the independent reference or acceptance case used;
+  \item the result, tolerance, and uncertainty treatment; and
+  \item unresolved limitations or failed gates that affect interpretation.
+\end{itemize}
+
+Documentation and schema checkers can detect broken links, malformed
+contracts, or inconsistent identifiers. They cannot establish that an
+algorithm is scientifically correct. Likewise, a successful build or test suite
+does not amount to independent physics review.
+
+\section{Current implementation status}
+
+\begin{longtable}{P{0.24\textwidth} P{0.38\textwidth} P{0.30\textwidth}}
+\toprule
+\textbf{Area} & \textbf{Current state} & \textbf{Open work or boundary} \\
+\midrule
+\endhead
+CMS data &
+NanoAOD reader, chunked data path, certification support, range-aware cache,
+and a 100-event remote-read demonstration. &
+Production-scale throughput, broad independent samples, full correction
+inventory, and complete preservation evidence. \\
+Dimuon analysis &
+Candidate selection, mass spectra, cutflows, fits, and an exploratory CMS
+reference workflow. &
+The low-mass aggregate gate fails at $\Upsilon(2S)$; trigger, efficiency,
+correction, and systematic evidence remain limited. \\
+Rust core &
+Numerical core and PyO3 binding with parity checks for bounded primitives. &
+No general performance claim; broader platform packaging remains a release
+gate. \\
+External simulation &
+PYTHIA8--DELPHES integration and runtime smoke path. &
+General processes, matched reference MC, pileup, and independent physics
+validation. \\
+Educational physics &
+Analytic motion, selected geometry and material models, survival lesson,
+event inspection, and offline Z-boson learning material. &
+The model domains are intentionally limited and must remain visible to users. \\
+Native desktop &
+C++20/Qt 6 native Workbench rebuild is underway. &
+Scientific-service integration, persistence, platform acceptance, installer,
+and signing work remain. \\
+Website and handbook &
+ASP.NET Core project guide and MkDocs-authored engineering handbook. &
+Public deployment and release ownership are separate from local documentation
+builds. \\
+Laboratory replay &
+Device-profile, event, acquisition, and replay-oriented project components. &
+A supported physical device and its end-to-end measurement validation need
+their own evidence. \\
+\bottomrule
+\end{longtable}
+
+\section{Priorities and roadmap}
+
+The project should progress according to evidence and dependencies, rather than
+feature count alone. The near-term priorities documented in the repository are:
+
+\begin{enumerate}
+  \item Strengthen the CMS data foundation with appropriate independent
+  samples, correction and trigger provenance, and exact source coverage.
+  \item Resolve and report the failing low-mass resonance regression using
+  predeclared, mass-independent selection and independent data where available.
+  \item Match CMS data with a suitable official simulation sample before making
+  detector-response or closure claims.
+  \item Continue calibration and held-out checks for each detector model and
+  keep out-of-domain behavior explicit.
+  \item Integrate the native desktop shell with versioned scientific services,
+  run state, persistence, event views, and platform-specific acceptance work.
+  \item Complete accessible learning materials, human review, packaging,
+  preservation, and a fresh-environment release review.
+\end{enumerate}
+
+Detailed requirements, priority assignments, and acceptance evidence are
+maintained in \path{docs/engineering/requirements.json},
+\path{docs/engineering/implementation-evidence.json}, and the numbered
+engineering handbook chapters. A roadmap item should be considered complete
+only when its implementation and evidence agree.
+
+\section{Getting started}
+
+The following commands reflect the repository's documented development entry
+points. Optional dependencies and external runtimes are needed for specific
+workflows.
+
+\subsection{Python analysis package}
+
+\begin{lstlisting}
+pip install -e .
+pip install -e '.[analysis]'
+
+heplab version
+heplab catalog list
+heplab run dimuon --input events.json --output artifacts/dimuon.json
+heplab plot artifacts/dimuon.json
+\end{lstlisting}
+
+The dimuon input may be a JSON list of schema-v1 events or an object containing
+an \texttt{events} list; the reader also supports NanoAOD ROOT input. Plotting,
+fitting, parquet caching, and ROOT reading may require optional dependencies.
+Consult the operations handbook before acquiring data or relying on a
+particular runtime.
+
+\subsection{Local interfaces and documentation}
+
+\begin{lstlisting}
+heplab gui --open-browser
+dotnet run --project web/HEPLab.Web
+mkdocs build --strict
+cmake --preset windows-ninja
+\end{lstlisting}
+
+These commands refer to separate interfaces: the first opens a local
+compatibility workbench, the second runs the ASP.NET Core site, the third
+builds the engineering handbook, and the fourth configures the native desktop
+preset. Successful setup depends on the relevant SDKs and system dependencies.
+A configured or built shell does not by itself indicate complete backend
+integration or physics validation.
+
+\section{Licensing, data use, and attribution}
+
+The HEPLab source is licensed under Apache-2.0; the repository's
+\path{LICENSE} is authoritative. CERN Open Data records have their own
+record-level terms and should be cited by their persistent identifiers and
+exact data provenance. A result should preserve the record, file or entry
+subset, and certification payload used.
+
+External software and simulation content have separate terms. In particular,
+PYTHIA licensing and citation obligations must be reviewed for any redistributed
+binary or container. The HEPLab source license does not replace dependency,
+dataset, or generated-content obligations.
+
+\section{Further reading}
+
+This document is a summary. The following repository materials are the
+operational and technical sources for specific questions:
+
+\begin{itemize}
+  \item \textbf{Repository overview:} \path{README.md}.
+  \item \textbf{Engineering handbook and current delivery plan:}
+  \path{docs/engineering/README.md},
+  \path{docs/engineering/implementation.md},
+  \path{docs/engineering/17-delivery-plan.md}.
+  \item \textbf{Scientific assessment and validation:}
+  \path{docs/scientific-review/01_PROJECT_OVERVIEW.md},
+  \path{docs/scientific-review/02_PHYSICS_VALIDATION.md},
+  \path{docs/scientific-review/10_EXECUTIVE_ASSESSMENT.md}.
+  \item \textbf{CMS data and analysis:}
+  \path{docs/engineering/02-data-supply.md},
+  \path{docs/engineering/09-analysis.md},
+  \path{docs/engineering/cms-physics-regression-v2.md},
+  \path{docs/engineering/19-sources.md}.
+  \item \textbf{Simulation and educational models:}
+  \path{docs/engineering/05-generation.md},
+  \path{docs/engineering/06-transport.md},
+  \path{docs/engineering/07-detector-response.md},
+  \path{docs/engineering/material-response.md},
+  \path{docs/engineering/learning-platform.md}.
+  \item \textbf{Desktop status:}
+  \path{docs/engineering/desktop-rebuild-audit.md},
+  \path{docs/engineering/gui-design.md}.
+  \item \textbf{External starting points:}
+  \href{https://opendata.cern.ch/record/30522}{CMS Open Data record 30522},
+  \href{https://opendata.cern.ch/record/14220}{2016 certified-run record 14220},
+  \href{https://pythia.org/documentation/}{PYTHIA documentation},
+  \href{https://delphes.github.io/workbook/}{DELPHES workbook}.
+\end{itemize}
+
+\end{document}
+

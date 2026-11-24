@@ -17,7 +17,7 @@ def create_app(artifact_dir: str | Path = "artifacts"):
 
     root = Path(artifact_dir).resolve()
     root.mkdir(parents=True, exist_ok=True)
-    from .workbench import Jobs, RunConfig
+    from .workbench import Jobs, parse_job_config
 
     jobs = Jobs(root)
     from .data_workspace import operation_handlers
@@ -90,18 +90,16 @@ def create_app(artifact_dir: str | Path = "artifacts"):
             raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     @app.get("/api/v1/session")
-    def session():
+    def session(include_simulation: bool = True):
         from ..physics.constants import constants_record
         from ..physics.engine import capabilities
         from ..sim.pipeline import capabilities as simulation_capabilities
-
-        simulation = simulation_capabilities()
 
         return JSONResponse(
             {
                 "token": jobs.token,
                 "engine": capabilities(),
-                "simulation": simulation,
+                **({"simulation": simulation_capabilities()} if include_simulation else {}),
                 "constants": constants_record(),
             },
             headers={"Cache-Control": "no-store"},
@@ -166,7 +164,7 @@ def create_app(artifact_dir: str | Path = "artifacts"):
     @app.post("/api/v1/jobs", status_code=202)
     def submit_job(body: dict = job_body, idempotency_key: str | None = job_key):
         try:
-            identity = jobs.submit(RunConfig.model_validate(body), idempotency_key)
+            identity = jobs.submit(parse_job_config(body), idempotency_key)
         except ValidationError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         except ValueError as exc:
@@ -183,6 +181,29 @@ def create_app(artifact_dir: str | Path = "artifacts"):
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @app.post("/api/v1/z-boson/preview")
+    def z_boson_preview(body: dict = job_body):
+        from ..labs.z_boson import preview
+
+        try:
+            return preview(body)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.get("/api/v1/z-boson/{job_id}/report")
+    def z_boson_report(job_id: str):
+        try:
+            return jobs.lab_report(job_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="unknown completed lab run") from exc
+
+    @app.get("/api/v1/z-boson/{job_id}/download")
+    def z_boson_download(job_id: str):
+        try:
+            return jobs.lab_download(job_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="unknown completed lab run") from exc
 
     @app.post("/api/v1/lifetime")
     def lifetime_experiment(body: dict):
@@ -231,36 +252,6 @@ def create_app(artifact_dir: str | Path = "artifacts"):
             return jobs.event(identity, index)
         except (KeyError, ValueError, StopIteration, OSError) as exc:
             raise HTTPException(status_code=404, detail="unknown event") from exc
-
-    @app.get("/")
-    def workbench():
-        return FileResponse(
-            Path(__file__).parent / "static" / "index.html", headers={"Cache-Control": "no-store"}
-        )
-
-    @app.get("/workbench")
-    def local_workbench():
-        return FileResponse(
-            Path(__file__).parent / "static" / "index.html",
-            headers={"Cache-Control": "no-store"},
-        )
-
-    @app.get("/ui/{asset}")
-    def ui_asset(asset: str):
-        if asset not in {
-            "workbench.css",
-            "workbench.js",
-            "event-display-gl.js",
-            "detector-cutaway.js",
-            "data-workspace.js",
-            "intro.min.js",
-            "introjs.min.css",
-            "heplab-detector.png",
-        }:
-            raise HTTPException(status_code=404, detail="unknown UI asset")
-        return FileResponse(
-            Path(__file__).parent / "static" / asset, headers={"Cache-Control": "no-store"}
-        )
 
     def artifact_path(run_id):
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}", run_id):

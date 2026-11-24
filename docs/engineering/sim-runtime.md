@@ -55,16 +55,14 @@ against a compromised local machine.
 For this Windows workspace, launch the installed runtimes and GUI:
 
 ```powershell
-.\tools\start_workbench.ps1
+.\tools\start_workbench.ps1 -Distro Ubuntu
 ```
 
 The script derives the WSL user and project paths. It configures the Rust executable
-only when built, and the simulation prefix only when installed. The desktop app
-and `heplab gui` also discover the conventional runtime automatically: the user's
+only when built, and the simulation prefix only when installed. The desktop worker also discovers the conventional runtime automatically: the user's
 home prefix on Linux, or a WSL installation on Windows (Ubuntu preferred; Docker
 distributions excluded). Missing capabilities are displayed beside the run controls.
-The frozen desktop worker includes numpy, awkward, uproot and the staged supervisor
-source; a system Windows Python installation is not required.
+Install the Python analysis dependencies in the environment used by the native Qt worker.
 
 For a nonstandard installation in PowerShell, set `HEPLAB_SIM_PREFIX` to the Linux
 installation path and `HEPLAB_SIM_WSL_DISTRO` to its distribution, then restart the

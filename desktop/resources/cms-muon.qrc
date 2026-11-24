@@ -1,0 +1,9 @@
+<RCC>
+  <qresource prefix="/cms-muon">
+    <file alias="manifest.json">../../src/heplab/data/cms-display/manifest.json</file>
+    <file alias="dt-surfaces.f32">../../src/heplab/data/cms-display/dt-surfaces.f32</file>
+    <file alias="csc-surfaces.f32">../../src/heplab/data/cms-display/csc-surfaces.f32</file>
+    <file alias="rpc-surfaces.f32">../../src/heplab/data/cms-display/rpc-surfaces.f32</file>
+    <file alias="LICENSE">../../src/heplab/data/cms-display/LICENSE.ispy-webgl</file>
+  </qresource>
+</RCC>

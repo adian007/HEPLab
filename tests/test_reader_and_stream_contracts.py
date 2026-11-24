@@ -12,7 +12,7 @@ uproot = pytest.importorskip("uproot")
 
 from heplab.io.certification import LumiMask  # noqa: E402
 from heplab.io.xrootd import iter_chunks  # noqa: E402
-from heplab.readers.nanoaod import normalize_entry  # noqa: E402
+from heplab.readers.nanoaod import GENPART_BRANCHES, normalize_entry, read  # noqa: E402
 
 
 def nano_columns(count=4):
@@ -52,6 +52,36 @@ def test_SCHEMA_006_generator_weight_preserved():
     assert event["EventInfo"]["weight"] == -2.5
     with pytest.raises(ValueError, match="generator weights"):
         normalize_entry(ak.Array(nano_columns(1))[0], is_data=False)
+
+
+def test_NANOAOD_reader_yields_normalized_columnar_batches_and_bounds_truth_branches(tmp_path):
+    path = tmp_path / "columnar.root"
+    columns = nano_columns(3)
+    columns.update(
+        {
+            "genWeight": np.array([-1.0, 1.0, 2.0]),
+            "GenPart_pt": ak.Array([[45.0], [], [25.0]]),
+            "GenPart_eta": ak.Array([[0.1], [], [0.2]]),
+            "GenPart_phi": ak.Array([[0.2], [], [0.3]]),
+            "GenPart_mass": ak.Array([[0.105], [], [0.105]]),
+            "GenPart_pdgId": ak.Array([[13], [], [13]]),
+            "GenPart_status": ak.Array([[1], [], [1]]),
+            "GenPart_genPartIdxMother": ak.Array([[-1], [], [0]]),
+            "GenPart_statusFlags": ak.Array([[1], [], [1]]),
+        }
+    )
+    with uproot.recreate(path) as root:
+        root["Events"] = columns
+
+    batch = next(read(path, is_data=False, entry_start=1, entry_stop=3, source_id="fixture"))
+    assert isinstance(batch, ak.Array)
+    assert len(batch) == 2
+    events = batch.to_list()
+    assert events[0]["EventInfo"]["source_entry"] == 1
+    assert events[1]["EventInfo"]["source_entry"] == 2
+    assert events[0]["Muon"][1]["object_id"] == 1
+    assert events[1]["GenParticle"][0]["parent_idx"] == 0
+    assert "GenPart_statusFlags" not in GENPART_BRANCHES
 
 
 def test_DATA_002_N_then_M_and_full_have_exact_coverage(tmp_path, monkeypatch):
@@ -137,7 +167,7 @@ def test_DATA_007_certification_does_not_change_raw_chunk_cache_key(tmp_path, mo
 
 
 def test_SCHEMA_003_DELPHES_isolation_does_not_fabricate_ID_or_pixel_seed(tmp_path):
-    from heplab.readers.delphes import read
+    from heplab.readers.delphes import read, read_events
 
     path = tmp_path / "delphes.root"
     with uproot.recreate(path) as root:
@@ -153,7 +183,9 @@ def test_SCHEMA_003_DELPHES_isolation_does_not_fabricate_ID_or_pixel_seed(tmp_pa
             "Photon.IsolationVar": ak.Array([[0.1]]),
             "Event.Weight": ak.Array([[-1.0]]),
         }
-    event = next(read(path))
+    batch = next(read(path))
+    assert isinstance(batch, ak.Array)
+    event = next(read_events(path))
     assert event["Muon"][0]["iso"] == 0.05
     assert event["Muon"][0]["quality_flags"] is None
     assert event["Photon"][0]["has_pixel_seed"] is None

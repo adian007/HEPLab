@@ -9,7 +9,6 @@ import sys
 from pathlib import Path
 
 import pytest
-from desktop.build_worker import validate_library
 
 from heplab.desktop import worker
 from heplab.lab import daq
@@ -148,45 +147,14 @@ def test_desktop_project_payloads_match_the_web_routes(tmp_path):
         assert client.get("/api/v1/project/evidence").json() == replies[2]["result"]
 
 
-def test_workbench_bundles_offline_guided_tour():
-    static = ROOT / "src/heplab/server/static"
-    assert (static / "vendor/introjs/intro.min.js").is_file()
-    assert (static / "vendor/introjs/introjs.min.css").is_file()
-    assert (static / "vendor/introjs/LICENSE.txt").is_file()
-    source = (static / "workbench.js").read_text(encoding="utf-8")
-    assert "startGuidedTour" in source
-    assert "window.introJs.tour()" in source
-
-
-def test_shell_configuration_matches_worker_and_stays_locked_down():
-    desktop = ROOT / "desktop/src-tauri"
-    main_rs = (desktop / "src/main.rs").read_text(encoding="utf-8")
-    assert f'EXPECTED_WORKER_VERSION: &str = "{worker.__version__}"' in main_rs
-    conf = json.loads((desktop / "tauri.conf.json").read_text(encoding="utf-8"))
-    # Installer-safe Tauri version is separate from the Python worker's PEP 440
-    # development version. The window reports the worker version to users.
-    assert conf["version"] == "0.1.0+dev.0"
-    assert conf["bundle"]["windows"]["wix"]["version"] == "0.1.0.0"
-    assert worker.__version__ == "0.1.0.dev0"
-    # One-dir worker shipped as a resource (no one-file temp unpacking).
-    assert "externalBin" not in conf["bundle"]
-    assert conf["bundle"]["resources"] == {"worker/": "worker/"}
-    assert '.join("worker")' in main_rs and "resource_dir()" in main_rs
-    assert '"--onedir"' in (ROOT / "desktop/build_worker.py").read_text(encoding="utf-8")
-    assert (desktop / conf["build"]["frontendDist"]).resolve() == ROOT / "desktop/frontend"
-    assert conf["build"]["beforeBuildCommand"] == "python prepare_frontend.py"
-    csp = conf["app"]["security"]["csp"]
-    assert "http:" not in csp.replace("http://ipc.localhost", "") and "https:" not in csp
-    capability = json.loads((desktop / "capabilities/default.json").read_text(encoding="utf-8"))
-    assert capability["permissions"] == [
-        "core:default",
-        "allow-heplab-invoke",
-        "allow-heplab-cancel",
-    ]
-    manifest = (desktop / "Cargo.toml").read_text(encoding="utf-8")
-    assert "plugin-shell" not in manifest and "plugin-fs" not in manifest
-    core = (ROOT / "desktop/core/src/supervisor.rs").read_text(encoding="utf-8")
-    assert "Command::new(&command.program)" in core and '"sh"' not in core and "cmd.exe" not in core
+def test_native_shell_configuration_replaces_deleted_tauri_shell():
+    root = ROOT
+    assert (root / "CMakeLists.txt").is_file()
+    assert (root / "CMakePresets.json").is_file()
+    assert (root / "desktop" / "CMakeLists.txt").is_file()
+    assert (root / "desktop" / "src" / "MainWindow.cpp").is_file()
+    assert not (root / "desktop" / "src-tauri").exists()
+    assert not (root / "desktop" / "build_worker.py").exists()
 
 
 def test_worker_module_runs_as_subprocess_without_a_shell(tmp_path):
@@ -204,11 +172,3 @@ def test_worker_module_runs_as_subprocess_without_a_shell(tmp_path):
     assert hello["protocol"] == worker.PROTOCOL and reply["ok"] is True
 
 
-def test_packaged_worker_allows_only_samples_present_in_build():
-    validate_library({"ok": True, "result": []}, set())
-    validate_library(
-        {"ok": True, "result": [{"id": "cms-run2016g"}, {"id": "cms-dy-ul16"}]},
-        {"cms-run2016g", "cms-dy-ul16"},
-    )
-    with pytest.raises(SystemExit, match="packaged CMS datasets are unavailable"):
-        validate_library({"ok": True, "result": []}, {"cms-run2016g"})

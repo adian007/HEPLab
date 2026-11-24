@@ -1,0 +1,209 @@
+{
+  "schema": "heplab-training-catalog-v1",
+  "revision": 1,
+  "scope": "HEPLab operation, not a general high-energy physics course",
+  "modules": [
+    {
+      "id": "module-1-getting-started",
+      "title": "Getting Started with HEPLab",
+      "duration_minutes": 45,
+      "prerequisites": [],
+      "learning_objectives": [
+        "Install a supported HEPLab environment",
+        "Navigate the native Workbench and identify verified capabilities",
+        "Create a project and interpret scientific units"
+      ],
+      "component_contract": "desktop.navigation / heplab desktop IPC",
+      "steps": [
+        {
+          "id": "verify-environment",
+          "title": "Verify the Python environment",
+          "prerequisites": [],
+          "completion_evidence": {
+            "kind": "cli_output",
+            "contract": "heplab --version",
+            "required": {"command": "heplab --version"}
+          }
+        },
+        {
+          "id": "create-project",
+          "title": "Create or open a project",
+          "prerequisites": [],
+          "completion_evidence": {
+            "kind": "project_state",
+            "contract": "desktop.project / project.open",
+            "required": {"opened": true}
+          }
+        }
+      ]
+    },
+    {
+      "id": "module-2-first-simulation",
+      "title": "Running Your First Simulation",
+      "duration_minutes": 60,
+      "prerequisites": ["module-1-getting-started"],
+      "learning_objectives": [
+        "Choose a supported experiment",
+        "Configure and validate bounded run parameters",
+        "Submit a run and save an immutable result"
+      ],
+      "component_contract": "desktop.simulation / jobs.submit",
+      "steps": [
+        {
+          "id": "run-z-boson",
+          "title": "Run the guided Z-boson teaching workflow",
+          "prerequisites": ["module-1-getting-started"],
+          "completion_evidence": {
+            "kind": "lab_artifact",
+            "contract": "heplab-z-boson-result-v1",
+            "required": {"schema": "heplab-z-boson-result-v1", "scope": "Synthetic teaching sample · no CMS collision data or detector calibration"}
+          }
+        }
+      ]
+    },
+    {
+      "id": "module-3-event-inspector",
+      "title": "Understanding the Event Inspector",
+      "duration_minutes": 45,
+      "prerequisites": ["module-2-first-simulation"],
+      "learning_objectives": [
+        "Navigate event records",
+        "Separate truth particles from reconstructed objects",
+        "Inspect units, trajectories, and detector intersections"
+      ],
+      "component_contract": "desktop.event-inspector / jobs.event",
+      "steps": [
+        {
+          "id": "inspect-event",
+          "title": "Inspect one completed event",
+          "prerequisites": ["module-2-first-simulation"],
+          "completion_evidence": {
+            "kind": "event_view",
+            "contract": "heplab-event-view-v1",
+            "required": {"schema": "heplab-event-view-v1"}
+          }
+        }
+      ]
+    },
+    {
+      "id": "module-4-results",
+      "title": "Working with Simulation Results",
+      "duration_minutes": 45,
+      "prerequisites": ["module-3-event-inspector"],
+      "learning_objectives": [
+        "Interpret cutflows and histograms",
+        "Compare run artifacts",
+        "Export scientific data and offline reports"
+      ],
+      "component_contract": "desktop.runs / runs.get / export-html",
+      "steps": [
+        {
+          "id": "export-result",
+          "title": "Save and reload a verified result",
+          "prerequisites": ["module-3-event-inspector"],
+          "completion_evidence": {
+            "kind": "artifact",
+            "contract": "heplab-public-artifact",
+            "required": {"loaded": true}
+          }
+        }
+      ]
+    },
+    {
+      "id": "module-5-python-jupyter",
+      "title": "HEPLab with Python and Jupyter",
+      "duration_minutes": 75,
+      "prerequisites": ["module-4-results"],
+      "learning_objectives": [
+        "Use the public Python API",
+        "Load events and rerun dimuon analyses",
+        "Reproduce a Workbench artifact in Jupyter"
+      ],
+      "component_contract": "public-python-api / notebook-gallery",
+      "steps": [
+        {
+          "id": "reproduce-artifact",
+          "title": "Reproduce an exported artifact",
+          "prerequisites": ["module-4-results"],
+          "completion_evidence": {
+            "kind": "replay_report",
+            "contract": "heplab-replay-v1",
+            "required": {"cutflow_match": true, "histogram_match": true}
+          }
+        }
+      ]
+    },
+    {
+      "id": "module-6-cern-open-data",
+      "title": "Using CERN Open Data",
+      "duration_minutes": 90,
+      "prerequisites": ["module-5-python-jupyter"],
+      "learning_objectives": [
+        "Discover supported catalog entries",
+        "Inspect manifests and certification",
+        "Distinguish recorded data from simulation"
+      ],
+      "component_contract": "catalog / data-workspace / NanoAOD reader",
+      "steps": [
+        {
+          "id": "certify-selection",
+          "title": "Apply a manifest's documented selection",
+          "prerequisites": ["module-5-python-jupyter"],
+          "completion_evidence": {
+            "kind": "open_data_report",
+            "contract": "manifest-certification-v1",
+            "required": {"certification_applied": true}
+          }
+        }
+      ]
+    },
+    {
+      "id": "module-7-advanced-workflows",
+      "title": "Advanced HEPLab Workflows",
+      "duration_minutes": 120,
+      "prerequisites": ["module-6-cern-open-data"],
+      "learning_objectives": [
+        "Use capability-gated PYTHIA8/DELPHES runs",
+        "Compare detector-response approximations",
+        "Report uncertainty and experimental limitations"
+      ],
+      "component_contract": "sim.pipeline / capability-gated runtime",
+      "steps": [
+        {
+          "id": "compare-backends",
+          "title": "Compare only verified available backends",
+          "prerequisites": ["module-6-cern-open-data"],
+          "completion_evidence": {
+            "kind": "backend_comparison",
+            "contract": "heplab-capability-comparison-v1",
+            "required": {"both_available": false}
+          }
+        }
+      ]
+    },
+    {
+      "id": "module-8-independent-project",
+      "title": "Independent HEPLab Project",
+      "duration_minutes": 180,
+      "prerequisites": ["module-7-advanced-workflows"],
+      "learning_objectives": [
+        "Configure a supported workflow",
+        "Preserve provenance",
+        "Produce a reproducible short scientific report"
+      ],
+      "component_contract": "public-api / desktop / immutable-artifacts",
+      "steps": [
+        {
+          "id": "publish-report",
+          "title": "Publish an independently reproduced report",
+          "prerequisites": ["module-7-advanced-workflows"],
+          "completion_evidence": {
+            "kind": "scientific_report",
+            "contract": "heplab-independent-project-v1",
+            "required": {"provenance_verified": true, "replayed": true}
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -10,8 +10,8 @@ import pytest
 
 import heplab
 from heplab import labs
-from heplab.analyses.dimuon.run import invariant_mass
 from heplab.export.web_page import build_gallery, read_metadata, render
+from heplab.physics import invariant_mass
 
 CONFIG = {
     "selection": {

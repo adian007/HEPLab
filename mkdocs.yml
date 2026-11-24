@@ -47,7 +47,9 @@ nav:
       - Interfaces: engineering/12-interfaces.md
       - Python API v1: engineering/python-api.md
       - Education, sharing and notebooks: engineering/education-and-sharing.md
+      - Learning platform: engineering/learning-platform.md
       - Simulator GUI design: engineering/gui-design.md
+      - Native simulator GUI design: engineering/native-gui-standards.md
       - USD event display export: engineering/usd-export.md
   - Assurance and release:
       - Preservation and trust: engineering/13-preservation-and-trust.md

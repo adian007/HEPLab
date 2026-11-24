@@ -171,6 +171,11 @@ def operations(root: Path, closers: list | None = None) -> dict[str, Callable[..
 
         return [manifest for manifest, _ in list_datasets()]
 
+    def training_catalog():
+        from ..training import catalogue
+
+        return catalogue()
+
     def project_overview():
         from ..server.project import overview
 
@@ -223,10 +228,10 @@ def operations(root: Path, closers: list | None = None) -> dict[str, Callable[..
     def job_submit(config: dict, idempotency_key: str | None = None):
         from pydantic import ValidationError
 
-        from ..server.workbench import RunConfig
+        from ..server.workbench import parse_job_config
 
         try:
-            run = RunConfig.model_validate(config)
+            run = parse_job_config(config)
         except ValidationError as exc:
             raise RequestError("invalid_arguments", str(exc)) from exc
         try:
@@ -277,6 +282,14 @@ def operations(root: Path, closers: list | None = None) -> dict[str, Callable[..
         except ValueError as exc:
             raise RequestError("invalid_arguments", str(exc)) from exc
 
+    def z_boson_preview(preset: dict):
+        from ..labs.z_boson import preview
+
+        try:
+            return preview(preset)
+        except ValueError as exc:
+            raise RequestError("invalid_arguments", str(exc)) from exc
+
     def job_cancel(job_id: str):
         try:
             jobs().cancel(job_id)
@@ -298,6 +311,9 @@ def operations(root: Path, closers: list | None = None) -> dict[str, Callable[..
         "workbench.preview": workbench_preview,
         "workbench.lifetime": workbench_lifetime,
         "workbench.export-html": workbench_export_html,
+        "workbench.z-boson-preview": z_boson_preview,
+        "workbench.z-boson-report": known(lambda job_id: jobs().lab_report(job_id)),
+        "workbench.z-boson-download": known(lambda job_id: jobs().lab_download(job_id)),
         "jobs.get": known(lambda job_id: jobs().get(job_id)),
         "jobs.list": lambda: jobs().list(),
         "jobs.cancel": known(job_cancel),
@@ -308,6 +324,7 @@ def operations(root: Path, closers: list | None = None) -> dict[str, Callable[..
         "calibration.report": calibration_report,
         "detector.geometry": detector_geometry,
         "datasets.list": datasets_list,
+        "training.catalog": training_catalog,
         "runs.list": runs_list,
         "runs.get": run_get,
         "lab.profile": lab_profile,

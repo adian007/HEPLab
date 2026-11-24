@@ -32,11 +32,15 @@ class AssetReferences(HTMLParser):
         super().__init__()
         self.urls: set[str] = set()
         self.links: set[str] = set()
+        self.main_links: set[str] = set()
         self.ids: set[str] = set()
         self.headings = 0
+        self.in_main = False
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attributes = dict(attrs)
+        if tag == "main":
+            self.in_main = True
         if attributes.get("id"):
             identifier = attributes["id"]
             if identifier in self.ids:
@@ -44,6 +48,8 @@ class AssetReferences(HTMLParser):
             self.ids.add(identifier)
         if tag == "a" and attributes.get("href"):
             self.links.add(attributes["href"])
+            if self.in_main:
+                self.main_links.add(attributes["href"])
         if tag == "h1":
             self.headings += 1
         target = attributes.get("src") if tag in {"script", "img"} else None
@@ -51,6 +57,10 @@ class AssetReferences(HTMLParser):
             target = attributes.get("href")
         if target:
             self.urls.add(target)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "main":
+            self.in_main = False
 
 
 def fetch(url: str, encoding: str = "identity") -> tuple[str, bytes]:
@@ -70,6 +80,7 @@ def check(base: str, asset_sources: dict[str, str]) -> tuple[int, int]:
     assets = {
         "/assets/z-boson-demo.json",
         "/examples/analytic-muon-pair-result-v1.json",
+        "/examples/z-boson-preset.json",
     }
     _, index_body = fetch(base + "/search-index.json")
     search_index = json.loads(index_body)
@@ -91,9 +102,12 @@ def check(base: str, asset_sources: dict[str, str]) -> tuple[int, int]:
             if urlsplit(url).netloc == urlsplit(base).netloc:
                 local_links.add(url)
         if route == "/":
-            check_preview(body.decode("utf-8"))
-        if route == "/education/" and b'id="zlab-stage"' not in body:
-            raise AssertionError("Razor lab component did not render")
+            check_homepage(parser, body)
+        if route == "/education/":
+            if b'id="zlab-stage"' not in body:
+                raise AssertionError("Razor lab component did not render")
+            if not {"/examples/z-boson-preset.json", "/downloads/z-boson.ipynb"} <= parser.links:
+                raise AssertionError("Z-boson lab is missing its Workbench or Jupyter download")
         if route == "/gallery/" and body.count(b'class="zgallery-card"') != 4:
             raise AssertionError("Razor gallery component must render all four evidence examples")
         for target in parser.urls:
@@ -114,7 +128,6 @@ def check(base: str, asset_sources: dict[str, str]) -> tuple[int, int]:
         "/css/activities.css",
         "/js/theme-init.js",
         "/js/site.js",
-        "/js/detector-view.js",
         "/js/zlab.js",
         "/js/gallery.js",
         "/vendor/bootstrap/5.3.8/bootstrap.min.css",
@@ -154,37 +167,44 @@ def check(base: str, asset_sources: dict[str, str]) -> tuple[int, int]:
     content_type, body = fetch(base + "/search-index.json")
     if content_type != "application/json" or not json.loads(body):
         raise AssertionError("search index is not a nonempty JSON response")
+    content_type, body = fetch(base + "/downloads/z-boson.ipynb")
+    source_notebook = SITE.parents[1] / "notebooks/masterclass/z-boson.ipynb"
+    if content_type != "application/x-ipynb+json" or body != source_notebook.read_bytes():
+        raise AssertionError("Z-boson notebook download differs from its source")
+    check_analytic_fixture()
+    check_vendor_hashes()
     return len(routes), len(assets)
 
 
-def check_preview(html: str) -> None:
-    """Check figure scope and independent physics conventions against the fixed fixture."""
+def check_homepage(page: AssetReferences, body: bytes) -> None:
+    sections = {"hero-title", "explore-title", "evidence-title"}
+    if not sections <= page.ids:
+        raise AssertionError(f"homepage sections missing: {sorted(sections - page.ids)}")
+    pathways = {
+        "/getting-started/",
+        "/simulation/workbench/",
+        "/data/open-data/",
+        "/education/",
+        "/validation/evidence/",
+    }
+    if not pathways <= page.main_links:
+        raise AssertionError(f"homepage pathways missing: {sorted(pathways - page.main_links)}")
+    if b"data-detector-view" in body:
+        raise AssertionError("the homepage still renders the removed detector preview")
+
+
+def check_analytic_fixture() -> None:
+    """Check physics conventions of the standalone analytic teaching fixture."""
     fixture = json.loads(
         (SITE / "wwwroot/examples/analytic-muon-pair-result-v1.json").read_text(encoding="utf-8")
     )
-    requirements = (
-        'data-fixture-url="/examples/analytic-muon-pair-result-v1.json"',
-        "data-detector-view",
-        'role="img"',
-        "SYNTHETIC FIXTURE",
-        "B = +z",
-        "1 mm Si slab at s = 1 m",
-        "Dashed: beyond 3 m bore · B = 0",
-        "zero outside the 3 m bore",
-        fixture["geometry"]["id"],
-    )
-    missing = [token for token in requirements if token not in html]
-    if missing:
-        raise AssertionError(
-            f"home 3D event figure is missing its declared scope, units, or provenance: {missing}"
-        )
     tracks = fixture["tracks"]
     if len(tracks) != 2 or {track["charge"] for track in tracks} != {-1, 1}:
         raise AssertionError("the declared fixture must contain one muon of each charge")
     bz = fixture["geometry"]["field"]["nominal_bz_t"]
     pt = fixture["config"]["momentum_gev"]
     if not math.isclose(bz, 3.8) or not math.isclose(pt, 5.0):
-        raise AssertionError("home figure settings no longer match its declared fixture")
+        raise AssertionError("unexpected magnetic field or momentum in the analytic fixture")
     for track in tracks:
         trajectory = track["trajectory"]
         if len(trajectory["points"]) != len(trajectory["path_m"]):
@@ -235,8 +255,9 @@ def check_preview(html: str) -> None:
             raise AssertionError(
                 "fixture settings give an unexpected ideal transverse curvature scale"
             )
-    if fixture["artifact"]["result_sha256"][:10] not in html:
-        raise AssertionError("home preview lacks its actual fixture result digest")
+
+
+def check_vendor_hashes() -> None:
     manifest = json.loads((SITE / "wwwroot/vendor/ui-assets.json").read_text(encoding="utf-8"))
     for asset in manifest["assets"]:
         source = SITE / "wwwroot" / asset["file"]

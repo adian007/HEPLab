@@ -13,6 +13,7 @@
   <ItemGroup>
     <Content Include="Content\Docs\**\*.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="Content\Docs\**\*.mdx" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\notebooks\masterclass\z-boson.ipynb" Link="Downloads\z-boson.ipynb" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-23",
+  "scope": "Native C++20/Qt 6 Workbench shell and minimal analytic worker vertical slice",
+  "toolchain": {
+    "cmake": "4.3.3",
+    "ninja": "1.13.2",
+    "visual_studio_build_tools": "17.14.45",
+    "msvc": "19.44.35230.0",
+    "msvc_toolset": "14.44.35207",
+    "windows_sdk": "10.0.26100.0",
+    "qt": "6.8.3",
+    "qt_architecture": "win64_msvc2022_64",
+    "qt_qmake_spec": "win32-msvc"
+  },
+  "builds": {
+    "debug": {
+      "preset": "windows-ninja",
+      "configure": "passed",
+      "build": "passed",
+      "ctest": "passed",
+      "tests": 1
+    },
+    "release": {
+      "preset": "windows-ninja-release",
+      "configure": "passed",
+      "build": "passed",
+      "ctest": "passed",
+      "tests": 1
+    }
+  },
+  "native_smoke": {
+    "debug_pid": 11104,
+    "release_pid": 27456,
+    "window_title": "HEPLab Workbench",
+    "responsive_at_verification": true,
+    "simulation_screenshot": "../../output/native-rebuild/native-shell-simulation.png"
+  },
+  "worker_contract": {
+    "python_tests": 20,
+    "pytest_status": "passed",
+    "native_ipc_tests": [
+      "worker handshake",
+      "invalid configuration rejected",
+      "analytic run completed and artifact created",
+      "cancellation left no completed artifact"
+    ]
+  },
+  "project_lifecycle": {
+    "implemented": [
+      "create project",
+      "rename project",
+      "open project",
+      "save simulation configuration",
+      "reopen saved configuration",
+      "run history from jobs.list",
+      "worker restart in selected project root"
+    ],
+    "debug_ctest": "5/5 split native cases passed",
+    "release_ctest": "5/5 split native cases passed",
+    "status": "verified"
+  },
+  "scientific_visualization": {
+    "2d_xy_xz": "verified native widget tests",
+    "3d_opengl": "verified native build and state test; interactive graphics smoke launch required",
+    "selection": "shared object ID across XY/XZ/3D/table",
+    "measured_hits": false,
+    "detector_calibration": false,
+    "plots": [
+      "artifact truth-pair invariant mass",
+      "artifact muon pT",
+      "Poisson sqrt(N) bin uncertainty only"
+    ]
+  },
+  "cms_native_catalog": {
+    "status": "verified_manifest_discovery",
+    "worker_operation": "datasets.list",
+    "recorded_data_analysis": "not implemented",
+    "download_cache": "not implemented",
+    "physics_validation": false,
+    "experimental_calibration": false
+  },
+  "release_smoke": {
+    "pid": 31316,
+    "window_title": "HEPLab Workbench",
+    "responsive_at_verification": true,
+    "event_inspector": "2D XY/XZ and Qt OpenGL 3D implementation present",
+    "scientific_plots": "invariant mass and muon pT from artifact fields"
+  },
+  "scientific_scope": {
+    "implemented": "educational analytic muon thin-slab reference bench",
+    "calibrated_detector": false,
+    "physics_validated": false,
+    "3d_rendering": "not implemented",
+    "cms_open_data_ui": "not implemented",
+    "scientific_plots": "not implemented"
+  }
+}

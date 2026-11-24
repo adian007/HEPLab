@@ -55,6 +55,7 @@ tmp_*
 .env
 .idea/
 .vscode/
+.vs/
 .claude/
 .DS_Store
 
@@ -65,3 +66,9 @@ web/tsconfig.tsbuildinfo
 web/HEPLab.Web/bin/
 web/HEPLab.Web/obj/
 /output/
+
+/data-workspace/
+**/.ipynb_checkpoints/
+*.whl
+/my-z-*.html
+web/.astro/

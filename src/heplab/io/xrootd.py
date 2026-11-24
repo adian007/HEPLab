@@ -135,12 +135,14 @@ def _remote_checksum(url: str, algorithm: str, expected_size: int) -> tuple[str,
 
 
 def _verify_source(url: str, declared: dict, size_bytes: int, source_id: str, *, cache: bool):
-    # Receipts are audit/cache records; current local bytes or the server digest are
-    # checked again so a mutable URL cannot silently change under a warm event cache.
-    if cache:
-        source_integrity_record(source_id, declared, size_bytes)
-    algorithm, expected = declared["algorithm"], declared["value"].lower()
+    # A matching receipt avoids re-streaming a remote ROOT file on every run.
+    # Local paths are still hashed each time because their bytes can change in place.
     local = Path(url)
+    if cache and not local.is_file():
+        receipt = source_integrity_record(source_id, declared, size_bytes)
+        if receipt:
+            return receipt["method"]
+    algorithm, expected = declared["algorithm"], declared["value"].lower()
     if local.is_file():
         actual, actual_size = _checksum_file(local, algorithm)
         method = "local_bytes"
@@ -195,7 +197,7 @@ def iter_chunks(
         raise ValueError("CLI data/simulation kind disagrees with manifest")
     import uproot
 
-    from ..readers.nanoaod import READER_VERSION, read
+    from ..readers.nanoaod import READER_VERSION, read_events
 
     name = manifest.get("name", manifest.get("dataset_id", dataset))
     manifest_hash = file_hash(path)
@@ -273,7 +275,7 @@ def iter_chunks(
                     branches=branches,
                     source_id=source_id,
                 )
-                events = _retry(lambda url=url, request=request: list(read(url, **request)))
+                events = _retry(lambda url=url, request=request: list(read_events(url, **request)))
                 if len(events) != descriptor["entry_stop"] - start:
                     raise ValueError("source returned incomplete entry range") from None
                 if cache:

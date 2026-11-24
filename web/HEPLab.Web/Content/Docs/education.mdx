@@ -1,6 +1,6 @@
 ---
 title: Rediscover the Z boson
-description: A guided, checkpointed Z→μμ masterclass lab for browser and Jupyter.
+description: A guided Z→μμ masterclass across the browser, offline Workbench and Jupyter.
 ---
 
 Follow the dimuon analysis from the first selection choice to a fitted Z mass. The lab checks each step, gives targeted hints, and saves browser progress locally.
@@ -13,11 +13,11 @@ Follow the dimuon analysis from the first selection choice to a fitted Z mass. T
 
 ## Run the same investigation in Jupyter
 
-The notebook uses the same Python checks as the browser lab, with an interactive `ipywidgets` controller. From the repository root:
+The Workbench and notebook use the same Python checks. The browser activity above runs its own checkpoints. To reproduce a Workbench run, save the notebook and the exported JSON in the same directory, then run all notebook cells with the HEPLab environment selected. From the repository root after installing JupyterLab:
 
 ```bash
 uv sync --extra analysis --extra notebook
-jupyter lab notebooks/masterclass/z-boson.ipynb
+uv run --no-sync jupyter lab notebooks/masterclass/z-boson.ipynb
 ```
 
 Notebook progress can be saved as JSON and resumed with `heplab.labs.resume("progress.json", events=events)`. The supplied events are verified against the saved digest.

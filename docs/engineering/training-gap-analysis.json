@@ -1,0 +1,17 @@
+{
+  "schema": "heplab-training-gap-analysis-v1",
+  "audited_at": "2026-11-23",
+  "scope": "HEPLab operator training",
+  "entries": [
+    {"id":"EDU-001","feature":"Structured eight-module catalogue","status":"implemented","evidence":["src/heplab/training/curriculum.json"]},
+    {"id":"EDU-002","feature":"Resumable evidence-based progress","status":"partial","evidence":["src/heplab/training/__init__.py","src/heplab/labs/__init__.py"]},
+    {"id":"EDU-003","feature":"Z-boson practical workflow","status":"verified","evidence":["src/heplab/labs/z_boson.py","tests/test_z_boson_workflow.py","notebooks/masterclass/z-boson.ipynb"]},
+    {"id":"EDU-004","feature":"Native desktop learning panel","status":"partial","evidence":["desktop/src/MainWindow.cpp"]},
+    {"id":"EDU-005","feature":"Native Event Inspector training","status":"blocked","evidence":["docs/engineering/desktop-rebuild-audit.md"]},
+    {"id":"EDU-006","feature":"Jupyter training gallery","status":"partial","evidence":["notebooks/masterclass/z-boson.ipynb"]},
+    {"id":"EDU-007","feature":"CERN Open Data training","status":"partial","evidence":["src/heplab/readers/nanoaod.py","manifests/datasets"]},
+    {"id":"EDU-008","feature":"PYTHIA8/DELPHES training","status":"runtime-gated","evidence":["src/heplab/sim/pipeline.py"]},
+    {"id":"EDU-009","feature":"Independent reproducible project","status":"implemented","evidence":["src/heplab/labs/z_boson.py","tools/check_z_boson_notebook.py"]},
+    {"id":"EDU-010","feature":"Automated education quality gates","status":"partial","evidence":["tests/test_education_and_sharing.py","tests/test_z_boson_workflow.py"]}
+  ]
+}

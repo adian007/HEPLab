@@ -54,7 +54,11 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.12.1"
+          enable-cache: true
+      - run: rustup toolchain install 1.99.1 --profile minimal
       - run: uv sync --locked --extra dev --extra serve --extra analysis
+      - run: uvx --from "maturin==1.16.0" maturin build --release --locked --manifest-path kernels/Cargo.toml --out .cache/kernel-wheels
+      - run: uv pip install --no-deps --find-links .cache/kernel-wheels heplab-kernels
       - run: uv build --wheel --out-dir dist
       - run: uv run --no-sync python tools/verify_wheel.py dist/heplab-0.1.0.dev0-py3-none-any.whl
       - name: Install the built wheel into the locked test environment
@@ -64,6 +68,8 @@ jobs:
           wheel=glob.glob('dist/*.whl')[0];
           subprocess.check_call(['uv','pip','install','--python',sys.executable,'--no-deps','--reinstall',wheel])"
       - run: uv run --no-sync python -m pytest -q
+        env:
+          HEPLAB_REQUIRE_KERNELS: "1"
 
   documentation:
     runs-on: ubuntu-latest
@@ -84,11 +90,6 @@ jobs:
       - run: uv run --no-sync python tools/run_verification_registry.py
       - run: npm install --prefix .cache/handbook-tools --ignore-scripts --no-audit --no-fund mermaid@12.2.0 jsdom@26.1.0
       - run: node tools/check_mermaid.mjs
-      - run: node --check src/heplab/server/static/workbench.js
-      - run: node --check src/heplab/server/static/event-display-gl.js
-      - run: node --check src/heplab/server/static/detector-cutaway.js
-      - run: node --check src/heplab/server/static/data-workspace.js
-      - run: node --test tools/test_event_display.cjs
       - run: uv run --no-sync python -m mkdocs build --strict --site-dir .cache/handbook-site
 
   scientific-regressions:

@@ -70,18 +70,21 @@ def _read_events(args, lumi_mask=None):
 
         def local_events():
             count = 0
-            for index, event in enumerate(rows):
-                info = event["EventInfo"]
-                # Unflagged JSON records take the command's declared kind, so data
-                # is never silently relabelled as simulation (and skips certification).
-                if "is_data" not in info and info.get("kind") not in {"data", "simulation"}:
-                    info["is_data"] = not args.simulation
-                info.update(source_id=identity, source_entry=index)
-                if lumi_mask and info.get("is_data"):
-                    info["certified"] = lumi_mask.accepts(info["run"], info["luminosity_block"])
-                    info["certification_sha256"] = lumi_mask.sha256
-                count += 1
-                yield event
+            for batch in rows:
+                events = batch.to_list() if hasattr(batch, "to_list") else [batch]
+                for offset, event in enumerate(events):
+                    index = count + offset
+                    info = event["EventInfo"]
+                    # Unflagged JSON records take the command's declared kind, so data
+                    # is never silently relabelled as simulation (and skips certification).
+                    if "is_data" not in info and info.get("kind") not in {"data", "simulation"}:
+                        info["is_data"] = not args.simulation
+                    info.update(source_id=identity, source_entry=index)
+                    if lumi_mask and info.get("is_data"):
+                        info["certified"] = lumi_mask.accepts(info["run"], info["luminosity_block"])
+                        info["certification_sha256"] = lumi_mask.sha256
+                    yield event
+                count += len(events)
             ranges.append(
                 {
                     "source_id": identity,
@@ -443,13 +446,6 @@ def cmd_serve(args: argparse.Namespace) -> int:
         raise RuntimeError("serving needs uvicorn; install `heplab[serve]`") from exc
     from .server.app import create_app
 
-    if getattr(args, "open_browser", False):
-        import threading
-        import webbrowser
-
-        threading.Timer(
-            1.0, webbrowser.open, args=(f"http://127.0.0.1:{args.port}/workbench",)
-        ).start()
     uvicorn.run(create_app(args.artifacts), host="127.0.0.1", port=args.port)
     return 0
 
@@ -644,11 +640,6 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--artifacts", default="artifacts")
     serve.add_argument("--port", type=int, default=8000)
     serve.set_defaults(func=cmd_serve)
-    gui = sub.add_parser("gui", help="open the local simulator workbench")
-    gui.add_argument("--artifacts", default="artifacts/workbench")
-    gui.add_argument("--port", type=int, default=8765)
-    gui.add_argument("--open-browser", action="store_true")
-    gui.set_defaults(func=cmd_serve)
     for verb in ROADMAP:
         command = sub.add_parser(verb, help=f"planned {ROADMAP[verb][0]} interface")
         command.add_argument("args", nargs="*")

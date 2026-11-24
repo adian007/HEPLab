@@ -12,6 +12,7 @@
     "samples": [
       {
         "adc": 48,
+        "analog_adc": 48.224065712319536,
         "deposit_mev": 0.48224065712319536,
         "digit_accepted": true,
         "energy_residual_gev": 2.38524477946811e-16,
@@ -24,6 +25,7 @@
       },
       {
         "adc": 48,
+        "analog_adc": 48.224065712319536,
         "deposit_mev": 0.48224065712319536,
         "digit_accepted": true,
         "energy_residual_gev": 2.38524477946811e-16,
@@ -50,7 +52,7 @@
       "deposit-electronics-v1"
     ],
     "parent_run_sha256": null,
-    "result_sha256": "3922da52671756e4b3c76814f0cc9cd2240f3173eae82858d724bb95a526197e",
+    "result_sha256": "233f705c5bf4e544033cca6544daa8cf099611db8b5ed17355bcc672d3fd3e07",
     "run_id": "static-synthetic-first-experiment-v1",
     "schema": "heplab-run-artifact-v1",
     "scope": "full_run",

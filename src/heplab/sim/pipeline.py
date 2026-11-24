@@ -403,9 +403,9 @@ def run_chain(
                 (stage / "generator.log").read_text(encoding="utf8", errors="replace"), events
             )
         )
-        from ..readers.delphes import read
+        from ..readers.delphes import read_events
 
-        first = next(read(stage / "events.root", entry_stop=1))
+        first = next(read_events(stage / "events.root", entry_stop=1))
         preview = {"event": 0, "muons": first["Muon"], "weight": first["EventInfo"]["weight"]}
         (stage / "preview.json").write_text(json.dumps(preview, allow_nan=False), encoding="utf8")
         record = {

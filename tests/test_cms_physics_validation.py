@@ -7,7 +7,7 @@ import math
 import pytest
 from tools.build_cms_resonance_validation import report_from_rows
 
-from heplab.analyses.dimuon.run import invariant_mass
+from heplab.physics import invariant_mass
 from heplab.physics.calibration import REFERENCE
 from heplab.physics.cms_resonance_validation import event_split, select_candidate_index
 

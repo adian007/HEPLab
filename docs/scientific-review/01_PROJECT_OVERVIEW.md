@@ -62,7 +62,7 @@ that the analytic transport reproduces a CMS detector.
 | Numerical core | Rust; PyO3/Maturin binding and standalone crate | Checked operations and Python/Rust parity paths; selected physics scope only |
 | Desktop | Tauri 2, Rust shell, HTML/CSS/JavaScript | Packaged shell and worker protocol; no claim of a signed public installer |
 | Public guide | ASP.NET Core Razor Pages targeting .NET 10, Markdig 1.5.1, plain JavaScript/CSS | Project guide and interactive educational pages; hosting/deployment state is not established by this audit |
-| Analysis/science libraries | Optional NumPy, SciPy, Awkward, Uproot, PyArrow, Vector, Hist, Matplotlib/mplhep, iminuit; optional Coffea/Dask and zfit | Optional dependency groups; not all workflows require or install them |
+| Analysis/science libraries | Optional NumPy, SciPy, Awkward, Uproot, PyArrow, Matplotlib/mplhep and iminuit; optional Coffea/Dask | Optional dependency groups; Vector, Hist, zfit and JAX are not installed project extras |
 | Native event workflow | PYTHIA8 and DELPHES through a staged local Linux/WSL runtime | Fixed DY→μμ setup, no pileup; current integration is not a general CMS simulation |
 | Data and result formats | JSON, ROOT, Parquet, YAML manifests, offline HTML, optional OpenUSD | Source-range/provenance-aware workflows in selected paths |
 

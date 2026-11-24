@@ -9,7 +9,7 @@ from __future__ import annotations
 import math
 from itertools import combinations
 
-from ..analyses.dimuon.run import invariant_mass
+from . import invariant_mass
 
 
 def selected_pair(event):

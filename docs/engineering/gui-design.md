@@ -84,6 +84,26 @@ browser and the WebView2 desktop shell.
 
 ## Scientific representation boundaries
 
+### Silicon readout threshold scan
+
+In the Workbench, open **Simulation**, run **Silicon mean loss and channel
+bench**, then choose **Readout scan** from the run observables.
+
+Complete analytic runs save the analog ADC value before the threshold is
+applied, including rejected channels. The threshold panel applies
+`analog_adc >= threshold_adc` to those same signals. It shows channel counts
+and event counts for either or both channels passing, and lets the learner
+inspect each muon's margin against the selected threshold in the event viewport.
+The scan keeps transport, material deposits and the sampled noise fixed. Its
+JSON export includes the source run digest, inputs, denominators and decision
+rule. The plot samples whole ADC values and the selected threshold uses the
+exact numeric entry. Earlier single-event exports retain their track-level
+analog values. Older multi-event exports need a fresh run to provide a complete
+signal record.
+
+The readout applies to the illustrative silicon slab in the muon bench. The
+chamber envelopes and surface crossings describe geometry separately.
+
 The current display uses the [sourced geometry and reference calibration](geometry-calibration.md)
 increment. The bench continues a field-aware trajectory from the outgoing state
 after its single silicon slab. Other detector surfaces have no assigned material.

@@ -98,6 +98,8 @@ jobs:
           node-version: "24"
       - name: Assemble the simulator workbench frontend
         run: uv run --no-sync python desktop/prepare_frontend.py
+      - name: Check generated frontend freshness
+        run: uv run --no-sync python desktop/prepare_frontend.py --check
       - name: Shell lint (needs the sidecar and frontend present)
         run: cargo clippy --locked --manifest-path desktop/src-tauri/Cargo.toml -- -D warnings
       - name: Build bundles

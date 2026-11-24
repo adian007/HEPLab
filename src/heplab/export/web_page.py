@@ -669,7 +669,17 @@ function provenance(result){
   document.getElementById('provenance').append(rows.length?table:el('p',{class:'muted',text:'This result carries no provenance record.'}));
 }
 
-if(meta.kind==='analysis'){histogram(data.histogram);views.append(cutflow(data));}
+if(meta.kind==='analysis'){
+  if(data.lab){
+    views.append(el('p',{text:data.lab.scope}));
+    const fit=data.lab.fit;
+    const summary=fit?.success
+      ? `Fitted peak ${fit.values.mean.toFixed(3)} ± ${fit.errors.mean.toFixed(3)} GeV (statistical)`
+      : `Fit unavailable. ${data.lab.fit_error || 'The teaching fit did not converge.'}`;
+    views.append(el('p',{text:summary}));
+  }
+  histogram(data.histogram);views.append(cutflow(data));
+}
 else if(meta.kind==='lifetime')lifetimeView(data);
 else eventDisplay(data);
 provenance(data);

@@ -1,0 +1,6 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+  <qresource prefix="/training">
+    <file alias="curriculum.json">../../src/heplab/training/curriculum.json</file>
+  </qresource>
+</RCC>

@@ -3,6 +3,15 @@
   "title": "Rediscover the Z boson",
   "audience": "First-year university courses and International Masterclasses",
   "duration_minutes": 60,
+  "workbench": {
+    "revision": 1,
+    "event_count": 4000,
+    "seed": 2026,
+    "min_pt_gev": 20.0,
+    "max_rel_iso": 0.15,
+    "require_opposite_charge": true,
+    "fit_window_gev": [70.0, 110.0]
+  },
   "summary": "Use a fixed synthetic teaching sample to select muon pairs, compute the invariant mass and fit a dimuon peak. Compare the fitted value with the published Z mass; this is an educational exercise, not a CMS measurement or detector calibration.",
   "reference": {
     "quantity": "Z boson mass",
@@ -67,7 +76,7 @@
     {
       "id": "width",
       "title": "Explain the width",
-      "task": "Your fitted peak is wider than the Z boson's natural width of 2.5 GeV. Why?",
+      "task": "Besides the Z boson's natural line shape, what can broaden the observed dimuon mass peak?",
       "answer": "one letter",
       "choices": {
         "a": "The Z boson lives longer in the detector than at rest.",

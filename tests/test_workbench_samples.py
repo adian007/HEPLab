@@ -49,6 +49,9 @@ def test_sample_events_and_observables_survive_a_worker_restart(tmp_path):
         assert result["events"] == 4
         assert len(result["analysis"]["samples"]) == 8
         assert len(result["analysis"]["pairs"]) == 4
+        assert (
+            len([sample for sample in result["analysis"]["samples"] if "analog_adc" in sample]) == 8
+        )
         assert result["artifact"]["run_id"] == identity
         assert result["artifact"]["schema"] == "heplab-run-artifact-v1"
         assert result["artifact"]["scope"] == "full_run"
@@ -58,6 +61,14 @@ def test_sample_events_and_observables_survive_a_worker_restart(tmp_path):
         assert third["event"] == 2 and third["events"] == 4
         assert third["tracks"] != result["tracks"]
         assert third["analysis"] == result["analysis"]
+        signals = {
+            sample["object_id"]: sample["analog_adc"]
+            for sample in result["analysis"]["samples"]
+            if sample["event"] == 2
+        }
+        assert signals == {
+            track["object_id"]: track["digit"]["analog_adc"] for track in third["tracks"]
+        }
         assert third["artifact"]["schema"] == "heplab-event-view-v1"
         assert third["artifact"]["scope"] == "selected_event_view"
         assert third["artifact"]["parent_run_sha256"] == result["artifact"]["result_sha256"]
@@ -89,6 +100,21 @@ def test_response_observables_include_sampled_kinematics_and_track_losses():
     assert matched
     assert any(abs(s["response_pt_gev"] - s["pt_gev"]) > 0.001 for s in matched)
     assert all((s["response_pt_gev"] is None) == (s["response_status"] == "lost") for s in samples)
+
+
+def test_threshold_counterfactual_uses_same_analog_signals_and_inclusive_decision():
+    config = RunConfig(source_model="angular_sample", threshold_adc=100, noise_adc=3)
+    events = [bench(config, threading.Event(), i) for i in range(3)]
+    saved = analyze_events(events)["samples"]
+    assert any(not sample["digit_accepted"] for sample in saved)
+
+    for threshold in (0.0, saved[0]["analog_adc"], 100.0):
+        rerun = config.model_copy(update={"threshold_adc": threshold})
+        sampled = analyze_events([bench(rerun, threading.Event(), i) for i in range(3)])["samples"]
+        assert [row["analog_adc"] for row in sampled] == [row["analog_adc"] for row in saved]
+        assert [row["digit_accepted"] for row in sampled] == [
+            row["analog_adc"] >= threshold for row in saved
+        ]
 
 
 @pytest.mark.parametrize(

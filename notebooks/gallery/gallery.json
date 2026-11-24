@@ -1,0 +1,31 @@
+{
+  "schema": "heplab-notebook-gallery-v1",
+  "revision": 1,
+  "scope": "Public HEPLab API notebooks",
+  "entries": [
+    {
+      "path": "01_environment_verification.ipynb",
+      "module": "module-1-getting-started",
+      "scope": "core environment",
+      "runnable": true
+    },
+    {
+      "path": "02_first_event_inspection.ipynb",
+      "module": "module-3-event-inspector",
+      "scope": "synthetic teaching fixture",
+      "runnable": true
+    },
+    {
+      "path": "03_dimuon_spectrum.ipynb",
+      "module": "module-4-results",
+      "scope": "synthetic teaching fixture",
+      "runnable": true
+    },
+    {
+      "path": "04_fit_and_reproducible_report.ipynb",
+      "module": "module-5-python-jupyter",
+      "scope": "synthetic teaching fixture",
+      "runnable": true
+    }
+  ]
+}

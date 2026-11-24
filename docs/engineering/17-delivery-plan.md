@@ -23,16 +23,16 @@ flowchart TD
 
 | Capability | Existing evidence | Limitation |
 |---|---|---|
-| Catalog | YAML listing and record-info commands | Alias/package-copy drift; limited validation |
-| Remote real data | 100-event HTTPS read from record 30522 and a Parquet cache | No certification, complete-file checksum, coverage descriptor or robust sample identity |
-| Event schema | Registry v1 plus dictionary records | No full type/unit/semantic enforcement; trigger/truth design gaps |
-| Dimuon | Candidate mass/cutflow/histogram prototype; 15 pairs in demo | Ignores event weights, accepts invalid isolation, no corrected efficiency/trigger model |
-| Fitting | Optional iminuit Gaussian/uniform function | Finite-window normalization and diagnostics incomplete |
-| Closure | Unit-area ratios | No errors, truth efficiency, covariance or calibration acceptance |
-| Simulation | Toy smear and subprocess wrappers | No proven image, calibrated response or native transport |
-| Rust | PyO3 addition scaffold | No compiled/tested physics core |
-| Server | Basic local GET routes | No job submission, dashboard, complete path/origin controls |
-| Packaging/CI | Declared checks and Dockerfile | No current wheel/reproducibility evidence; toolchain/dependency gaps |
+| Catalog | YAML manifests, dataset listing/info and validated source identities | Catalog growth and alias policy remain open |
+| Remote real data | Chunked NanoAOD reads, checksum receipts, range-aware Parquet cache and optional lumi certification | Full production-scale throughput and independent dataset samples remain unvalidated |
+| Event schema | v1 normalization, field-presence semantics and golden reader fixtures; NanoAOD emits columnar Awkward batches | Schema registry coverage and NanoAOD/DELPHES truth naming still need alignment |
+| Dimuon | Weighted candidate selection, cutflows, histograms and provenance | Efficiency, trigger and systematic models remain limited |
+| Fitting | CPU fits using iminuit and SciPy template models | zfit/JAX backends are proposed only; fit acceptance remains workflow-specific |
+| Closure | Data/MC comparison reports with explicit source and selection provenance | No general calibrated detector-response claim |
+| Simulation | Declared analytic fixtures, constrained transport/material models and PYTHIA8/DELPHES container glue | End-to-end physics validation and calibrated response are incomplete |
+| Rust | Locked PyO3 physics core with parity tests and composite trajectory operation | Reference/parity backend; no general speedup claim, JSON-per-operation FFI remains |
+| Server | FastAPI routes, job submission, workbench and constrained data workspace | Full remote collaboration, calibrated detector response, and WSL runtime discovery remain scoped |
+| Packaging/CI | Locked Python wheel, 3-OS kernel-backed tests, frozen desktop sidecar, Windows/Linux/macOS bundle workflows and .NET site checks | Desktop signing/notarization and hosted release automation remain separate gates |
 
 ## Defects and release blockers
 

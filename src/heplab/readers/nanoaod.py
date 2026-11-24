@@ -38,6 +38,15 @@ BRANCHES = (
     "MET_phi",
 )
 REQUIRED = ("run", "luminosityBlock", "event", "Muon_pt", "Muon_eta", "Muon_phi", "Muon_charge")
+GENPART_BRANCHES = (
+    "GenPart_pt",
+    "GenPart_eta",
+    "GenPart_phi",
+    "GenPart_mass",
+    "GenPart_pdgId",
+    "GenPart_status",
+    "GenPart_genPartIdxMother",
+)
 
 
 def _value(entry, name, default=None):
@@ -138,6 +147,119 @@ def normalize_entry(entry: Any, is_data: bool = True) -> dict:
     return result
 
 
+def normalize_chunk(arrays: Any, *, is_data: bool, source_id: str, entry_start: int):
+    """Normalize one Awkward batch without constructing event/object dictionaries."""
+    import awkward as ak
+    import numpy as np
+
+    fields = set(arrays.fields)
+    count = len(arrays)
+
+    def scalar(name, default=None):
+        if name in fields:
+            return arrays[name]
+        if default is None:
+            return ak.Array([None] * count)
+        return np.full(count, default)
+
+    def collection(prefix, specs):
+        pt_name = f"{prefix}_pt"
+        if pt_name not in fields:
+            return ak.Array([None] * count)
+        pt = arrays[pt_name]
+        values = {"pt": pt}
+        for field, native, default in specs:
+            name = f"{prefix}_{native}"
+            if name in fields:
+                column = arrays[name]
+                if not bool(ak.all(ak.num(column, axis=1) == ak.num(pt, axis=1))):
+                    raise ValueError(f"{prefix}.{field} shape does not match pt")
+            elif default is None:
+                index = ak.local_index(pt, axis=1)
+                column = ak.mask(index, ak.zeros_like(index, dtype=bool))
+            else:
+                column = ak.full_like(pt, default)
+            values[field] = column
+        values["object_id"] = ak.local_index(pt, axis=1)
+        return ak.zip(values, depth_limit=2)
+
+    triggers = sorted(name for name in fields if name.startswith("HLT_"))
+    fired = (
+        np.column_stack([ak.to_numpy(arrays[name]) for name in triggers]).astype(bool, copy=False)
+        if triggers
+        else np.empty((count, 0), dtype=bool)
+    )
+    trigger_names = np.broadcast_to(np.asarray(triggers, dtype=str), fired.shape)
+    info = ak.zip(
+        {
+            "run": ak.values_astype(scalar("run"), np.int64),
+            "luminosity_block": ak.values_astype(scalar("luminosityBlock"), np.int64),
+            "event": ak.values_astype(scalar("event"), np.int64),
+            "is_data": np.full(count, is_data),
+            "weight": np.ones(count) if is_data else arrays["genWeight"],
+            "source_id": np.full(count, source_id),
+            "source_entry": np.arange(entry_start, entry_start + count, dtype=np.int64),
+        },
+        depth_limit=1,
+    )
+    common = [(key, key, None) for key in ("pt", "eta", "phi", "mass", "charge")]
+    result = {
+        "EventInfo": info,
+        "Muon": collection(
+            "Muon", common + [("iso", "pfRelIso04_all", None), ("quality_flags", "tightId", None)]
+        ),
+        "Electron": collection(
+            "Electron",
+            common + [("iso", "pfRelIso03_all", None), ("quality_flags", "cutBased", None)],
+        ),
+        "Photon": collection(
+            "Photon",
+            [(key, key, None) for key in ("pt", "eta", "phi", "mass")]
+            + [("iso", "pfRelIso03_all", None), ("has_pixel_seed", "pixelSeed", None)],
+        ),
+        "Jet": collection(
+            "Jet",
+            [(key, key, None) for key in ("pt", "eta", "phi", "mass")]
+            + [("btag", "btagDeepB", None)],
+        ),
+        "MET": ak.zip({"pt": scalar("MET_pt"), "phi": scalar("MET_phi")}, depth_limit=1),
+        "Trigger": ak.zip(
+            {
+                "names": ak.Array(trigger_names),
+                "fired": ak.Array(fired),
+                "source": np.full(count, "recorded"),
+            },
+            depth_limit=1,
+        ),
+        "Definitions": ak.zip(
+            {
+                "muon_iso": np.full(count, "cms_pfRelIso04"),
+                "muon_id": np.full(count, "cms_tightId"),
+                "photon_pixel_seed": np.full(count, "cms_pixelSeed"),
+                "jet_btag": np.full(count, "cms_DeepB"),
+            },
+            depth_limit=1,
+        ),
+    }
+    if "GenPart_pt" in fields:
+        result["GenParticle"] = collection(
+            "GenPart",
+            [
+                (key, native, None)
+                for key, native in (
+                    ("pt", "pt"),
+                    ("eta", "eta"),
+                    ("phi", "phi"),
+                    ("mass", "mass"),
+                    ("pdg_id", "pdgId"),
+                    ("status", "status"),
+                    ("parent_idx", "genPartIdxMother"),
+                )
+            ],
+        )
+    return ak.zip(result, depth_limit=1)
+
+
 def read(
     source: Any,
     *,
@@ -166,7 +288,7 @@ def read(
             if "genWeight" not in available:
                 raise ValueError("simulation source has no genWeight")
             requested.add("genWeight")
-            requested.update(name for name in available if name.startswith("GenPart_"))
+            requested.update(name for name in GENPART_BRANCHES if name in available)
         index = entry_start
         for arrays in native.iterate(
             sorted(requested & available),
@@ -175,8 +297,11 @@ def read(
             step_size=100_000,
             library="ak",
         ):
-            for entry in arrays:
-                event = normalize_entry(entry, is_data=is_data)
-                event["EventInfo"].update(source_id=source_id, source_entry=index)
-                index += 1
-                yield event
+            yield normalize_chunk(arrays, is_data=is_data, source_id=source_id, entry_start=index)
+            index += len(arrays)
+
+
+def read_events(*args, **kwargs):
+    """Compatibility adapter for consumers that require schema-v1 event dictionaries."""
+    for chunk in read(*args, **kwargs):
+        yield from chunk.to_list()

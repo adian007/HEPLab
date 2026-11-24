@@ -1,7 +1,8 @@
 import json
 
-from heplab.analyses.dimuon.run import invariant_mass, process
+from heplab.analyses.dimuon.run import process
 from heplab.cli import main
+from heplab.physics import invariant_mass
 
 
 def _event(number, charge, phi):

@@ -8,6 +8,20 @@
     "rust": "1.99.1",
     "native_host": "Ubuntu via WSL, x86_64-unknown-linux-gnu"
   },
+  "native_desktop_rebuild": {
+    "date": "2026-11-23",
+    "status": "verified_native_shell_and_t0_vertical_slice",
+    "record": "native-desktop-rebuild-evidence.json",
+    "scope": "Windows x64 C++20/Qt 6 Debug and Release builds, Qt navigation tests, real JSON-lines worker IPC, invalid configuration, completed analytic artifact and cancellation.",
+    "project_lifecycle": "create, rename, open, save configuration, reopen configuration and run-history listing verified in native C++ project-store tests.",
+    "not_claimed": [
+      "Calibrated detector response",
+      "Physics validation",
+      "3D event rendering",
+      "Packaged worker independence",
+      "Windows signing or installer"
+    ]
+  },
   "verification": {
     "python_regressions": 86,
     "rust_unit_tests": 9,

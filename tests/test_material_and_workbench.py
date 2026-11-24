@@ -103,23 +103,17 @@ def test_digits_do_not_create_or_modify_transport_energy():
         assert value["saturated"] == (deposit > 0.255)
 
 
-def test_local_gui_job_lifecycle_token_origin_bounds_and_export(tmp_path):
+def test_local_api_job_lifecycle_token_origin_bounds_and_export(tmp_path):
     pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
     from heplab.server.app import create_app
 
     with TestClient(create_app(tmp_path), base_url="http://localhost") as client:
-        root = client.get("/")
-        assert root.status_code == 200
-        workbench = client.get("/workbench")
-        assert workbench.status_code == 200
-        assert "HEPLab Workbench" in workbench.text
-        assert client.get("/ui/workbench.js").status_code == 200
-        assert client.get("/ui/workbench.js").headers["cache-control"] == "no-store"
-        assert client.get("/ui/../app.py").status_code == 404
+        assert client.get("/workbench").status_code == 404
+        assert client.get("/ui/workbench.js").status_code == 404
         assert client.post("/api/v1/jobs", json={}).status_code == 403
-        headers = {"x-heplab-token": client.get("/api/v1/session").json()["token"]}
+        headers = {"x-heplab-token": client.get("/api/v1/session?include_simulation=false").json()["token"]}
         assert (
             client.post(
                 "/api/v1/jobs", json={}, headers={**headers, "origin": "https://bad.example"}
@@ -187,7 +181,7 @@ def test_native_commit_wins_over_late_cancellation(tmp_path, monkeypatch):
 
     monkeypatch.setattr("heplab.sim.pipeline.run_chain", committed_run)
     monkeypatch.setattr(
-        "heplab.readers.delphes.read",
+        "heplab.readers.delphes.read_events",
         lambda *_args, **_kwargs: iter(
             [{"EventInfo": {"weight": 1.0}, "Muon": [], "Jet": [], "MET": {"pt": None}}]
         ),
@@ -204,3 +198,34 @@ def test_native_commit_wins_over_late_cancellation(tmp_path, monkeypatch):
         assert (tmp_path / f"{identity}.json").is_file()
     finally:
         jobs.close()
+
+
+def test_collision_display_keeps_truth_tracks_and_reconstructed_objects_separate():
+    from heplab.server.workbench import collision_display
+
+    truth = {
+        "object_id": 0, "status": 1, "pdg_id": 211, "charge": 1,
+        "pt": 2.0, "energy": 2.01, "px": 2.0, "py": 0.0, "pz": 0.0,
+        "x_mm": 0.2, "y_mm": 0.0, "z_mm": 0.0,
+    }
+    native = {
+        "Truth": [
+            truth,
+            {**truth, "object_id": 1, "pdg_id": -211, "charge": -1},
+            {**truth, "object_id": 2, "pdg_id": 22, "charge": 0},
+            {**truth, "object_id": 3, "status": 2},
+        ],
+        "Muon": [{"object_id": 0, "pt": 42.0, "eta": 0.1, "phi": 0.2, "charge": -1}],
+        "Jet": [{"object_id": 0, "pt": 35.0, "eta": -0.4, "phi": 1.2}],
+    }
+    event = collision_display(native, 4, model_ids=["test"])
+    assert event["event"] == 4
+    assert len(event["tracks"]) == 5
+    first, second, photon, muon, jet = event["tracks"]
+    assert first["points"][0] == pytest.approx([0.0002, 0, 0])
+    assert first["points"] != second["points"]
+    assert first["object_kind"] == second["object_kind"] == "generated"
+    assert photon["points"] == muon["points"] == jet["points"] == []
+    assert muon["detector"]["collection"] == "Muon"
+    assert jet["detector"]["collection"] == "Jet"
+    assert [item["object_id"] for item in event["tracks"]] == list(range(5))

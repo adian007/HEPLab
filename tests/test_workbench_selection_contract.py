@@ -15,15 +15,21 @@ def test_preflight_names_the_selected_source_field_and_response_models():
 
 
 def test_selection_identity_is_typed_and_only_muons_highlight_trajectories():
-    source = WORKBENCH.read_text(encoding="utf-8")
-    assert "selected=track?{kind:'muon',event_id:selectionEventId(),object_id:id}:null" in source
-    assert "selected={kind:`nanoaod:${group}`,event_id:selectionEventId()" in source
-    assert (
-        "function selectedTrackId(){return selected?.kind==='muon'?selected.object_id:null;}"
-        in source
+    header = (WORKBENCH.parents[4] / "desktop" / "src" / "MainWindow.h").read_text(
+        encoding="utf-8"
     )
-    assert "selected:selectedTrackId()" in source
-    assert "not shown as a trajectory" in source
+    implementation = (
+        WORKBENCH.parents[4] / "desktop" / "src" / "MainWindow.cpp"
+    ).read_text(encoding="utf-8")
+    xy = (
+        WORKBENCH.parents[4] / "desktop" / "src" / "EventProjectionWidget.cpp"
+    ).read_text(encoding="utf-8")
+    assert "selectInspectorObject(int objectId)" in header
+    assert "xyProjection_->setSelectedObjectId(objectId)" in implementation
+    assert "xzProjection_->setSelectedObjectId(objectId)" in implementation
+    assert "detector3D_->setSelectedObjectId(objectId)" in implementation
+    assert "emit objectSelected(closestObject)" in xy
+    assert "crossings are not measured hits" in implementation
 
 
 def test_workbench_comparison_exports_provenance_and_plots_define_uncertainty():
@@ -45,12 +51,13 @@ def test_workbench_comparison_exports_provenance_and_plots_define_uncertainty():
 
 
 def test_narrow_window_layout_is_reachable_in_the_packaged_desktop_config():
-    config = json.loads(
-        (Path(__file__).parents[1] / "desktop" / "src-tauri" / "tauri.conf.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    assert config["app"]["windows"][0]["minWidth"] == 800
+    cmake = (Path(__file__).parents[1] / "CMakeLists.txt").read_text(encoding="utf-8")
+    window = (
+        Path(__file__).parents[1] / "desktop" / "src" / "MainWindow.cpp"
+    ).read_text(encoding="utf-8")
+    assert "find_package(Qt6" in cmake
+    assert "resize(1280, 820)" in window
+    assert "navigation->setFixedWidth(220)" in window
 
 
 def test_advanced_setup_is_collapsible_with_mode_aware_corrective_errors():

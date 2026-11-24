@@ -1,5 +1,7 @@
 # Desktop research workbench — Phase 0 baseline
 
+This historical audit describes the retired browser and Tauri Workbenches. Its browser probes require the historical checkout.
+
 Status: **Phase 0 complete; awaiting user confirmation before Phase 1.**
 The application remains an educational, unvalidated workbench.
 

@@ -67,8 +67,21 @@ def test_remote_digest_is_cached_without_downloading_file(tmp_path, monkeypatch)
     assert (
         xrootd._verify_source(url, declared, len(payload), source_id, cache=True) == "remote_digest"
     )
-    assert calls == ["HEAD", "HEAD"]
+    assert calls == ["HEAD"]
     assert source_integrity_record(source_id, declared, len(payload))["verified"] is True
+
+
+def test_local_source_is_rechecked_even_with_receipt(tmp_path, monkeypatch):
+    monkeypatch.setenv("HEPLAB_CACHE_DIR", str(tmp_path / "cache"))
+    source = tmp_path / "source.root"
+    original = b"first local version"
+    source.write_bytes(original)
+    declared = {"algorithm": "adler32", "value": f"{zlib.adler32(original):08x}"}
+    source_id = config_hash({"url": str(source), "declared": declared})
+    xrootd._verify_source(str(source), declared, len(original), source_id, cache=True)
+    source.write_bytes(b"other local version")
+    with pytest.raises(ValueError, match="adler32 mismatch"):
+        xrootd._verify_source(str(source), declared, len(original), source_id, cache=True)
 
 
 def test_remote_checksum_stream_fallback_and_retry_backoff(monkeypatch):

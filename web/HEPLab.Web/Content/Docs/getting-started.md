@@ -3,33 +3,29 @@ title: Getting started
 description: Install HEPLab and start the local workbench or analysis command line.
 ---
 
-HEPLab requires Python 3.12 or newer. The guide runs as an ASP.NET Core web app; simulator execution remains in the separate local Python workbench.
+HEPLab requires Python 3.12 or newer. The guide runs as an ASP.NET Core web app; simulator execution remains in the native Qt Workbench, which uses a local Python worker.
 
 ## Install the project
 
 From a checkout of the repository:
 
 ```sh
-python -m pip install -e '.[analysis,serve]'
+python -m pip install -e '.[analysis]'
 ```
 
-This installs the local GUI/API and the analysis dependencies. You can use the package without the optional analysis stack for core CLI work.
+This installs the Python worker and analysis dependencies. You can use the package without the optional analysis stack for core CLI work.
 
 ## Open the workbench
 
-```sh
-heplab gui --open-browser
-```
-
-On Windows, the supported project launcher configures the available WSL runtimes before opening the workbench:
+Build the native Workbench from the repository root with a configured C++20, Qt 6, and Ninja toolchain, then start it.
 
 ```powershell
+cmake --preset windows-ninja-release
+cmake --build --preset windows-ninja-release
 .\tools\start_workbench.ps1
 ```
 
-The workbench shows which engines are available on the current machine. The reference bench is portable. PYTHIA8 and DELPHES require the pinned Linux/WSL runtime; the project does not distribute native Windows or macOS simulation binaries.
-
-For a first local experiment, choose **Magnetic bending bench**, **Muon survival experiment**, or **Silicon mean loss and channel bench** from the starter cards. These use synthetic or declared inputs. The lifetime card opens the separate fixed-momentum survival form; its altitude option is straight-path geometry only. Save setup exports the versioned grouped configuration. Review the model scope before running and export a result to inspect its provenance offline.
+In **Simulation**, choose the Python reference engine for a first run. Open **Event Inspector** to inspect the resulting tracks.
 
 ## Use the analysis CLI
 

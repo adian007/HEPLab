@@ -377,7 +377,7 @@ def _check_select(lab: Lab, config: Any) -> Feedback:
 
 
 def _check_mass(lab: Lab, value: Any) -> Feedback:
-    from ..analyses.dimuon.run import invariant_mass
+    from ..physics import invariant_mass
 
     if lab._events is None:
         return Feedback("mass", False, "Complete the 'load' step first so the event is known.")

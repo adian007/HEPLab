@@ -39,5 +39,8 @@ design proposals; their descriptions do not establish implementation status.
 | ADR | Title | Status |
 |---|---|---|
 | [0011](0011-rust-engine-and-verifiable-contracts.md) | Rust fast-simulation engine and verifiable contracts | Accepted for design |
+| [0012](0012-cpp20-qt6-native-workbench.md) | C++20 and Qt 6 native Workbench | Accepted |
+| [0013](0013-local-worker-and-native-state.md) | Local worker process and native application state | Accepted |
+| [0014](0014-native-opengl-event-3d.md) | Native Qt OpenGL Event Inspector 3D | Accepted |
 
 See [TEMPLATE.md](TEMPLATE.md). Filename convention: `NNNN-short-title.md` (next number = highest existing + 1).

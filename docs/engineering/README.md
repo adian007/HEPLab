@@ -8,6 +8,8 @@ baseline observations where this increment supersedes them.
 
 Current work follows the [CMS, laboratory and desktop completion plan](completion-plan.md)
 and [CMS export/calibration workflow](cms-export-workflow.md).
+The [Run 2 Z → μμ validation benchmark specification](run2-z-validation.md)
+defines the proposed data, full-simulation control, and fast-simulation checks.
 The cross-product execution sequence, desktop-only simulator boundary, public
 website track, Workbench UX redesign and risk register are in the
 [detailed implementation roadmap](implementation-roadmap.md).
@@ -33,6 +35,7 @@ This handbook defines the target system and the checks required to trust it. It 
 | [10 Statistics](10-statistics.md) | Weighted yields, normalized likelihoods, nuisance models, closure and coverage |
 | [11 Execution](11-execution.md) | Run state machine, cancellation, resume, DAG, deterministic merging |
 | [12 Interfaces](12-interfaces.md) | Python/CLI/API/dashboard contracts, bounded event display, errors |
+| [Learning platform](learning-platform.md) | Website, desktop and Jupyter architecture and offline Z-boson workflow |
 | [13 Preservation and trust](13-preservation-and-trust.md) | Provenance, artifact identity, sandboxing, dependency licenses and releases |
 | [14 Verification](14-verification.md) | Invariants, independent oracles, adversarial fixtures, physics acceptance |
 | [15 Performance](15-performance.md) | Work budgets, vectorization, bounded memory, benchmarks and optional GPU |

@@ -19,20 +19,20 @@ flowchart TD
 
     subgraph SRC["src/heplab — Python 3.12 core"]
         direction TB
-        SCHEMA["schema/ — event model v1<br/>(keystone, ADR-0003)"]
+        SCHEMA["schema/ — event model v1<br/>(ADR-0003)"]
         IO["io/ — fetch · cache · provenance"]
         READERS["readers/ — nanoaod · aod · delphes"]
         PROC["processors/ — coffea + numba"]
         ANALYSES["analyses/ — dimuon A1 · …"]
-        STATS["stats/ — zfit · iminuit · JAX"]
+        STATS["stats/ — SciPy · iminuit"]
         SIM["sim/ — PYTHIA8 · DELPHES glue"]
-        SERVER["server/ — FastAPI dashboard"]
+        SERVER["server/ — FastAPI API"]
         CLI["cli.py"]
     end
 
-    K["kernels/ — Rust · PyO3 · maturin (Tier 1, ADR-0010)"]
+    K["kernels/ — Rust · PyO3 · maturin (parity backend, ADR-0010)"]
     M["manifests/ — dataset catalog · YAML"]
-    T["tests/ — pytest (stdlib-only in P0)"]
+    T["tests/ — pytest · numeric oracles · Rust parity"]
     DEP["deploy/ — Dockerfile · heplab-base"]
     CI[".github/workflows/ — CI · YAML"]
     NB["notebooks/ — Jupyter gallery"]
@@ -42,14 +42,14 @@ flowchart TD
     ROOT --> K & M & T & DEP & CI & NB & DOC
 
     classDef python fill:#3776ab,stroke:#1d4f7c,color:#fff;
-    classDef pythonStub fill:#3776ab,stroke:#1d4f7c,color:#fff,stroke-dasharray:5 5;
     classDef rust fill:#dea584,stroke:#b3551d,color:#3b2107;
     classDef yaml fill:#6b8e23,stroke:#4f6a19,color:#fff;
     classDef docker fill:#1d63ed,stroke:#0f3d99,color:#fff;
     classDef md fill:#8a8f98,stroke:#5c6066,color:#fff;
 
     class SCHEMA,IO,CLI python
-    class READERS,PROC,ANALYSES,STATS,SIM,SERVER pythonStub
+    class READERS,ANALYSES,STATS,SIM,SERVER python
+    class PROC pythonStub
     class K rust
     class M,CI yaml
     class DEP docker
@@ -99,7 +99,7 @@ or read the linked Markdown directly.
 
 ## The language stack in one line
 
-Python 3.12 shell (API/CLI/processors/stats) · **Rust** kernels via PyO3 (Tier 1, profile-first) · **JAX** GPU fitting behind zfit/iminuit (Tier 2) · **C++** simulators (PYTHIA8/DELPHES) in containers · **Mojo** pilot lane · YAML manifests/configs · Docker images. Details and governance rules: [ADR-0010](docs/adr/0010-polyglot-compute-strategy.md).
+Python 3.12 shell (API/CLI/processors/stats) · **Rust** kernels via PyO3 as parity-tested reference backends (no general speedup is claimed) · **C++** simulators (PYTHIA8/DELPHES) in containers · YAML manifests/configs · Docker images. Details and governance rules: [ADR-0010](docs/adr/0010-polyglot-compute-strategy.md).
 
 ## Roadmap
 
@@ -111,34 +111,25 @@ Apache-2.0 — see [LICENSE](LICENSE). CERN Open Data is consumed per-record ter
 
 ## Which HEPLab app should I open?
 
-HEPLab has one physics workbench with two launch surfaces, plus a separate
-project guide. The desktop shell packages the workbench; it does not implement a
-second simulator.
+**HEPLab Workbench** is a native C++20/Qt 6 desktop rebuild currently in
+progress. The previous Tauri/WebView implementation is deliberately not present
+in this checkout and must not be treated as restored or supported.
 
 | If you want to… | Open / run | What it is |
 | --- | --- | --- |
-| Run and inspect physics events | `heplab gui --open-browser` | The Python workbench. Its UI source is `src/heplab/server/static`; the local server and simulations live under `src/heplab`. |
-| Use the installed desktop app | Launch **HEPLab Workbench** | Tauri shell in `desktop/src-tauri`, which prepares a copy of the same UI from `src/heplab/server/static`. |
-| Read the project guide and evidence | `dotnet run --project web/HEPLab.Web` | The ASP.NET Core guide. Its embedded event view uses a fixed teaching fixture and does not run workbench simulations. |
+| Run the verified native physics shell | `HEPLabWorkbench.exe` | Native Qt desktop app under `desktop/`, backed by a local Python worker. |
+| Read the project guide and evidence | `dotnet run --project web/HEPLab.Web` | The ASP.NET Core website. |
 | Build the engineering handbook | `mkdocs build --strict` | The handbook is authored under `docs/engineering`; `site/` is generated output. |
-| Inspect the earlier project-site version | `legacy/web-vite/README.md` | Archived React + Vite source, preserved for reference and separate from both active apps. |
 
-The former React + Vite project site is preserved under `legacy/web-vite` for
-reference. The active project guide is `web/HEPLab.Web`; it is separate from the
-Python/Tauri workbench. Existing `web/.astro`, `web/dist`, and `web/node_modules`
-directories are generated leftovers, not the source of either active app.
-The workbench and Python worker identify as `0.1.0.dev0`; Tauri uses the
-cross-platform SemVer `0.1.0+dev.0`, with a numeric `0.1.0.0` Windows MSI
-version. Desktop CI artifacts remain marked as
-development builds and are not published releases.
+Desktop status, verified capabilities and release blockers are recorded in
+[the rebuild audit](docs/engineering/desktop-rebuild-audit.md).
 
 ## Simulator workspace
 
-Install `pip install -e '.[analysis,serve]'`, then run `heplab gui --open-browser`.
-The local application provides numeric properties, a model tree, linked particle
-inspection, XY/XZ/3D views, event navigation, Run/Stop controls, and result export.
-On this Windows/WSL checkout, `.\tools\start_workbench.ps1` configures the installed
-Rust and native simulation runtimes before opening the GUI.
+The Workbench starts in **Simulation**. Choose an experiment or configure a run,
+then use **Inspect an event** for XY/XZ/3D views and **Validation** for reference
+evidence. Open **CMS data** for recorded datasets and **Z-boson lab** for the
+offline lesson.
 
 See the [runtime installation and native acceptance guide](docs/engineering/sim-runtime.md),
 [material model domains](docs/engineering/material-response.md), and
@@ -149,7 +140,7 @@ in Omniverse on NVIDIA machines) — see [USD event display export](docs/enginee
 
 ## Open-source website and application architecture
 
-The public project guide is an ASP.NET Core Razor Pages app targeting .NET 10. Run it locally with `dotnet run --project web/HEPLab.Web`; the Workbench is a separate local application available through the desktop app or `heplab gui`.
+The public project guide is an ASP.NET Core Razor Pages app targeting .NET 10. Run it locally with `dotnet run --project web/HEPLab.Web`; the Workbench is a separate local application available as the native Qt desktop app.
 The reference and Rust bench are educational; the native collision backend is a
 pinned generator/card workflow, not a validated cross-section or CMS detector model.
 

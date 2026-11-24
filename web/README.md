@@ -7,11 +7,9 @@ search index endpoint, guided lab, and result gallery. Static assets and the
 offline examples are under `HEPLab.Web/wwwroot`.
 
 The shared UI uses Bootstrap 5.3.8, locally hosted IBM Plex Sans/Mono fonts, C#
-Tag Helpers, and reusable Razor partials. The home event preview renders the
-versioned synthetic muon fixture in an interactive perspective view. It shows
-fixture 3D coordinates, declared detector surfaces, the +z field direction,
-and the zero-field continuation outside the ideal 3 m bore. It runs no new
-simulation and does not imply measured CMS data.
+Tag Helpers, and reusable Razor partials. The homepage links to simulation,
+data analysis, the learning lab, and scientific evidence. The downloadable
+synthetic muon fixture is available separately on the education page.
 The lab and gallery are Razor components embedded in the authored guide. Asset
 versions, licenses, and file hashes are recorded under `wwwroot/vendor/`.
 
@@ -43,9 +41,10 @@ host. This is no longer a static-only site.
 
 CI runs `tools/check_site_runtime.py` against both the Release build and publish
 output in Production. The check requests all 19 indexed pages, checks internal
-links and anchors, verifies unique IDs and one page heading, checks the preview's
-field and curvature conventions against the fixture record, and verifies asset MIME types and exact
-source bytes with identity and gzip requests. It follows fingerprinted asset
+links and anchors, verifies unique IDs and one page heading, checks the homepage
+pathways and the standalone fixture's field and curvature conventions, and
+verifies asset MIME types and exact source bytes with identity and gzip
+requests. It follows fingerprinted asset
 names through the .NET manifest and checks the fonts and vendor hashes.
 To reproduce it locally:
 

@@ -10,6 +10,8 @@ use crate::{finite, propagate_uniform_bz, require, Result, TrackState};
 use serde::Deserialize;
 use serde_json::{json, Value};
 
+const MAX_SURFACES: usize = 128;
+
 #[derive(Debug, Deserialize)]
 pub struct NamedSurface {
     pub id: String,
@@ -37,6 +39,10 @@ pub fn trajectory(request: TrajectoryRequest) -> Result<Value> {
         step_m,
     } = request;
     finite(&[bz_tesla, max_path_m, step_m])?;
+    require(
+        surfaces.len() + exit_surfaces.len() <= MAX_SURFACES,
+        "trajectory surface-count budget exceeded",
+    )?;
     require(
         !surfaces.is_empty() && !exit_surfaces.is_empty(),
         "trajectory requires nonempty surface lists",
@@ -231,5 +237,26 @@ mod tests {
             step_m: 0.4,
         };
         assert!(trajectory(request).is_err());
+    }
+
+    #[test]
+    fn trajectory_rejects_excess_surface_count_before_intersections() {
+        let request = TrajectoryRequest {
+            state: state(10.0, 0.0, 1.0, 1.0),
+            surfaces: (0..=MAX_SURFACES)
+                .map(|index| NamedSurface {
+                    id: format!("surface-{index}"),
+                    surface: Surface::Cylinder {
+                        radius_m: 1.0,
+                        half_length_m: 2.0,
+                    },
+                })
+                .collect(),
+            exit_surfaces: exit_surfaces(),
+            bz_tesla: 3.8,
+            max_path_m: 16.0,
+            step_m: 0.05,
+        };
+        assert!(trajectory(request).unwrap_err().0.contains("surface-count"));
     }
 }

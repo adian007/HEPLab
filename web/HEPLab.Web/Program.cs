@@ -18,6 +18,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStatusCodePagesWithReExecute("/not-found");
 app.MapGet("/search-index.json", (SiteContentService content) => Results.Json(content.SearchIndex));
+app.MapGet("/downloads/z-boson.ipynb", () => Results.File(
+    Path.Combine(AppContext.BaseDirectory, "Downloads", "z-boson.ipynb"),
+    "application/x-ipynb+json", "z-boson.ipynb"));
 app.MapStaticAssets();
 app.MapRazorPages().WithStaticAssets();
 

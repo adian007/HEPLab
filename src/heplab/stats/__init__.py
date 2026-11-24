@@ -1,7 +1,5 @@
-"""Statistics layer: fits and systematics (ADR-0007, ADR-0010 Tier 2).
+"""Statistics layer: CPU fits and systematics helpers (ADR-0007).
 
-- ``zfit`` + ``iminuit`` is the stable fitting API.
-- A JAX backend provides likelihood autodiff, GPU fits, and large toy-MC
-  systematics ensembles (the dominant compute cost of honest systematics).
-  It sits *behind* the same API — see ``heplab.stats.fits``.
+The implemented fit APIs use SciPy and iminuit. zfit/JAX integration remains a
+future option and is intentionally not included in the install extras.
 """

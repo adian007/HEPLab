@@ -54,9 +54,9 @@ flowchart TB
     end
 
     subgraph processing["Analysis layer"]
-        PROC["Coffea processors\nselections, cutflows, histograms (hist)"]
+        PROC["Coffea processors\nselections, cutflows, weighted histogram core"]
         DASK["Dask local scheduler\n(thread/process pool, optional distributed)"]
-        FIT["Stats layer\niminuit + zfit unbinned fits,\nsystematics skeleton"]
+        FIT["Stats layer\nSciPy + iminuit CPU fits,\nsystematics skeleton"]
     end
 
     subgraph sim["Simulation layer (ADR-0004/0005)"]
@@ -188,7 +188,7 @@ result = analyses.dimuon.run(ds, config="configs/dimuon.yaml")
 | Layer | Choice | Rationale / ADR |
 |---|---|---|
 | Language | Python 3.12 | ecosystem + teaching (ADR-0001) |
-| Kernel layer *(proposed)* | numba baseline; Rust via PyO3 for profiled hot paths | safe parallel kernels, invisible to users (ADR-0010) |
+| Kernel layer | Python reference plus parity-tested Rust/PyO3 backend | numerical cross-checks; no general speedup claim, JSON FFI remains (ADR-0010) |
 | GPU/autodiff *(proposed)* | JAX backend behind zfit/iminuit API | GPU fits + toy-MC systematics ensembles (ADR-0010) |
 | Event I/O | uproot + awkward-array | pure-Python ROOT reading (ADR-0001) |
 | Parallelism | coffea processors + Dask | columnar chunk processing (ADR-0006) |
@@ -196,8 +196,8 @@ result = analyses.dimuon.run(ds, config="configs/dimuon.yaml")
 | Data access | XRootD + parquet cache | stream, don't hoard (ADR-0002) |
 | Detector sim | DELPHES (CMS card) | fast, configurable (ADR-0004) |
 | Generator | PYTHIA8 (+ LHAPDF); MadGraph5 optional | standard shower; hard processes (ADR-0005) |
-| Statistics | iminuit + zfit; pyhf later | unbinned fits, templates (ADR-0007) |
-| Plots | hist + mplhep | HEP-styled, artifact-ready (ADR-0001) |
+| Statistics | SciPy + iminuit; zfit is proposed, pyhf later | CPU fits, templates (ADR-0007) |
+| Plots | Matplotlib + mplhep | HEP-styled, artifact-ready (ADR-0001) |
 | Serving | FastAPI + Plotly + three.js viewer | light, local (ADR-0009) |
 | Packaging | uv, Docker multi-stage, ghcr images | reproducibility (ADR-0008) |
 | CI/CD | GitHub Actions | lint, types, tests, micro-closure (ADR-0008) |
