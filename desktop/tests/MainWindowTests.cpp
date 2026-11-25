@@ -9,6 +9,7 @@
 #include <QAction>
 #include <QComboBox>
 #include <QSettings>
+#include <QScreen>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -176,11 +177,18 @@ private slots:
 
         const auto capturePath = qEnvironmentVariable("HEPLAB_WORKSPACE_CAPTURES");
         if (!capturePath.isEmpty()) QVERIFY(QDir().mkpath(capturePath));
+        // Keep both resize targets inside the desktop, including on the CI virtual monitor.
+        const QSize frameMargins = window.frameSize() - window.size();
+        const QSize available = window.screen()->availableGeometry().size() - frameMargins;
+        const QSize wide = QSize(1280, 820).boundedTo(available);
+        const QSize compact = QSize(1024, 720).boundedTo(wide - QSize(32, 32))
+            .expandedTo(window.minimumSizeHint());
+        QVERIFY(compact.width() < wide.width() && compact.height() < wide.height());
         const QStringList filenames{"projects", "simulation", "event-inspector",
             "cms-open-data", "runs-comparisons", "validation", "learn-heplab"};
         for (int index = 0; index < pages->count(); ++index) {
             navigation->setCurrentRow(index);
-            for (const QSize size : {QSize(1024, 720), QSize(1280, 820)}) {
+            for (const QSize size : {compact, wide}) {
                 window.resize(size);
                 QCoreApplication::processEvents();
                 QCOMPARE(pages->currentIndex(), index);
