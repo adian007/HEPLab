@@ -1,120 +1,79 @@
-# M7 desktop build matrix: native build and smoke test on each OS/CPU.
-# Produces unsigned bundles. Signing/notarization (DESKTOP-005) needs release
-# credentials and is a separate gate; nothing here publishes a release.
+# Build and test the native Workbench from a source checkout.
 name: Desktop
 
 on:
   push:
-    branches: [main]
-    paths: ["desktop/**", "src/heplab/**", "kernels/**", "pyproject.toml", "rust-toolchain.toml", ".github/workflows/desktop.yml"]
+    branches: [main, codex/windows-portable-smoke]
   pull_request:
-    paths: ["desktop/**", "src/heplab/**", "kernels/**", "pyproject.toml", "rust-toolchain.toml", ".github/workflows/desktop.yml"]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: windows-x86_64
-            runner: windows-latest
-            triple: x86_64-pc-windows-msvc
-            bundles: nsis,msi
-          - name: linux-x86_64
-            runner: ubuntu-22.04
-            triple: x86_64-unknown-linux-gnu
-            bundles: appimage,deb,rpm
-          - name: macos-intel-x86_64
-            runner: macos-15-intel
-            triple: x86_64-apple-darwin
-            bundles: app,dmg
-          - name: macos-apple-silicon-arm64
-            runner: macos-15
-            triple: aarch64-apple-darwin
-            bundles: app,dmg
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.runner }}
-    env:
-      CARGO_TERM_COLOR: always
+  windows:
+    name: Windows x64 Workbench
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
-      - name: Linux webview dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf rpm
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: rustup toolchain install 1.99.1 --profile minimal --component rustfmt,clippy
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ matrix.triple }}
-          workspaces: |
-            kernels
-            desktop/core
-            desktop/src-tauri
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.12.1"
           enable-cache: true
-      - name: Confirm native architecture
-        shell: bash
-        run: |
-          host=$(rustc -vV | sed -n 's/^host: //p')
-          echo "rust host $host, expected ${{ matrix.triple }}"
-          test "$host" = "${{ matrix.triple }}"
-      - name: Freeze and smoke-test the packaged worker
-        shell: bash
-        run: |
-          # Libraries come from uv.lock; build tools are pinned exactly, so a
-          # release bundle is rebuilt from the same inputs every time.
-          uv sync --locked --no-editable --no-dev --extra analysis --extra serve
-          # Later steps (IPC tests, Tauri's beforeBuildCommand) call plain `python`.
-          root=$PWD; bin=.venv/bin
-          [ "$RUNNER_OS" = "Windows" ] && root=$(pwd -W) && bin=.venv/Scripts
-          echo "$root/$bin" >> "$GITHUB_PATH"
-          echo "VIRTUAL_ENV=$root/.venv" >> "$GITHUB_ENV"
-          uv pip install "pyinstaller==6.22.3" "pyinstaller-hooks-contrib==2026.9" "maturin==1.16.0"
-          uv run --no-sync maturin build --release --locked --manifest-path kernels/Cargo.toml --out desktop/kernel-wheels
-          uv pip install --no-deps --find-links desktop/kernel-wheels heplab-kernels
-          uv run --no-sync python desktop/build_worker.py
-      - name: IPC core tests against source and frozen workers
-        shell: bash
-        env:
-          HEPLAB_TEST_PYTHON: python
-        run: |
-          suffix=""; [ "$RUNNER_OS" = "Windows" ] && suffix=".exe"
-          export HEPLAB_TEST_WORKER_BINARY="$PWD/desktop/src-tauri/worker/heplab-worker$suffix"
-          cargo fmt --manifest-path desktop/core/Cargo.toml --check
-          cargo clippy --locked --manifest-path desktop/core/Cargo.toml --all-targets -- -D warnings
-          cargo test --locked --manifest-path desktop/core/Cargo.toml
-      - uses: actions/setup-node@v4
+      - uses: jurplel/install-qt-action@v4
         with:
-          node-version: "24"
-      - name: Assemble the simulator workbench frontend
-        run: uv run --no-sync python desktop/prepare_frontend.py
-      - name: Check generated frontend freshness
-        run: uv run --no-sync python desktop/prepare_frontend.py --check
-      - name: Shell lint (needs the sidecar and frontend present)
-        run: cargo clippy --locked --manifest-path desktop/src-tauri/Cargo.toml -- -D warnings
-      - name: Build bundles
-        working-directory: desktop
-        run: npx --yes @tauri-apps/cli@2.12.4 build --ci --target ${{ matrix.triple }} --bundles ${{ matrix.bundles }}
-      - name: Record bundle hashes
-        shell: bash
+          version: "6.8.3"
+          arch: win64_msvc2022_64
+      - name: Install the locked Python worker environment
+        run: uv sync --locked --no-editable --no-dev --extra serve --extra analysis
+      - name: Configure the Workbench
+        run: >-
+          cmake -S . -B build/desktop-ci -G "Visual Studio 17 2022" -A x64
+          -DHEPLAB_BUILD_TESTS=ON "-DQt6_DIR=$env:QT_ROOT_DIR/lib/cmake/Qt6"
+      - name: Build the Workbench and native tests
+        run: cmake --build build/desktop-ci --config Release --parallel
+      - name: Test the Workbench and local worker
+        run: ctest --test-dir build/desktop-ci -C Release --output-on-failure --no-tests=error
+      - name: Build and install the worker's Rust extension
         run: |
-          out=desktop/src-tauri/target/${{ matrix.triple }}/release/bundle
-          find "$out" -type f \( -name '*.exe' -o -name '*.msi' -o -name '*.AppImage' -o -name '*.deb' -o -name '*.rpm' -o -name '*.dmg' \) -print0 \
-            | xargs -0 shasum -a 256 | tee bundle-sha256.txt
+          uvx --from "maturin==1.16.0" maturin build --release --locked --interpreter .venv/Scripts/python.exe --manifest-path kernels/Cargo.toml --out build/worker-wheels
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          uv pip install --no-deps --find-links build/worker-wheels heplab-kernels
+      - name: Stage the standalone Windows bundle
+        run: |
+          uv pip install "pyinstaller==6.22.3" "pyinstaller-hooks-contrib==2026.9"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .venv/Scripts/python.exe desktop/package_windows.py --exe build/desktop-ci/desktop/Release/HEPLabWorkbench.exe --qt-bin "$env:QT_ROOT_DIR/bin" --output build/HEPLabWorkbench-win-x64
+      - name: Stage the package verification kit
+        run: |
+          $kit = New-Item -ItemType Directory build/HEPLabWorkbench-smoke
+          Copy-Item desktop/verify_windows_package.ps1,build/desktop-ci/desktop/Release/heplab_desktop_tests.exe,"$env:QT_ROOT_DIR/bin/Qt6Test.dll" -Destination $kit.FullName
       - uses: actions/upload-artifact@v4
         with:
-          name: heplab-desktop-${{ matrix.name }}-unsigned
-          path: |
-            desktop/src-tauri/target/${{ matrix.triple }}/release/bundle
-            bundle-sha256.txt
+          name: HEPLabWorkbench-win-x64-unsigned
+          path: build/HEPLabWorkbench-win-x64/
           if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HEPLabWorkbench-win-x64-smoke
+          path: build/HEPLabWorkbench-smoke/
+          if-no-files-found: error
+
+  portable-smoke:
+    name: Windows x64 portable simulation
+    needs: windows
+    runs-on: windows-2022
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: HEPLabWorkbench-win-x64-unsigned
+          path: HEPLabWorkbench-win-x64
+      - uses: actions/download-artifact@v4
+        with:
+          name: HEPLabWorkbench-win-x64-smoke
+          path: HEPLabWorkbench-smoke
+      - name: Run a simulation from the relocated bundle
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./HEPLabWorkbench-smoke/verify_windows_package.ps1 -Bundle ./HEPLabWorkbench-win-x64

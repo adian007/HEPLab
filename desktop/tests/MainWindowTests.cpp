@@ -73,6 +73,38 @@ class MainWindowTests : public QObject {
     Q_OBJECT
 
 private slots:
+    void packagedAnalyticSimulation()
+    {
+        const QDir appDir(QCoreApplication::applicationDirPath());
+        if (!QFileInfo::exists(appDir.filePath("worker/heplab-worker.exe"))) {
+            QSKIP("Run this scenario from the Windows package smoke kit.");
+        }
+        QTemporaryDir projects;
+        QVERIFY(projects.isValid());
+        heplab::MainWindow window(nullptr, projects.path());
+        window.show();
+        auto* navigation = window.findChild<QListWidget*>("mainNavigation");
+        auto* run = window.findChild<QPushButton*>("runExperiment");
+        auto* particles = window.findChild<QTableWidget*>("eventParticles");
+        QVERIFY(navigation && run && particles);
+        navigation->setCurrentRow(1);
+        QTRY_VERIFY_WITH_TIMEOUT(run->isEnabled(), 30000);
+        QTest::mouseClick(run, Qt::LeftButton);
+        QTRY_COMPARE_WITH_TIMEOUT(navigation->currentRow(), 2, 30000);
+        QTRY_COMPARE(particles->rowCount(), 2);
+
+        const ProjectStore store(projects.path());
+        const QDir artifacts(store.activeProjectRoot() + "/artifacts");
+        const QStringList results = artifacts.entryList({"*.json"}, QDir::Files);
+        QCOMPARE(results.size(), 1);
+        QFile result(artifacts.filePath(results.first()));
+        QVERIFY(result.open(QIODevice::ReadOnly));
+        const QJsonObject artifact = QJsonDocument::fromJson(result.readAll()).object();
+        QCOMPARE(artifact.value("config").toObject().value("mode").toString(), QString("analytic"));
+        QCOMPARE(artifact.value("analysis").toObject().value("events").toInt(), 1);
+        QCOMPARE(artifact.value("tracks").toArray().size(), 2);
+    }
+
     void liveScientificWorkspacesAndResize()
     {
         QTemporaryDir projects;

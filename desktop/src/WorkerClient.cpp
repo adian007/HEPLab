@@ -1,6 +1,7 @@
 #include "WorkerClient.h"
 
 #include <QJsonDocument>
+#include <QCoreApplication>
 #include <QStandardPaths>
 #include <QDir>
 #include <QFileInfo>
@@ -27,15 +28,34 @@ void WorkerClient::start(const QString& repositoryRoot, const QString& projectRo
         return;
     }
 
-    QDir().mkpath(projectRoot);
+    const QString absoluteProjectRoot = QDir(projectRoot).absolutePath();
+    if (!QDir().mkpath(absoluteProjectRoot)) {
+        emit workerError("Could not create the HEPLab project directory");
+        return;
+    }
+    const QStringList workerOptions{"--project-root", absoluteProjectRoot};
+#ifdef Q_OS_WIN
+    const QDir appDir(QCoreApplication::applicationDirPath());
+    const QDir workerDir(appDir.filePath("worker"));
+    if (workerDir.exists()) {
+        const QString bundledWorker = workerDir.filePath("heplab-worker.exe");
+        if (!QFileInfo(bundledWorker).isFile()) {
+            emit workerError("The packaged HEPLab worker is missing");
+            return;
+        }
+        process_.setWorkingDirectory(workerDir.absolutePath());
+        process_.start(bundledWorker, workerOptions);
+        return;
+    }
+#endif
+
     const QString root = repositoryRoot.trimmed();
     if (root.isEmpty()) {
         emit workerError("HEPLab repository root could not be determined");
         return;
     }
 
-    const QStringList workerArguments{"-m", "heplab.desktop.worker", "--project-root",
-                                      QDir(projectRoot).absolutePath()};
+    const QStringList workerArguments = QStringList{"-m", "heplab.desktop.worker"} + workerOptions;
     process_.setWorkingDirectory(root);
 #ifdef Q_OS_WIN
     const QString localPython = QDir(root).filePath(".venv/Scripts/python.exe");

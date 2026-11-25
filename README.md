@@ -124,6 +124,11 @@ in this checkout and must not be treated as restored or supported.
 Desktop status, verified capabilities and release blockers are recorded in
 [the rebuild audit](docs/engineering/desktop-rebuild-audit.md).
 
+The Windows x64 desktop workflow stages an unsigned portable Workbench and a
+separate smoke-test kit. Extract the Workbench archive and open
+`HEPLabWorkbench.exe` from the extracted folder. The analytic simulator uses
+the bundled Python runtime. See [Windows packaging and acceptance](docs/engineering/windows-workbench-package.md).
+
 ## Simulator workspace
 
 The Workbench starts in **Simulation**. Choose an experiment or configure a run,

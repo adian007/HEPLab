@@ -61,6 +61,7 @@ nav:
       - Detailed implementation roadmap: engineering/implementation-roadmap.md
       - Laboratory profile and offline replay: engineering/laboratory-replay.md
       - Desktop shell and packaged worker: engineering/desktop-shell.md
+      - Windows Workbench packaging: engineering/windows-workbench-package.md
       - Requirements: engineering/18-requirements.md
       - Sources: engineering/19-sources.md
   - Design decisions:
