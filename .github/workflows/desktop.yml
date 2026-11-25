@@ -14,6 +14,8 @@ jobs:
   windows:
     name: Windows x64 Workbench
     runs-on: windows-2022
+    outputs:
+      smoke-kit-id: ${{ steps.smoke-kit.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,16 +29,15 @@ jobs:
         with:
           version: "6.8.3"
           arch: win64_msvc2022_64
+          setup-python: false
       - name: Install the locked Python worker environment
-        run: uv sync --locked --no-editable --no-dev --extra serve --extra analysis
+        run: uv sync --locked --python 3.12 --no-editable --no-dev --extra serve --extra analysis
       - name: Configure the Workbench
         run: >-
           cmake -S . -B build/desktop-ci -G "Visual Studio 17 2022" -A x64
           -DHEPLAB_BUILD_TESTS=ON "-DQt6_DIR=$env:QT_ROOT_DIR/lib/cmake/Qt6"
       - name: Build the Workbench and native tests
         run: cmake --build build/desktop-ci --config Release --parallel
-      - name: Test the Workbench and local worker
-        run: ctest --test-dir build/desktop-ci -C Release --output-on-failure --no-tests=error
       - name: Build and install the worker's Rust extension
         run: |
           uvx --from "maturin==1.16.0" maturin build --release --locked --interpreter .venv/Scripts/python.exe --manifest-path kernels/Cargo.toml --out build/worker-wheels
@@ -57,14 +58,18 @@ jobs:
           path: build/HEPLabWorkbench-win-x64/
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
+        id: smoke-kit
         with:
           name: HEPLabWorkbench-win-x64-smoke
           path: build/HEPLabWorkbench-smoke/
           if-no-files-found: error
+      - name: Test the Workbench and local worker
+        run: ctest --test-dir build/desktop-ci -C Release --output-on-failure --no-tests=error
 
   portable-smoke:
     name: Windows x64 portable simulation
     needs: windows
+    if: ${{ !cancelled() && needs.windows.outputs.smoke-kit-id != '' }}
     runs-on: windows-2022
     steps:
       - uses: actions/download-artifact@v4
