@@ -64,7 +64,24 @@ jobs:
           path: build/HEPLabWorkbench-smoke/
           if-no-files-found: error
       - name: Test the Workbench and local worker
-        run: ctest --test-dir build/desktop-ci -C Release --output-on-failure --no-tests=error
+        run: |
+          # The hosted runner's default OpenGL cannot compile the Workbench's GLSL 3.30 shaders.
+          # Use llvmpipe for this test step only. The release bundle keeps Qt's normal runtime.
+          $mesa = New-Item -ItemType Directory (Join-Path $env:RUNNER_TEMP 'heplab-mesa')
+          $archive = Join-Path $mesa.FullName 'mesa3d.7z'
+          curl.exe --fail --location --silent --show-error --retry 3 --output $archive https://github.com/pal1000/mesa-dist-win/releases/download/26.2.6/mesa3d-26.2.6-release-mingw.7z
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne 'da0f71d9181b672c1918f3c342f11118c687f6059a46b16502845160733cc388') {
+            throw 'Mesa archive checksum mismatch.'
+          }
+          tar.exe -xf $archive -C $mesa.FullName x64
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $driverDir = Join-Path $mesa.FullName 'x64'
+          $env:PATH = "$driverDir;$env:PATH"
+          $env:QT_OPENGL = 'software'
+          $env:QT_OPENGL_DLL = Join-Path $driverDir 'opengl32.dll'
+          $env:GALLIUM_DRIVER = 'llvmpipe'
+          ctest --test-dir build/desktop-ci -C Release --output-on-failure --no-tests=error
 
   portable-smoke:
     name: Windows x64 portable simulation
