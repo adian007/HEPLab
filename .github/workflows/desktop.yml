@@ -74,7 +74,7 @@ jobs:
           if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne 'da0f71d9181b672c1918f3c342f11118c687f6059a46b16502845160733cc388') {
             throw 'Mesa archive checksum mismatch.'
           }
-          tar.exe -xf $archive -C $mesa.FullName x64
+          tar.exe -xf $archive -C $mesa.FullName
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $driverDir = Join-Path $mesa.FullName 'x64'
           $env:PATH = "$driverDir;$env:PATH"
